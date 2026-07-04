@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, X } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutDashboard, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getLeads, updateLeadStatus, type Lead } from '../../lib/api';
+import { getLeads, updateLeadStatus, type Lead, type Pagination } from '../../lib/api';
 
 type Filter = 'all' | 'pending' | 'completed';
 
@@ -14,22 +14,29 @@ interface AdminPanelProps {
 export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
   const { isAdmin } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<Pagination | null>(null);
   const [filter, setFilter] = useState<Filter>('all');
   const [error, setError] = useState<string | null>(null);
 
   const refreshLeads = useCallback(async () => {
     try {
-      const data = await getLeads();
-      setLeads(data);
+      const data = await getLeads(page);
+      setLeads(data.leads);
+      setPagination(data.pagination);
       setError(null);
     } catch {
       setError('Could not load leads — the agency service may not be running yet.');
     }
-  }, []);
+  }, [page]);
 
   useEffect(() => {
     if (isAdmin && isOpen) refreshLeads();
   }, [isAdmin, isOpen, refreshLeads]);
+
+  useEffect(() => {
+    if (!isOpen) setPage(1);
+  }, [isOpen]);
 
   const toggleLeadStatus = async (leadId: string, currentStatus: string) => {
     const newStatus = currentStatus === 'pending' ? 'completed' : 'pending';
@@ -141,6 +148,28 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
                   ))
                 )}
               </div>
+
+              {pagination && pagination.total_pages > 1 && (
+                <div className="flex items-center justify-center gap-6 pt-8">
+                  <button
+                    onClick={() => setPage((p) => p - 1)}
+                    disabled={page <= 1}
+                    className="p-2 bg-white/5 border border-white/10 rounded-sm hover:text-brand-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronLeft className="w-5 h-5" />
+                  </button>
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-ink-muted">
+                    Page {pagination.page} of {pagination.total_pages} — {pagination.total} leads
+                  </span>
+                  <button
+                    onClick={() => setPage((p) => p + 1)}
+                    disabled={page >= pagination.total_pages}
+                    className="p-2 bg-white/5 border border-white/10 rounded-sm hover:text-brand-primary transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
+                  >
+                    <ChevronRight className="w-5 h-5" />
+                  </button>
+                </div>
+              )}
             </div>
           </motion.div>
         </div>

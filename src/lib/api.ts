@@ -240,8 +240,20 @@ export async function submitLead(lead: LeadInput) {
   });
 }
 
-export async function getLeads(): Promise<Lead[]> {
-  return request<Lead[]>('/agency/leads');
+export interface Pagination {
+  page: number;
+  limit: number;
+  total: number;
+  total_pages: number;
+}
+
+export interface LeadsPage {
+  leads: Lead[];
+  pagination: Pagination;
+}
+
+export async function getLeads(page = 1, limit = 20): Promise<LeadsPage> {
+  return request<LeadsPage>(`/agency/leads?page=${page}&limit=${limit}`);
 }
 
 export async function updateLeadStatus(leadId: string, status: 'pending' | 'completed') {
