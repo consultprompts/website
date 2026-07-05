@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo';
 import { useAuth } from '../../context/AuthContext';
 
@@ -9,7 +10,6 @@ interface MobileMenuProps {
   onClose: () => void;
   onStartProject: () => void;
   onOpenAuth: () => void;
-  onOpenAdmin: () => void;
 }
 
 const NAV_LINKS = [
@@ -20,7 +20,7 @@ const NAV_LINKS = [
   { href: '#contact', label: 'Contact' },
 ];
 
-export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth, onOpenAdmin }: MobileMenuProps) {
+export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth }: MobileMenuProps) {
   const { user, isAdmin, logout } = useAuth();
 
   return (
@@ -47,15 +47,13 @@ export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth
               </a>
             ))}
             {isAdmin && (
-              <button
-                onClick={() => {
-                  onOpenAdmin();
-                  onClose();
-                }}
-                className="text-left text-brand-primary uppercase cursor-pointer"
+              <Link
+                to="/admin-console"
+                onClick={onClose}
+                className="text-brand-primary uppercase cursor-pointer"
               >
                 ADMIN PANEL
-              </button>
+              </Link>
             )}
           </div>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Menu, User as UserIcon, LayoutDashboard } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
@@ -6,7 +7,6 @@ import { useAuth } from '../../context/AuthContext';
 interface NavbarProps {
   onStartProject: () => void;
   onOpenAuth: () => void;
-  onOpenAdmin: () => void;
   onToggleProfile: () => void;
   onOpenMobileMenu: () => void;
   isProfileOpen: boolean;
@@ -22,7 +22,6 @@ const NAV_LINKS = [
 export default function Navbar({
   onStartProject,
   onOpenAuth,
-  onOpenAdmin,
   onToggleProfile,
   onOpenMobileMenu,
   isProfileOpen,
@@ -44,12 +43,12 @@ export default function Navbar({
             </a>
           ))}
           {isAdmin && (
-            <button
-              onClick={onOpenAdmin}
+            <Link
+              to="/admin-console"
               className="flex items-center gap-2 text-brand-primary hover:text-white transition-colors cursor-pointer"
             >
               <LayoutDashboard className="w-4 h-4" /> Admin
-            </button>
+            </Link>
           )}
         </div>
 

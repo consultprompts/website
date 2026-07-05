@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { User as UserIcon, Eye, EyeOff, Loader2, MailCheck } from 'lucide-react';
+import { User as UserIcon, Eye, EyeOff, Loader2, MailCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { requestPasswordReset } from '../../lib/api';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -20,6 +21,12 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
   const [error, setError] = useState<string | null>(null);
   const [verificationSent, setVerificationSent] = useState(false);
 
+  const [isForgot, setIsForgot] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotSent, setForgotSent] = useState(false);
+  const [forgotLoading, setForgotLoading] = useState(false);
+  const [forgotError, setForgotError] = useState('');
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -32,7 +39,6 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
     try {
       if (mode === 'signup') {
         await register(email, password);
-        // Backend requires email verification before first login
         setVerificationSent(true);
       } else {
         await login(email, password);
@@ -46,9 +52,27 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
     }
   };
 
+  const handleForgotSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setForgotLoading(true);
+    setForgotError('');
+    try {
+      await requestPasswordReset(forgotEmail);
+    } catch {
+      // Don't leak whether email exists
+    } finally {
+      setForgotSent(true);
+      setForgotLoading(false);
+    }
+  };
+
   const handleClose = () => {
     setVerificationSent(false);
     setError(null);
+    setIsForgot(false);
+    setForgotEmail('');
+    setForgotSent(false);
+    setForgotError('');
     onClose();
   };
 
@@ -69,7 +93,81 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
             exit={{ opacity: 0, scale: 0.95 }}
             className="relative w-full max-w-sm liquid-glass p-6 md:p-10 rounded-xl border-brand-primary/30 z-10 my-auto"
           >
-            {verificationSent ? (
+            {/* Forgot password flow */}
+            {isForgot ? (
+              forgotSent ? (
+                <div className="text-center py-6">
+                  <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <MailCheck className="w-8 h-8 text-brand-primary" />
+                  </div>
+                  <h3 className="font-display text-2xl font-bold italic mb-2">Check Your Inbox</h3>
+                  <p className="text-ink-muted text-sm font-light leading-relaxed mb-8">
+                    If that email is registered, we sent a reset link. Check your inbox and follow the instructions.
+                  </p>
+                  <button
+                    onClick={() => {
+                      setIsForgot(false);
+                      setForgotSent(false);
+                      setForgotEmail('');
+                      onModeChange('login');
+                    }}
+                    className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary transition-colors cursor-pointer"
+                  >
+                    Back to Login
+                  </button>
+                </div>
+              ) : (
+                <>
+                  <div className="text-center mb-6 md:mb-8">
+                    <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
+                      <KeyRound className="w-6 h-6 md:w-8 md:h-8 text-brand-primary" />
+                    </div>
+                    <h3 className="font-display text-2xl md:text-3xl font-bold italic mb-1 md:mb-2 tracking-tight">
+                      Forgot Password
+                    </h3>
+                    <p className="text-ink-muted text-xs md:text-sm font-light">
+                      Enter your email and we'll send a reset link.
+                    </p>
+                  </div>
+
+                  <form onSubmit={handleForgotSubmit} className="space-y-3 md:space-y-4 mb-6 md:mb-8">
+                    <div className="space-y-1">
+                      <label className="text-[10px] uppercase tracking-widest font-bold text-brand-primary">Email</label>
+                      <input
+                        required
+                        type="email"
+                        value={forgotEmail}
+                        onChange={(e) => setForgotEmail(e.target.value)}
+                        className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm rounded-xl"
+                        placeholder="john@example.com"
+                      />
+                    </div>
+
+                    {forgotError && (
+                      <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{forgotError}</p>
+                    )}
+
+                    <button
+                      disabled={forgotLoading}
+                      className="liquid-glass w-full py-3.5 md:py-4 text-white font-black uppercase tracking-widest hover:border-brand-primary/50 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl border-white/10 relative group cursor-pointer disabled:cursor-not-allowed"
+                    >
+                      <span className="relative z-10">
+                        {forgotLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
+                      </span>
+                    </button>
+                  </form>
+
+                  <div className="text-center">
+                    <button
+                      onClick={() => setIsForgot(false)}
+                      className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1 cursor-pointer"
+                    >
+                      Back to Login
+                    </button>
+                  </div>
+                </>
+              )
+            ) : verificationSent ? (
               <div className="text-center py-6">
                 <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <MailCheck className="w-8 h-8 text-brand-primary" />
@@ -132,6 +230,17 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
+                    {mode === 'login' && (
+                      <div className="flex justify-end pt-1">
+                        <button
+                          type="button"
+                          onClick={() => setIsForgot(true)}
+                          className="text-[10px] text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest cursor-pointer transition-colors"
+                        >
+                          Forgot Password?
+                        </button>
+                      </div>
+                    )}
                   </div>
 
                   {error && (

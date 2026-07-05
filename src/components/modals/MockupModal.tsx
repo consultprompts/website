@@ -15,10 +15,12 @@ export default function MockupModal({ isOpen, onClose, selectedPackage, onPackag
   const { user } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const [alreadyActive, setAlreadyActive] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleClose = () => {
     setSubmitted(false);
+    setAlreadyActive(false);
     setError(null);
     onClose();
   };
@@ -39,6 +41,7 @@ export default function MockupModal({ isOpen, onClose, selectedPackage, onPackag
       setSubmitted(true);
     } catch (err) {
       if ((err as { code?: string }).code === 'ACTIVE_LEAD_EXISTS') {
+        setAlreadyActive(true);
         setSubmitted(true);
       } else {
         setError('Something went wrong. Please try again.');
@@ -159,10 +162,21 @@ export default function MockupModal({ isOpen, onClose, selectedPackage, onPackag
                 <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
                   <CheckCircle className="w-10 h-10 text-brand-primary" />
                 </div>
-                <h3 className="font-display text-3xl font-bold italic mb-4">Transmission Received</h3>
-                <p className="text-ink-muted leading-relaxed font-light mb-8">
-                  We're already analyzing your business DNA. Expect your mockup within 24-48 hours.
-                </p>
+                {alreadyActive ? (
+                  <>
+                    <h3 className="font-display text-3xl font-bold italic mb-4">You're Already in Line</h3>
+                    <p className="text-ink-muted leading-relaxed font-light mb-8">
+                      You already have an active project with us. We're working on it — reach out on WhatsApp if you have updates.
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <h3 className="font-display text-3xl font-bold italic mb-4">Transmission Received</h3>
+                    <p className="text-ink-muted leading-relaxed font-light mb-8">
+                      We're already analyzing your business DNA. Expect your mockup within 24-48 hours.
+                    </p>
+                  </>
+                )}
 
                 <div className="flex flex-col gap-4 items-center">
                   <a

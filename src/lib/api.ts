@@ -221,7 +221,8 @@ export interface Lead {
   business: string;
   message?: string;
   package?: string;
-  status: 'pending' | 'completed';
+  status: 'pending' | 'accepted' | 'completed';
+  milestone_index: number;
   created_at: string;
 }
 
@@ -252,14 +253,26 @@ export interface LeadsPage {
   pagination: Pagination;
 }
 
+export async function getMyLeads(): Promise<Lead[]> {
+  const data = await request<Lead[]>('/agency/leads/mine');
+  return data ?? [];
+}
+
 export async function getLeads(page = 1, limit = 20): Promise<LeadsPage> {
   return request<LeadsPage>(`/agency/leads?page=${page}&limit=${limit}`);
 }
 
-export async function updateLeadStatus(leadId: string, status: 'pending' | 'completed') {
+export async function updateLeadStatus(leadId: string, status: 'pending' | 'accepted' | 'completed') {
   return request<{ message: string }>(`/agency/leads/${leadId}/status`, {
     method: 'PATCH',
     body: JSON.stringify({ status }),
+  });
+}
+
+export async function updateLeadMilestone(leadId: string, milestoneIndex: number) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/milestone`, {
+    method: 'PATCH',
+    body: JSON.stringify({ milestone_index: milestoneIndex }),
   });
 }
 

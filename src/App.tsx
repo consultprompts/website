@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import Ebooks from './pages/Ebooks';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
+import AdminConsole from './pages/AdminConsole';
+import MyProjects from './pages/MyProjects';
 
 export default function App() {
   return (
@@ -15,6 +17,8 @@ export default function App() {
           <Route path="/ebooks" element={<Ebooks />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/admin-console" element={<AdminConsole />} />
+          <Route path="/my-projects" element={<MyProjects />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

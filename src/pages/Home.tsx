@@ -9,7 +9,6 @@ import BackgroundDecor from '../components/layout/BackgroundDecor';
 
 import AuthModal, { type AuthMode } from '../components/modals/AuthModal';
 import MockupModal from '../components/modals/MockupModal';
-import AdminPanel from '../components/modals/AdminPanel';
 import ProfileMenu from '../components/modals/ProfileMenu';
 
 import SeoSchema from '../components/home/SeoSchema';
@@ -24,10 +23,8 @@ import FinalCTA from '../components/home/FinalCTA';
 export default function Home() {
   const { user } = useAuth();
 
-  // Modal / menu visibility
   const [isMockupOpen, setIsMockupOpen] = useState(false);
   const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isProfileOpen, setIsProfileOpen] = useState(false);
 
@@ -35,7 +32,7 @@ export default function Home() {
   const [selectedPackage, setSelectedPackage] = useState('visibility');
   const [pendingAction, setPendingAction] = useState<'OPEN_MOCKUP' | null>(null);
 
-  useBodyScrollLock(isMobileMenuOpen || isMockupOpen || isAuthOpen || isAdminOpen);
+  useBodyScrollLock(isMobileMenuOpen || isMockupOpen || isAuthOpen);
 
   const handleStartProject = (packageId?: string) => {
     setSelectedPackage(packageId ?? 'visibility');
@@ -75,12 +72,9 @@ export default function Home() {
         onSuccess={handleAuthSuccess}
       />
 
-      <AdminPanel isOpen={isAdminOpen} onClose={() => setIsAdminOpen(false)} />
-
       <ProfileMenu
         isOpen={isProfileOpen}
         onClose={() => setIsProfileOpen(false)}
-        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       <Navbar
@@ -89,7 +83,6 @@ export default function Home() {
           setAuthMode('login');
           setIsAuthOpen(true);
         }}
-        onOpenAdmin={() => setIsAdminOpen(true)}
         onToggleProfile={() => setIsProfileOpen((v) => !v)}
         onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
         isProfileOpen={isProfileOpen}
@@ -103,7 +96,6 @@ export default function Home() {
           setAuthMode('signup');
           setIsAuthOpen(true);
         }}
-        onOpenAdmin={() => setIsAdminOpen(true)}
       />
 
       <Hero />
