@@ -37,8 +37,12 @@ export default function MockupModal({ isOpen, onClose, selectedPackage, onPackag
         package: formData.get('package') as string,
       });
       setSubmitted(true);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (err) {
+      if ((err as { code?: string }).code === 'ACTIVE_LEAD_EXISTS') {
+        setSubmitted(true);
+      } else {
+        setError('Something went wrong. Please try again.');
+      }
     } finally {
       setIsSubmitting(false);
     }
