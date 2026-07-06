@@ -7,6 +7,7 @@ import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
 import AdminConsole from './pages/AdminConsole';
 import MyProjects from './pages/MyProjects';
+import StartProject from './pages/StartProject';
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
           <Route path="/reset-password" element={<ResetPassword />} />
           <Route path="/admin-console" element={<AdminConsole />} />
           <Route path="/my-projects" element={<MyProjects />} />
+          <Route path="/start-project" element={<StartProject />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

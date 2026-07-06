@@ -42,14 +42,6 @@ export default function Navbar({
               {link.label}
             </a>
           ))}
-          {isAdmin && (
-            <Link
-              to="/admin-console"
-              className="flex items-center gap-2 text-brand-primary hover:text-white transition-colors cursor-pointer"
-            >
-              <LayoutDashboard className="w-4 h-4" /> Admin
-            </Link>
-          )}
         </div>
 
         <div className="hidden xl:flex items-center gap-4">

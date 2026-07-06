@@ -78,8 +78,9 @@ async function request<T>(
   options: RequestInit = {},
   retryOnAuthFail = true,
 ): Promise<T> {
+  const isFormData = options.body instanceof FormData;
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
     ...(options.headers as Record<string, string>),
   };
 
@@ -230,14 +231,40 @@ export interface LeadInput {
   name: string;
   email: string;
   business: string;
-  message?: string;
+  existing_website?: boolean;
+  existing_website_url?: string;
+  site_goal?: string;
+  pages_needed?: string[];
+  style_direction?: string;
+  has_logo?: boolean;
+  logo_file?: File;
+  has_brand_colors?: boolean;
+  primary_color?: string;
+  secondary_color?: string;
+  inspiration_urls?: string[];
+  phone_number: string;
+  contact_method?: string;
+  timeline?: string;
   package?: string;
 }
 
 export async function submitLead(lead: LeadInput) {
+  const { logo_file, pages_needed, inspiration_urls, ...scalar } = lead;
+
+  if (logo_file) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(scalar)) {
+      if (v !== undefined && v !== null) fd.append(k, String(v));
+    }
+    pages_needed?.forEach(p => fd.append('pages_needed[]', p));
+    inspiration_urls?.forEach(u => fd.append('inspiration_urls[]', u));
+    fd.append('logo_file', logo_file);
+    return request<{ id: string }>('/agency/leads', { method: 'POST', body: fd });
+  }
+
   return request<{ id: string }>('/agency/leads', {
     method: 'POST',
-    body: JSON.stringify(lead),
+    body: JSON.stringify({ ...scalar, pages_needed, inspiration_urls }),
   });
 }
 

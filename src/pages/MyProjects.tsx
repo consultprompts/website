@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, Loader2, FolderOpen } from 'lucide-react';
 import logoSrc from '../logo.png';
 import { getMyLeads, type Lead } from '../lib/api';
@@ -133,17 +133,23 @@ function ProjectCard({ lead, active }: { lead: Lead; active: boolean }) {
 }
 
 export default function MyProjects() {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
+    if (authLoading) return;
+    if (!user) {
+      navigate('/?auth=login&next=/my-projects', { replace: true });
+      return;
+    }
     getMyLeads()
       .then(setLeads)
       .catch(() => setError('Could not load your projects — please try again.'))
       .finally(() => setLoading(false));
-  }, []);
+  }, [user, authLoading, navigate]);
 
   const active = leads.filter((l) => l.status !== 'completed');
   const past   = leads.filter((l) => l.status === 'completed');
