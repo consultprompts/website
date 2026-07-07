@@ -63,7 +63,7 @@ export const tokenStore = {
 // Core fetch wrapper with automatic token refresh
 // ---------------------------------------------------------------------------
 
-class APIError extends Error {
+export class APIError extends Error {
   code: string;
   status: number;
   constructor(code: string, message: string, status: number) {
@@ -247,6 +247,7 @@ export interface Lead {
   milestone_index: number;
   mockup_url?: string;
   revision_feedback?: string;
+  revision_count: number;
   wants_maintenance: boolean;
   is_paid: boolean;
   paid_at?: string;

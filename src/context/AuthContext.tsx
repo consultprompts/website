@@ -19,6 +19,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // Restore session on mount if a token exists
   useEffect(() => {
+    // The OAuth callback page stores fresh tokens and immediately hard-redirects
+    // to "/"; fetching /auth/me here would race that navigation — the aborted
+    // fetch lands in the catch below and would wipe the just-stored tokens.
+    if (window.location.pathname === '/auth/callback') {
+      setLoading(false);
+      return;
+    }
     const restore = async () => {
       if (!api.tokenStore.getAccess()) {
         setLoading(false);
@@ -27,8 +34,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       try {
         const profile = await api.getMe();
         setUser(profile);
-      } catch {
-        api.tokenStore.clear();
+      } catch (err) {
+        // Only a real rejection means the session is dead — a network hiccup
+        // or a fetch aborted by navigation must not wipe stored tokens.
+        if (err instanceof api.APIError && (err.status === 401 || err.status === 403)) {
+          api.tokenStore.clear();
+        }
         setUser(null);
       } finally {
         setLoading(false);

@@ -657,76 +657,48 @@ function LeadLink({ url, label }: { url: string; label?: string }) {
   );
 }
 
-function buildBriefRows(lead: Lead): { label: string; value: React.ReactNode }[] {
-  const rows: { label: string; value: React.ReactNode }[] = [];
-  const add = (label: string, value: React.ReactNode) => rows.push({ label, value });
-
-  if (lead.package) add('Package', lead.package);
-  add('Wants a Call', lead.wants_call ? 'Yes' : 'No');
-  if (lead.message) add('About the Business', <span className="whitespace-pre-wrap">{lead.message}</span>);
-  if (lead.site_goal) add('Site Goal', lead.site_goal);
-  if (lead.existing_website !== undefined) {
-    add('Existing Site', lead.existing_website
-      ? (lead.existing_website_url ? <LeadLink url={lead.existing_website_url} /> : 'Yes')
-      : 'No');
-  }
-  if (lead.pages_needed?.length) add('Pages Needed', lead.pages_needed.join(', '));
-  if (lead.style_direction) add('Style', lead.style_direction);
-  if (lead.has_logo !== undefined) {
-    add('Logo', lead.has_logo
-      ? (lead.logo_url ? <LeadLink url={lead.logo_url} label="View logo" /> : 'Yes')
-      : 'No');
-  }
-  if (lead.has_brand_colors) {
-    add('Brand Colors', (
-      <span className="inline-flex items-center gap-2">
-        {[lead.primary_color, lead.secondary_color].filter(Boolean).map((c, i) => (
-          <span key={i} className="inline-flex items-center gap-1">
-            <span className="inline-block w-3.5 h-3.5 rounded-sm align-middle" style={{ background: c, border: '1px solid rgba(255,255,255,0.2)' }} />
-            <span className="text-[12px]">{c}</span>
-          </span>
-        ))}
-      </span>
-    ));
-  }
-  if (lead.inspiration_urls?.length) {
-    add('Inspiration', (
-      <span className="flex flex-col gap-0.5">
-        {lead.inspiration_urls.map((u, i) => <LeadLink key={i} url={u} />)}
-      </span>
-    ));
-  }
-  if (lead.phone_number) add('Phone', <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.phone_number}</a>);
-  if (lead.contact_method) add('Preferred Contact', lead.contact_method);
-  if (lead.timeline) add('Timeline', lead.timeline);
-
-  return rows;
-}
-
 function SubmittedBriefButton({ lead }: { lead: Lead }) {
   const [open, setOpen] = useState(false);
-  const rows = buildBriefRows(lead);
-
-  if (rows.length === 0) return null;
-
   return (
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex justify-between items-center px-4 py-3 bg-transparent cursor-pointer rounded-sm"
+        className="w-full flex justify-between items-center px-4 py-3 cursor-pointer rounded-sm"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
       >
         <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
         <span className="text-[10px] text-ink-muted">▸</span>
       </button>
       <AnimatePresence>
-        {open && <BriefModal rows={rows} onClose={() => setOpen(false)} />}
+        {open && <BriefModal lead={lead} onClose={() => setOpen(false)} />}
       </AnimatePresence>
     </>
   );
 }
 
-function BriefModal({ rows, onClose }: { rows: { label: string; value: React.ReactNode }[]; onClose: () => void }) {
+function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
+  const rows: { label: string; value: React.ReactNode }[] = [];
+  if (lead.package) rows.push({ label: 'Package', value: lead.package });
+  rows.push({ label: 'Wants a Call', value: lead.wants_call ? 'Yes' : 'No' });
+  if (lead.site_goal) rows.push({ label: 'Site Goal', value: lead.site_goal });
+  if (lead.existing_website !== undefined) {
+    rows.push({
+      label: 'Existing Site',
+      value: lead.existing_website
+        ? (lead.existing_website_url ? <LeadLink url={lead.existing_website_url} /> : 'Yes')
+        : 'No',
+    });
+  }
+  if (lead.style_direction) rows.push({ label: 'Style', value: lead.style_direction });
+  if (lead.message) rows.push({ label: 'About the Business', value: <span className="whitespace-pre-wrap">{lead.message}</span> });
+  if (lead.phone_number) rows.push({ label: 'Phone', value: <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.phone_number}</a> });
+  if (lead.contact_method) rows.push({ label: 'Preferred Contact', value: lead.contact_method });
+  if (lead.timeline) rows.push({ label: 'Timeline', value: lead.timeline });
+
+  const colors = lead.has_brand_colors
+    ? [lead.primary_color, lead.secondary_color].filter((c): c is string => !!c)
+    : [];
+
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-6">
       <motion.div
@@ -734,32 +706,110 @@ function BriefModal({ rows, onClose }: { rows: { label: string; value: React.Rea
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         onClick={onClose}
-        className="absolute inset-0 bg-black/60"
+        className="absolute inset-0"
+        style={{ background: 'rgba(0,0,0,0.65)' }}
       />
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
         exit={{ opacity: 0, y: 12 }}
-        style={{ border: '1px solid rgba(255,255,255,0.08)', maxWidth: 420, maxHeight: '80vh' }}
-        className="relative w-full bg-bg-surface rounded-sm p-6 flex flex-col gap-4 overflow-y-auto text-white"
+        className="relative w-full flex flex-col text-white"
+        style={{ maxWidth: 480, maxHeight: '84vh', background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden' }}
       >
-        <div className="flex justify-between items-center">
-          <h4 className="m-0 text-[13px] uppercase tracking-[0.14em] font-bold text-ink-muted">Submitted Brief</h4>
+        {/* Header */}
+        <div
+          className="flex items-start justify-between gap-4 flex-shrink-0"
+          style={{ padding: '22px 26px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(135deg, rgba(0,240,255,0.06), rgba(112,0,255,0.05))' }}
+        >
+          <div>
+            <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.16em', color: '#00F0FF', marginBottom: 4 }}>
+              Submitted Brief
+            </p>
+            <h3 className="m-0 font-display font-bold italic" style={{ fontSize: 20 }}>
+              {lead.business}
+            </h3>
+          </div>
           <button
             onClick={onClose}
-            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-            className="w-7 h-7 rounded-full bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
+            className="bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
+            style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)' }}
           >
             ✕
           </button>
         </div>
-        <div className="flex flex-col gap-2.5">
-          {rows.map(({ label, value }) => (
-            <div key={label} className="flex gap-3">
-              <span className="text-[10px] uppercase tracking-[0.1em] font-bold text-ink-muted w-[110px] flex-shrink-0 pt-0.5">{label}</span>
-              <span className="text-[13px] text-white font-light min-w-0">{value}</span>
+
+        {/* Scrollable body */}
+        <div className="overflow-y-auto flex flex-col" style={{ padding: '22px 26px 26px', gap: 20 }}>
+          {/* Key fact rows */}
+          <div className="flex flex-col">
+            {rows.map(({ label, value }) => (
+              <div key={label} className="flex" style={{ gap: 16, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                <span className="font-bold uppercase flex-shrink-0" style={{ fontSize: 10, letterSpacing: '0.1em', color: '#A1A1A1', width: 130, paddingTop: 1 }}>
+                  {label}
+                </span>
+                <span className="min-w-0" style={{ fontSize: 13, color: '#FFFFFF' }}>
+                  {value}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Pages Needed */}
+          {!!lead.pages_needed?.length && (
+            <div>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+                Pages Needed
+              </p>
+              <div className="flex flex-wrap" style={{ gap: 8 }}>
+                {lead.pages_needed.map((p) => (
+                  <span key={p} style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: 'rgba(0,240,255,0.1)', border: '1px solid rgba(0,240,255,0.25)', color: '#00F0FF' }}>
+                    {p}
+                  </span>
+                ))}
+              </div>
             </div>
-          ))}
+          )}
+
+          {/* Brand Colors */}
+          {colors.length > 0 && (
+            <div>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+                Brand Colors
+              </p>
+              <div className="flex" style={{ gap: 10 }}>
+                {colors.map((c, i) => (
+                  <div key={i} className="flex items-center" style={{ gap: 8, padding: '6px 12px 6px 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0, display: 'inline-block' }} />
+                    <span className="font-display" style={{ fontSize: 11, color: '#FFFFFF' }}>{c}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Logo */}
+          {lead.has_logo && lead.logo_url && (
+            <div>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+                Logo
+              </p>
+              <LeadLink url={lead.logo_url} label="View logo" />
+            </div>
+          )}
+
+          {/* Inspiration */}
+          {!!lead.inspiration_urls?.length && (
+            <div>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+                Inspiration
+              </p>
+              <div className="flex flex-col" style={{ gap: 6 }}>
+                {lead.inspiration_urls.map((u, i) => (
+                  <LeadLink key={i} url={u} />
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       </motion.div>
     </div>
