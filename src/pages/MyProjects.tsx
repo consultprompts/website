@@ -6,15 +6,7 @@ import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } fr
 import { PACKAGES } from '../data/content';
 import { safeUrl } from '../lib/urls';
 import { useAuth } from '../context/AuthContext';
-
-const MILESTONES = [
-  'Designing Mockup',
-  'Mockup Delivered',
-  'Revisions Signed Off',
-  'Site in Development',
-  'Site Completed',
-  'Launched',
-];
+import { milestoneStages, milestoneOffset, CORE_IDX } from '../lib/milestones';
 
 // Monthly maintenance price — update this constant when pricing changes.
 const MAINTENANCE_MONTHLY_PRICE = 29;
@@ -50,7 +42,10 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
     setError('');
     try {
       await submitReview(lead.id, 'accept');
-      onUpdate({ ...lead, milestone_index: 2 });
+      // Accepting advances straight into "Building Your Website" — that's what
+      // makes "Design Approved" show as done rather than just current.
+      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.siteInDevelopment;
+      onUpdate({ ...lead, milestone_index: targetIndex });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
@@ -67,7 +62,9 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
     setError('');
     try {
       await submitReview(lead.id, 'request_changes', feedback.trim());
-      onUpdate({ ...lead, revision_feedback: feedback.trim() });
+      // Un-checks "Design Ready for Your Review" — the admin needs to deliver a new one.
+      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.mockupDelivered;
+      onUpdate({ ...lead, revision_feedback: feedback.trim(), milestone_index: targetIndex });
       setShowFeedback(false);
       setFeedback('');
     } catch (e) {
@@ -207,7 +204,10 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     setPayError('');
     try {
       await markPaid(lead.id);
-      onUpdate({ ...lead, is_paid: true, paid_at: new Date().toISOString() });
+      // Checks off "Website Ready" and "Payment" and makes "Waiting for
+      // Launch" current — the client now waits on the admin to launch.
+      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.waitingForLaunch;
+      onUpdate({ ...lead, is_paid: true, paid_at: new Date().toISOString(), milestone_index: targetIndex });
     } catch (e) {
       setPayError(e instanceof Error ? e.message : 'Payment failed — please try again.');
     } finally {
@@ -512,21 +512,35 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
-  const showMockupReview = lead.milestone_index === 1 && !!lead.mockup_url;
-  const showPayment = lead.milestone_index >= 4;
+  const offset = milestoneOffset(lead.wants_call);
+  const stages = milestoneStages(lead.wants_call);
+  // Delivering the mockup marks "Designing Your Website" done and makes
+  // "Design Ready for Your Review" current — that's where the client's
+  // accept/reject decision lives. Accepting jumps straight to "Building Your
+  // Website", leaving "Design Approved" checked without ever being current.
+  // If the client requests changes instead, current reverts to "Design Ready
+  // for Your Review" (unchecked) until the admin delivers a new mockup.
+  const mockupDeliveredIdx = offset + CORE_IDX.mockupDelivered;
+  const showMockupReview = lead.milestone_index === mockupDeliveredIdx && !!lead.mockup_url;
+  // Payment becomes available once "Website Ready" is done and current is
+  // "Payment" — that's where the PaymentPanel (and, once paid, its "waiting
+  // to launch" card) lives. Paying advances current to "Waiting for Launch"
+  // until the admin actually launches, which flips lead.status to 'launched'
+  // and swaps this whole tracker for the "Project Launched" view above.
+  const showPayment = lead.milestone_index >= offset + CORE_IDX.payment;
 
   return (
     <div className="mt-6">
       <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Project Milestones</p>
       <div className="flex flex-col gap-0">
-        {MILESTONES.map((label, idx) => {
+        {stages.map((label, idx) => {
           const done = idx < lead.milestone_index;
           const current = idx === lead.milestone_index;
           const upcoming = idx > lead.milestone_index;
           return (
             <div key={idx} className="flex items-start gap-3 relative">
               {/* connector line */}
-              {idx < MILESTONES.length - 1 && (
+              {idx < stages.length - 1 && (
                 <div
                   className="absolute left-[10px] top-[22px] w-px"
                   style={{
@@ -563,8 +577,8 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                     Current stage
                   </p>
                 )}
-                {/* Mockup review UI — shown at "Mockup Delivered" when URL is set */}
-                {idx === 1 && current && showMockupReview && (
+                {/* Mockup review UI — shown while "Design Ready for Your Review" is current */}
+                {idx === mockupDeliveredIdx && current && showMockupReview && (
                   <MockupReviewPanel lead={lead} onUpdate={onUpdate} />
                 )}
               </div>
@@ -573,7 +587,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
         })}
       </div>
 
-      {/* Payment + maintenance — shown when "Site Completed" milestone is active */}
+      {/* Payment + maintenance — shown from "Payment" milestone onward */}
       {showPayment && (
         <PaymentPanel lead={lead} onUpdate={onUpdate} />
       )}

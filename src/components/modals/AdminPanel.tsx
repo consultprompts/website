@@ -1,18 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../../context/AuthContext';
-import { getLeads, updateLeadStatus, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
+import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
+import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
 import logo from '../../logo.png';
-
-const MILESTONE_STAGES = [
-  'Designing Mockup',
-  'Mockup Delivered',
-  'Revisions Signed Off',
-  'Site in Development',
-  'Site Completed',
-  'Launched',
-];
 
 type Section = 'agency' | 'products' | 'academy';
 type Filter = 'all' | 'pending' | 'accepted' | 'completed' | 'launched';
@@ -38,6 +30,31 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = 
   completed: { bg: 'rgba(112,0,255,0.22)',   fg: '#B98CFF', label: 'completed' },
   launched:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'launched' },
 };
+
+// Derives how one milestone row renders (and whether it accepts clicks) for a
+// lead. Auto-set stages are locked with a tooltip saying what checks them;
+// "sent" marks a stage whose admin action fired but is awaiting the client
+// (mockup under review, payment email out), so it shows a badge instead of a
+// premature checkmark.
+function stageRowState(idx: number, lead: Lead) {
+  const offset = milestoneOffset(lead.wants_call);
+  const current = idx === lead.milestone_index && lead.status !== 'launched';
+  const launchLocked = idx === offset + CORE_IDX.launched && !lead.is_paid;
+  const lockReason =
+    launchLocked ? 'Client must complete payment first'
+    : idx === offset + CORE_IDX.designingMockup ? 'Automatically checked when you send the mockup below'
+    : idx === offset + CORE_IDX.revisionsSignedOff ? 'Automatically checked when the client accepts their mockup'
+    : idx === offset + CORE_IDX.payment ? 'Automatically checked when the client pays'
+    : idx === offset + CORE_IDX.waitingForLaunch ? 'Automatically checked once you launch the site below'
+    : undefined;
+  const sentWebsiteReady =
+    idx === offset + CORE_IDX.siteCompleted &&
+    lead.milestone_index === offset + CORE_IDX.payment &&
+    !lead.is_paid;
+  const sent = sentWebsiteReady || (idx === offset + CORE_IDX.mockupDelivered && current);
+  const done = idx < lead.milestone_index && !sentWebsiteReady;
+  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, done };
+}
 
 export default function AdminPanel({ isOpen, onClose, fullScreen = false }: AdminPanelProps) {
   const { isAdmin } = useAuth();
@@ -80,13 +97,17 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
     }
   }, [isOpen]);
 
-  const handleAccept = useCallback(async (leadId: string) => {
+  const handleAccept = useCallback(async (lead: Lead) => {
+    const leadId = lead.id;
+    // Always start at the first stage, unchecked — "Discovery Call Completed"
+    // when the lead opted into a call, otherwise "Designing Your Website".
+    const startIndex = 0;
     setAccepting(leadId);
     setActionError(null);
     try {
-      await updateLeadMilestone(leadId, 0);
+      await updateLeadMilestone(leadId, startIndex);
       setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, status: 'accepted', milestone_index: 0 } : l)),
+        prev.map((l) => (l.id === leadId ? { ...l, status: 'accepted', milestone_index: startIndex } : l)),
       );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to accept lead');
@@ -96,27 +117,31 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
   }, []);
 
   const handleMilestone = useCallback(async (leadId: string, idx: number, lead: Lead) => {
-    // "Mockup Delivered" (index 1) — show URL input before advancing.
-    if (idx === 1) {
+    const offset = milestoneOffset(lead.wants_call);
+    // "Design Ready for Your Review" — show URL input before advancing.
+    if (idx === offset + CORE_IDX.mockupDelivered) {
       setMockupInputId(leadId);
       setMockupURL('');
       return;
     }
-    // "Site Completed" (index 4) — dedicated complete endpoint + email.
-    if (idx === 4) {
+    // "Website Ready" — dedicated complete endpoint + email. Sends the payment
+    // email and makes "Payment" current. "Website Ready" itself is rendered as
+    // "sent" (not done) until the client actually pays — see the sentWebsiteReady
+    // check below.
+    if (idx === offset + CORE_IDX.siteCompleted) {
       setActionError(null);
       try {
         await completeSite(leadId);
         setLeads((prev) =>
-          prev.map((l) => (l.id === leadId ? { ...l, milestone_index: 4, status: 'accepted' } : l)),
+          prev.map((l) => (l.id === leadId ? { ...l, milestone_index: idx + 1, status: 'accepted' } : l)),
         );
       } catch (err) {
         setActionError(err instanceof Error ? err.message : 'Failed to mark site complete');
       }
       return;
     }
-    // "Launched" (index 5) — requires payment; show site URL input.
-    if (idx === 5) {
+    // "Launched" — requires payment; show site URL input.
+    if (idx === offset + CORE_IDX.launched) {
       if (!lead.is_paid) {
         setActionError('Client must complete payment before the site can be launched.');
         return;
@@ -125,12 +150,19 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
       setLaunchURL('');
       return;
     }
+    // Auto-set stages ("Designing Your Website", "Design Approved", "Payment",
+    // "Waiting for Launch") can't be checked off manually — their rows are
+    // also disabled, so this is just a safety net.
+    if (stageRowState(idx, lead).locked) {
+      return;
+    }
+    // Clicking a stage marks *that* stage done and advances current to the next one.
     setActionError(null);
     try {
-      await updateLeadMilestone(leadId, idx);
+      await updateLeadMilestone(leadId, idx + 1);
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: idx, status: 'accepted' } : l,
+          l.id === leadId ? { ...l, milestone_index: idx + 1, status: 'accepted' } : l,
         ),
       );
     } catch (err) {
@@ -138,14 +170,17 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
     }
   }, []);
 
-  const handleMockupSave = useCallback(async (leadId: string, url: string) => {
+  const handleMockupSave = useCallback(async (leadId: string, url: string, lead: Lead) => {
     if (!url.trim()) return;
     setActionError(null);
+    // Marks "Designing Your Website" done and advances current to "Design Ready
+    // for Your Review", where the client approves it or requests changes.
+    const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.mockupDelivered;
     try {
       await apiSetMockupURL(leadId, url.trim());
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: 1, mockup_url: url.trim(), status: 'accepted' } : l,
+          l.id === leadId ? { ...l, milestone_index: targetIndex, mockup_url: url.trim(), status: 'accepted' } : l,
         ),
       );
       setMockupInputId(null);
@@ -155,14 +190,15 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
     }
   }, []);
 
-  const handleLaunchSave = useCallback(async (leadId: string, url: string) => {
+  const handleLaunchSave = useCallback(async (leadId: string, url: string, lead: Lead) => {
     if (!url.trim()) return;
     setActionError(null);
+    const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.launched;
     try {
       await launchSite(leadId, url.trim());
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: 5, status: 'launched', site_url: url.trim() } : l,
+          l.id === leadId ? { ...l, milestone_index: targetIndex, status: 'launched', site_url: url.trim() } : l,
         ),
       );
       setLaunchInputId(null);
@@ -302,14 +338,14 @@ interface AgencySectionProps {
   selected: Lead | null;
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
-  onAccept: (id: string) => Promise<void>;
+  onAccept: (lead: Lead) => Promise<void>;
   onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
-  onMockupSave: (leadId: string, url: string) => Promise<void>;
+  onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
   mockupInputId: string | null;
   mockupURL: string;
   setMockupURL: (v: string) => void;
   onCancelMockup: () => void;
-  onLaunchSave: (leadId: string, url: string) => Promise<void>;
+  onLaunchSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
   launchInputId: string | null;
   launchURL: string;
   setLaunchURL: (v: string) => void;
@@ -440,11 +476,11 @@ function AgencySection({
                   </p>
                 </div>
 
-                <LeadBrief lead={selected} defaultOpen={selected.status === 'pending'} />
+                <SubmittedBriefButton lead={selected} />
 
                 {selected.status === 'pending' && (
                   <button
-                    onClick={() => onAccept(selected.id)}
+                    onClick={() => onAccept(selected)}
                     disabled={accepting === selected.id}
                     className="w-full py-3.5 bg-brand-primary text-bg-base border-none rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
                   >
@@ -458,26 +494,27 @@ function AgencySection({
                   </p>
                 )}
 
-                {selected.status === 'accepted' && (
+                {selected.status === 'accepted' && (() => {
+                  const offset = milestoneOffset(selected.wants_call);
+                  const stages = milestoneStages(selected.wants_call);
+                  return (
                   <div>
                     <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
                       Project Milestones
                     </p>
                     <div className="flex flex-col gap-0.5">
-                      {MILESTONE_STAGES.map((label, idx) => {
-                        const done = idx <= selected.milestone_index;
-                        const current = idx === selected.milestone_index && selected.status !== 'launched';
-                        const showingMockupInput = idx === 1 && mockupInputId === selected.id;
-                        const showingLaunchInput = idx === 5 && launchInputId === selected.id;
-                        const launchLocked = idx === 5 && !selected.is_paid;
+                      {stages.map((label, idx) => {
+                        const { current, launchLocked, locked, lockReason, sent, done } = stageRowState(idx, selected);
+                        const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
+                        const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
                         return (
                           <div key={idx}>
                             <button
                               onClick={() => onMilestone(selected.id, idx, selected)}
-                              disabled={launchLocked}
-                              title={launchLocked ? 'Client must complete payment first' : undefined}
+                              disabled={locked}
+                              title={lockReason}
                               className="flex items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left w-full rounded-sm hover:bg-white/[0.03] transition-colors"
-                              style={{ cursor: launchLocked ? 'not-allowed' : 'pointer', opacity: launchLocked ? 0.45 : 1 }}
+                              style={{ cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.45 : 1 }}
                             >
                               <div
                                 style={{
@@ -498,10 +535,11 @@ function AgencySection({
                               >
                                 {label}
                                 {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
+                                {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
                               </span>
                             </button>
 
-                            {/* Mockup URL input — shown when admin clicks "Mockup Delivered" */}
+                            {/* Mockup URL input — shown when admin clicks "Design Ready for Your Review" */}
                             {showingMockupInput && (
                               <div
                                 className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
@@ -521,7 +559,7 @@ function AgencySection({
                                 />
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => onMockupSave(selected.id, mockupURL)}
+                                    onClick={() => onMockupSave(selected.id, mockupURL, selected)}
                                     disabled={!mockupURL.trim()}
                                     className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
                                     style={{ background: '#00F0FF', color: '#050505' }}
@@ -559,7 +597,7 @@ function AgencySection({
                                 />
                                 <div className="flex gap-2">
                                   <button
-                                    onClick={() => onLaunchSave(selected.id, launchURL)}
+                                    onClick={() => onLaunchSave(selected.id, launchURL, selected)}
                                     disabled={!launchURL.trim()}
                                     className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
                                     style={{ background: '#B98CFF', color: '#050505' }}
@@ -581,7 +619,8 @@ function AgencySection({
                       })}
                     </div>
                   </div>
-                )}
+                  );
+                })()}
 
                 {(selected.status === 'launched' || selected.status === 'completed') && (
                   <LaunchedDetails lead={selected} />
@@ -618,13 +657,13 @@ function LeadLink({ url, label }: { url: string; label?: string }) {
   );
 }
 
-function LeadBrief({ lead, defaultOpen }: { lead: Lead; defaultOpen: boolean }) {
-  const [open, setOpen] = useState(defaultOpen);
-
+function buildBriefRows(lead: Lead): { label: string; value: React.ReactNode }[] {
   const rows: { label: string; value: React.ReactNode }[] = [];
   const add = (label: string, value: React.ReactNode) => rows.push({ label, value });
 
   if (lead.package) add('Package', lead.package);
+  add('Wants a Call', lead.wants_call ? 'Yes' : 'No');
+  if (lead.message) add('About the Business', <span className="whitespace-pre-wrap">{lead.message}</span>);
   if (lead.site_goal) add('Site Goal', lead.site_goal);
   if (lead.existing_website !== undefined) {
     add('Existing Site', lead.existing_website
@@ -661,20 +700,60 @@ function LeadBrief({ lead, defaultOpen }: { lead: Lead; defaultOpen: boolean }) 
   if (lead.contact_method) add('Preferred Contact', lead.contact_method);
   if (lead.timeline) add('Timeline', lead.timeline);
 
+  return rows;
+}
+
+function SubmittedBriefButton({ lead }: { lead: Lead }) {
+  const [open, setOpen] = useState(false);
+  const rows = buildBriefRows(lead);
+
   if (rows.length === 0) return null;
 
   return (
-    <div className="rounded-sm overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+    <>
       <button
-        onClick={() => setOpen(!open)}
-        className="w-full flex justify-between items-center px-4 py-3 bg-transparent border-none cursor-pointer"
-        style={{ background: 'rgba(255,255,255,0.04)' }}
+        onClick={() => setOpen(true)}
+        className="w-full flex justify-between items-center px-4 py-3 bg-transparent cursor-pointer rounded-sm"
+        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
       >
-        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">Submitted Brief</span>
-        <span className="text-[10px] text-ink-muted">{open ? '▲' : '▼'}</span>
+        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
+        <span className="text-[10px] text-ink-muted">▸</span>
       </button>
-      {open && (
-        <div className="px-4 py-3 flex flex-col gap-2.5">
+      <AnimatePresence>
+        {open && <BriefModal rows={rows} onClose={() => setOpen(false)} />}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function BriefModal({ rows, onClose }: { rows: { label: string; value: React.ReactNode }[]; onClose: () => void }) {
+  return (
+    <div className="fixed inset-0 z-[130] flex items-center justify-center p-6">
+      <motion.div
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+        className="absolute inset-0 bg-black/60"
+      />
+      <motion.div
+        initial={{ opacity: 0, y: 12 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 12 }}
+        style={{ border: '1px solid rgba(255,255,255,0.08)', maxWidth: 420, maxHeight: '80vh' }}
+        className="relative w-full bg-bg-surface rounded-sm p-6 flex flex-col gap-4 overflow-y-auto text-white"
+      >
+        <div className="flex justify-between items-center">
+          <h4 className="m-0 text-[13px] uppercase tracking-[0.14em] font-bold text-ink-muted">Submitted Brief</h4>
+          <button
+            onClick={onClose}
+            style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+            className="w-7 h-7 rounded-full bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
+          >
+            ✕
+          </button>
+        </div>
+        <div className="flex flex-col gap-2.5">
           {rows.map(({ label, value }) => (
             <div key={label} className="flex gap-3">
               <span className="text-[10px] uppercase tracking-[0.1em] font-bold text-ink-muted w-[110px] flex-shrink-0 pt-0.5">{label}</span>
@@ -682,7 +761,7 @@ function LeadBrief({ lead, defaultOpen }: { lead: Lead; defaultOpen: boolean }) 
             </div>
           ))}
         </div>
-      )}
+      </motion.div>
     </div>
   );
 }
@@ -756,7 +835,8 @@ function LaunchedDetails({ lead }: { lead: Lead }) {
 function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSelected: boolean; onClick: () => void }) {
   const ss = STATUS_STYLE[lead.status] ?? STATUS_STYLE['accepted'];
   const showBar = lead.status === 'accepted';
-  const pct = showBar ? Math.round(((lead.milestone_index + 1) / MILESTONE_STAGES.length) * 100) : 0;
+  const stages = milestoneStages(lead.wants_call);
+  const pct = showBar ? Math.round(((lead.milestone_index + 1) / stages.length) * 100) : 0;
 
   return (
     <div
@@ -797,10 +877,10 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
         <div className="mt-3.5">
           <div className="flex items-center justify-between mb-1.5">
             <p className="m-0 text-[9px] uppercase tracking-[0.1em] text-ink-muted font-bold">
-              {MILESTONE_STAGES[lead.milestone_index]}
+              {stages[lead.milestone_index]}
             </p>
             <p className="m-0 text-[9px] text-ink-muted">
-              Stage {lead.milestone_index + 1}/{MILESTONE_STAGES.length}
+              Stage {lead.milestone_index + 1}/{stages.length}
             </p>
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>

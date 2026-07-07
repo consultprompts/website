@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 
 /** Locks body scrolling while `locked` is true (used by modals/menus). */
 export function useBodyScrollLock(locked: boolean) {
@@ -15,19 +15,4 @@ export function useBodyScrollLock(locked: boolean) {
       document.documentElement.style.overflow = 'unset';
     };
   }, [locked]);
-}
-
-/** Tracks the mouse position (used for the hero parallax orbs). */
-export function useMousePosition() {
-  const [position, setPosition] = useState({ x: 0, y: 0 });
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      setPosition({ x: e.clientX, y: e.clientY });
-    };
-    window.addEventListener('mousemove', handleMouseMove);
-    return () => window.removeEventListener('mousemove', handleMouseMove);
-  }, []);
-
-  return position;
 }

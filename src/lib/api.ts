@@ -226,6 +226,7 @@ export interface Lead {
   name: string;
   email: string;
   business: string;
+  message?: string;
   existing_website?: boolean;
   existing_website_url?: string;
   site_goal?: string;
@@ -241,6 +242,7 @@ export interface Lead {
   contact_method?: string;
   timeline?: string;
   package?: string;
+  wants_call: boolean;
   status: 'pending' | 'accepted' | 'completed' | 'launched';
   milestone_index: number;
   mockup_url?: string;
@@ -258,6 +260,7 @@ export interface LeadInput {
   name: string;
   email: string;
   business: string;
+  message?: string;
   existing_website?: boolean;
   existing_website_url?: string;
   site_goal?: string;
@@ -273,6 +276,7 @@ export interface LeadInput {
   contact_method?: string;
   timeline?: string;
   package?: string;
+  wants_call: boolean;
 }
 
 export async function submitLead(lead: LeadInput) {
@@ -314,13 +318,6 @@ export async function getMyLeads(): Promise<Lead[]> {
 
 export async function getLeads(page = 1, limit = 20): Promise<LeadsPage> {
   return request<LeadsPage>(`/agency/leads?page=${page}&limit=${limit}`);
-}
-
-export async function updateLeadStatus(leadId: string, status: 'pending' | 'accepted' | 'completed') {
-  return request<{ message: string }>(`/agency/leads/${leadId}/status`, {
-    method: 'PATCH',
-    body: JSON.stringify({ status }),
-  });
 }
 
 export async function updateLeadMilestone(leadId: string, milestoneIndex: number) {

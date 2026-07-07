@@ -43,12 +43,6 @@ export default function FinalCTA({ onStartProject }: FinalCTAProps) {
           >
             Start your project →
           </button>
-          <a
-            href="mailto:consultprompts@gmail.com"
-            className="text-ink-base text-sm font-medium underline underline-offset-4 hover:text-brand-primary transition-colors"
-          >
-            or book a 15-min call
-          </a>
         </motion.div>
       </div>
     </section>

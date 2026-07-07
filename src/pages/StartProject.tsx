@@ -9,10 +9,11 @@ import logoSrc from '../logo.png';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOTAL_STEPS = 7;
+const TOTAL_STEPS = 8;
 
 const STEP_TITLES = [
   'Business Basics',
+  'About Your Business',
   'Site Goal',
   'Pages Needed',
   'Style Direction',
@@ -61,6 +62,7 @@ const TIMELINES = [
 interface FormState {
   businessName: string;
   businessType: string;
+  message: string;
   hasExistingWebsite: boolean;
   existingWebsiteUrl: string;
   siteGoal: string;
@@ -76,6 +78,7 @@ interface FormState {
   phoneNumber: string;
   contactMethod: string;
   timeline: string;
+  wantsCall: boolean;
   selectedPackage: string;
 }
 
@@ -84,12 +87,13 @@ interface FormState {
 function isStepValid(step: number, form: FormState): boolean {
   switch (step) {
     case 1: return !!form.businessName.trim() && !!form.businessType.trim();
-    case 2: return !!form.siteGoal;
-    case 3: return true;
-    case 4: return !!form.styleDirection;
-    case 5: return true;
-    case 6: return !!form.phoneNumber.trim() && !!form.contactMethod && !!form.timeline;
-    case 7: return !!form.selectedPackage;
+    case 2: return true;
+    case 3: return !!form.siteGoal;
+    case 4: return true;
+    case 5: return !!form.styleDirection;
+    case 6: return true;
+    case 7: return !!form.phoneNumber.trim() && !!form.contactMethod && !!form.timeline;
+    case 8: return !!form.selectedPackage;
     default: return true;
   }
 }
@@ -122,6 +126,28 @@ function TextInput({
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       className="w-full bg-white/5 border border-white/10 p-4 font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25"
+    />
+  );
+}
+
+function TextArea({
+  value,
+  onChange,
+  placeholder,
+  rows = 5,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  placeholder: string;
+  rows?: number;
+}) {
+  return (
+    <textarea
+      value={value}
+      onChange={e => onChange(e.target.value)}
+      placeholder={placeholder}
+      rows={rows}
+      className="w-full bg-white/5 border border-white/10 p-4 font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25 resize-none"
     />
   );
 }
@@ -232,6 +258,7 @@ export default function StartProject() {
   const [form, setForm] = useState<FormState>({
     businessName: '',
     businessType: '',
+    message: '',
     hasExistingWebsite: false,
     existingWebsiteUrl: '',
     siteGoal: '',
@@ -247,6 +274,7 @@ export default function StartProject() {
     phoneNumber: '',
     contactMethod: '',
     timeline: '',
+    wantsCall: false,
     selectedPackage: initialPackage,
   });
 
@@ -287,6 +315,7 @@ export default function StartProject() {
         name: form.businessName,
         email: user?.email ?? '',
         business: form.businessType,
+        message: form.message.trim() || undefined,
         existing_website: form.hasExistingWebsite,
         existing_website_url: form.hasExistingWebsite ? form.existingWebsiteUrl : undefined,
         site_goal: form.siteGoal || undefined,
@@ -301,6 +330,7 @@ export default function StartProject() {
         phone_number: form.phoneNumber,
         contact_method: form.contactMethod || undefined,
         timeline: form.timeline || undefined,
+        wants_call: form.wantsCall,
         package: form.selectedPackage || undefined,
       });
       setSubmitted(true);
@@ -363,6 +393,18 @@ export default function StartProject() {
       case 2:
         return (
           <div className="space-y-3">
+            <FieldLabel>Tell us about your business (a couple of sentences)</FieldLabel>
+            <TextArea
+              value={form.message}
+              onChange={v => patch({ message: v })}
+              placeholder="What do you do, who are your customers, and what makes you different?"
+            />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-3">
             {SITE_GOALS.map(goal => (
               <OptionBtn
                 key={goal}
@@ -375,7 +417,7 @@ export default function StartProject() {
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {PAGES.map(page => (
@@ -396,7 +438,7 @@ export default function StartProject() {
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="space-y-3">
             {STYLE_DIRECTIONS.map(style => (
@@ -411,7 +453,7 @@ export default function StartProject() {
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-8">
             <div>
@@ -492,7 +534,7 @@ export default function StartProject() {
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-6">
             <div className="space-y-3">
@@ -508,6 +550,13 @@ export default function StartProject() {
                 value={form.inspirationUrl2}
                 onChange={v => patch({ inspirationUrl2: v })}
                 placeholder="https://another-example.com"
+              />
+            </div>
+            <div>
+              <FieldLabel>Do you want a 15-minute call?</FieldLabel>
+              <Toggle
+                value={form.wantsCall}
+                onChange={v => patch({ wantsCall: v })}
               />
             </div>
             <div>
@@ -549,7 +598,7 @@ export default function StartProject() {
           </div>
         );
 
-      case 7:
+      case 8:
         return (
           <div className="space-y-4">
             {PACKAGES.map(pkg => (
