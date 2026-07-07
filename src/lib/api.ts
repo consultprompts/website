@@ -208,6 +208,11 @@ export function isAdmin(user: UserProfile | null): boolean {
   return !!user?.roles.includes('admin');
 }
 
+/** Entry point for the Google OAuth flow — a full-page navigation, not fetch. */
+export function googleLoginUrl(): string {
+  return `${API_URL}/auth/google/login`;
+}
+
 // ---------------------------------------------------------------------------
 // Leads (agency-service)
 // ---------------------------------------------------------------------------
@@ -217,13 +222,35 @@ export function isAdmin(user: UserProfile | null): boolean {
 
 export interface Lead {
   id: string;
+  user_id: string;
   name: string;
   email: string;
   business: string;
-  message?: string;
+  existing_website?: boolean;
+  existing_website_url?: string;
+  site_goal?: string;
+  pages_needed?: string[];
+  style_direction?: string;
+  has_logo?: boolean;
+  logo_url?: string;
+  has_brand_colors?: boolean;
+  primary_color?: string;
+  secondary_color?: string;
+  inspiration_urls?: string[];
+  phone_number?: string;
+  contact_method?: string;
+  timeline?: string;
   package?: string;
-  status: 'pending' | 'accepted' | 'completed';
+  status: 'pending' | 'accepted' | 'completed' | 'launched';
   milestone_index: number;
+  mockup_url?: string;
+  revision_feedback?: string;
+  wants_maintenance: boolean;
+  is_paid: boolean;
+  paid_at?: string;
+  payment_amount?: number;
+  site_url?: string;
+  domain_renewal_date?: string;
   created_at: string;
 }
 
@@ -300,6 +327,44 @@ export async function updateLeadMilestone(leadId: string, milestoneIndex: number
   return request<{ message: string }>(`/agency/leads/${leadId}/milestone`, {
     method: 'PATCH',
     body: JSON.stringify({ milestone_index: milestoneIndex }),
+  });
+}
+
+export async function setMockupURL(leadId: string, mockupUrl: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/mockup`, {
+    method: 'PATCH',
+    body: JSON.stringify({ mockup_url: mockupUrl }),
+  });
+}
+
+export async function submitReview(leadId: string, decision: 'accept' | 'request_changes', feedback?: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/review`, {
+    method: 'POST',
+    body: JSON.stringify({ decision, feedback: feedback ?? '' }),
+  });
+}
+
+export async function completeSite(leadId: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/complete`, {
+    method: 'PATCH',
+  });
+}
+
+export async function setWantsMaintenance(leadId: string, wantsMaintenance: boolean) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/maintenance`, {
+    method: 'PATCH',
+    body: JSON.stringify({ wants_maintenance: wantsMaintenance }),
+  });
+}
+
+export async function markPaid(leadId: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/pay`, { method: 'POST' });
+}
+
+export async function launchSite(leadId: string, siteUrl: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/launch`, {
+    method: 'PATCH',
+    body: JSON.stringify({ site_url: siteUrl }),
   });
 }
 

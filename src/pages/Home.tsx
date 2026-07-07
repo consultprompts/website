@@ -50,7 +50,7 @@ export default function Home() {
   const checkActiveLead = async (): Promise<boolean> => {
     try {
       const leads = await getMyLeads();
-      return leads.some(l => l.status !== 'completed');
+      return leads.some(l => l.status !== 'launched');
     } catch {
       return false;
     }

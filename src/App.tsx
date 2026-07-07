@@ -8,6 +8,7 @@ import ResetPassword from './pages/ResetPassword';
 import AdminConsole from './pages/AdminConsole';
 import MyProjects from './pages/MyProjects';
 import StartProject from './pages/StartProject';
+import AuthCallback from './pages/AuthCallback';
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           <Route path="/admin-console" element={<AdminConsole />} />
           <Route path="/my-projects" element={<MyProjects />} />
           <Route path="/start-project" element={<StartProject />} />
+          <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
