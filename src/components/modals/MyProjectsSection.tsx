@@ -1,12 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
-import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../lib/api';
-import { useStartProjectHandler } from '../hooks';
-import { PACKAGES } from '../data/content';
-import { safeUrl } from '../lib/urls';
-import { useAuth } from '../context/AuthContext';
-import { milestoneStages, milestoneOffset, CORE_IDX } from '../lib/milestones';
+import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../../lib/api';
+import { PACKAGES } from '../../data/content';
+import { safeUrl } from '../../lib/urls';
+import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
 
 // Monthly maintenance price — update this constant when pricing changes.
 const MAINTENANCE_MONTHLY_PRICE = 29;
@@ -536,7 +534,6 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
         {stages.map((label, idx) => {
           const done = idx < lead.milestone_index;
           const current = idx === lead.milestone_index;
-          const upcoming = idx > lead.milestone_index;
           return (
             <div key={idx} className="flex items-start gap-3 relative">
               {/* connector line */}
@@ -633,29 +630,20 @@ function ProjectCard({ lead, active, onUpdate }: { lead: Lead; active: boolean; 
 }
 
 // ---------------------------------------------------------------------------
-// Page
+// Section
 // ---------------------------------------------------------------------------
 
-export default function MyProjects() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+export default function MyProjectsSection({ onClose }: { onClose: () => void }) {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useStartProjectHandler(() => navigate('/#pricing'));
-
   useEffect(() => {
-    if (authLoading) return;
-    if (!user) {
-      navigate('/?auth=login&next=/my-projects', { replace: true });
-      return;
-    }
     getMyLeads()
       .then(setLeads)
       .catch(() => setError('Could not load your projects — please try again.'))
       .finally(() => setLoading(false));
-  }, [user, authLoading, navigate]);
+  }, []);
 
   const updateLead = (updated: Lead) => {
     setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
@@ -665,58 +653,74 @@ export default function MyProjects() {
   const past   = leads.filter((l) => l.status === 'completed' || l.status === 'launched');
 
   return (
-    <div>
-      <div className="max-w-3xl mx-auto px-6 pt-32 pb-12 md:pb-16">
-        <div className="mb-10">
-          <h1 className="font-display text-3xl md:text-4xl font-bold italic tracking-tight">My Projects</h1>
-          <p className="text-ink-muted text-sm mt-2 font-light">Track your project status and milestone progress.</p>
+    <div className="flex flex-col h-full min-h-0">
+      {/* Header */}
+      <div
+        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
+      >
+        <div>
+          <h1 className="font-display font-bold italic text-[22px] m-0">My Projects</h1>
+          <p className="text-ink-muted text-[11px] uppercase tracking-[0.14em] mt-0.5">Track Your Project Status</p>
         </div>
+        <button
+          onClick={onClose}
+          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+          className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
+        >
+          ✕
+        </button>
+      </div>
 
-        {loading && (
-          <div className="flex justify-center py-20">
-            <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-          </div>
-        )}
-
-        {error && (
-          <div className="liquid-glass rounded-xl p-6 text-center">
-            <p className="text-red-400 text-sm font-bold uppercase tracking-widest">{error}</p>
-          </div>
-        )}
-
-        {!loading && !error && leads.length === 0 && (
-          <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
-            <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
-            <h3 className="font-display font-bold italic text-xl mb-2">No projects yet</h3>
-            <p className="text-ink-muted text-sm font-light mb-8">
-              Start a project and your mockup request will appear here.
-            </p>
-            <Link
-              to="/#pricing"
-              className="inline-block bg-brand-primary text-bg-base font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand-primary/90 transition-colors"
-            >
-              Start a project
-            </Link>
-          </div>
-        )}
-
-        {active.length > 0 && (
-          <section className="mb-10">
-            <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Active</p>
-            <div className="flex flex-col gap-4">
-              {active.map((l) => <ProjectCard key={l.id} lead={l} active onUpdate={updateLead} />)}
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
+        <div className="max-w-3xl mx-auto w-full">
+          {loading && (
+            <div className="flex justify-center py-20">
+              <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
             </div>
-          </section>
-        )}
+          )}
 
-        {past.length > 0 && (
-          <section>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Past Projects</p>
-            <div className="flex flex-col gap-4">
-              {past.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
+          {error && (
+            <div className="liquid-glass rounded-xl p-6 text-center">
+              <p className="text-red-400 text-sm font-bold uppercase tracking-widest">{error}</p>
             </div>
-          </section>
-        )}
+          )}
+
+          {!loading && !error && leads.length === 0 && (
+            <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
+              <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
+              <h3 className="font-display font-bold italic text-xl mb-2">No projects yet</h3>
+              <p className="text-ink-muted text-sm font-light mb-8">
+                Start a project and your mockup request will appear here.
+              </p>
+              <Link
+                to="/#pricing"
+                onClick={onClose}
+                className="inline-block bg-brand-primary text-bg-base font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand-primary/90 transition-colors"
+              >
+                Start a project
+              </Link>
+            </div>
+          )}
+
+          {active.length > 0 && (
+            <section className="mb-10">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Active</p>
+              <div className="flex flex-col gap-4">
+                {active.map((l) => <ProjectCard key={l.id} lead={l} active onUpdate={updateLead} />)}
+              </div>
+            </section>
+          )}
+
+          {past.length > 0 && (
+            <section>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Past Projects</p>
+              <div className="flex flex-col gap-4">
+                {past.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
+              </div>
+            </section>
+          )}
+        </div>
       </div>
     </div>
   );

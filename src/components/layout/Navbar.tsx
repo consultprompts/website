@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { Menu, X, User as UserIcon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
@@ -27,6 +27,7 @@ export default function Navbar({
   isProfileOpen,
 }: NavbarProps) {
   const { user } = useAuth();
+  const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const closeMobile = () => setMobileOpen(false);
@@ -121,10 +122,10 @@ export default function Navbar({
               </button>
             ) : (
               <button
-                onClick={() => { onToggleProfile(); closeMobile(); }}
+                onClick={() => { navigate('/settings'); closeMobile(); }}
                 className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer flex items-center justify-center gap-2"
               >
-                <UserIcon className="w-4 h-4" /> My Account
+                <UserIcon className="w-4 h-4" /> Console
               </button>
             )}
           </div>

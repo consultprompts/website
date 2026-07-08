@@ -1,15 +1,21 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
+import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
 import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
 import logo from '../../logo.png';
+import AccountSection from './AccountSection';
+import MyProjectsSection from './MyProjectsSection';
 
-type Section = 'agency' | 'products' | 'academy';
+type Section = 'account' | 'my-projects' | 'agency' | 'products' | 'academy';
 type Filter = 'all' | 'pending' | 'accepted' | 'completed' | 'launched';
+type NavItem = { key: Section; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> };
+/** Below `md`, Settings navigates as a menu → sub-page hierarchy instead of a sidebar. */
+type MobileScreen = 'menu' | 'detail';
 
-interface AdminPanelProps {
+interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   fullScreen?: boolean;
@@ -56,12 +62,13 @@ function stageRowState(idx: number, lead: Lead) {
   return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, done };
 }
 
-export default function AdminPanel({ isOpen, onClose, fullScreen = false }: AdminPanelProps) {
-  const { isAdmin } = useAuth();
+export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: SettingsPanelProps) {
+  const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [section, setSection] = useState<Section>('agency');
+  const [section, setSection] = useState<Section>('my-projects');
+  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('menu');
   const [filter, setFilter] = useState<Filter>('all');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
@@ -87,7 +94,8 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
   useEffect(() => {
     if (!isOpen) {
       setSelectedId(null);
-      setSection('agency');
+      setSection('my-projects');
+      setMobileScreen('menu');
       setFilter('all');
       setActionError(null);
       setMockupInputId(null);
@@ -228,15 +236,58 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
     { label: 'Launched', value: leads.filter((l) => l.status === 'launched' || l.status === 'completed').length, color: '#B98CFF' },
   ];
 
-  const NAV: { key: Section; label: string }[] = [
-    { key: 'agency', label: 'Agency' },
-    { key: 'products', label: 'Products' },
-    { key: 'academy', label: 'Academy' },
+  const NAV: NavItem[] = [
+    { key: 'account', label: 'Account', icon: User },
+    { key: 'my-projects', label: 'My Projects', icon: FolderOpen },
+    ...(isAdmin
+      ? ([
+          { key: 'agency', label: 'Agency', icon: Building2 },
+          { key: 'products', label: 'Products', icon: Package },
+          { key: 'academy', label: 'Academy', icon: GraduationCap },
+        ] as NavItem[])
+      : []),
   ];
+
+  const sectionContent = (
+    <>
+      {section === 'account' && <AccountSection onClose={onClose} />}
+      {section === 'my-projects' && <MyProjectsSection onClose={onClose} />}
+      {section === 'agency' && isAdmin && (
+        <AgencySection
+          leads={leads}
+          filtered={filtered}
+          filter={filter}
+          setFilter={setFilter}
+          stats={stats}
+          selected={selected}
+          selectedId={selectedId}
+          setSelectedId={setSelectedId}
+          onAccept={handleAccept}
+          onMilestone={handleMilestone}
+          onMockupSave={handleMockupSave}
+          mockupInputId={mockupInputId}
+          mockupURL={mockupURL}
+          setMockupURL={setMockupURL}
+          onCancelMockup={() => { setMockupInputId(null); setMockupURL(''); }}
+          onLaunchSave={handleLaunchSave}
+          launchInputId={launchInputId}
+          launchURL={launchURL}
+          setLaunchURL={setLaunchURL}
+          onCancelLaunch={() => { setLaunchInputId(null); setLaunchURL(''); }}
+          onClose={onClose}
+          error={error}
+          actionError={actionError}
+          accepting={accepting}
+        />
+      )}
+      {section === 'products' && isAdmin && <StubSection title="Products" subtitle="Ebook Waitlist / Digital Products" onClose={onClose} placeholder="Products admin isn't wired up yet — bring the requirements and we'll build it next." />}
+      {section === 'academy' && isAdmin && <StubSection title="Academy" subtitle="Students / Courses" onClose={onClose} placeholder="Academy admin isn't wired up yet — bring the requirements and we'll build it next." />}
+    </>
+  );
 
   return (
     <AnimatePresence>
-      {isOpen && isAdmin && (
+      {isOpen && user && (
         <div className={`fixed inset-0 z-[120] flex items-center justify-center ${fullScreen ? 'p-0' : 'p-6'}`}>
           <motion.div
             initial={{ opacity: 0 }}
@@ -251,74 +302,119 @@ export default function AdminPanel({ isOpen, onClose, fullScreen = false }: Admi
             style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
             className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex text-white"
           >
-            {/* Sidebar */}
-            <div
-              style={{ width: 220, borderRight: '1px solid rgba(255,255,255,0.06)' }}
-              className="flex-shrink-0 bg-bg-base flex flex-col py-6"
-            >
-              <div className="flex items-center gap-2.5 px-5 pb-6">
+            {/* Sidebar — desktop only; mobile uses the menu/detail hierarchy below */}
+            <div className="hidden md:flex flex-shrink-0 bg-bg-base flex-col w-[220px] border-r border-white/[0.06]">
+              <div className="flex items-center gap-2.5 px-5 pb-6 pt-6 flex-shrink-0">
                 <img src={logo} alt="ConsultPrompts" className="w-7 h-7 object-contain" />
                 <span className="font-display font-bold italic text-[15px]">Settings</span>
               </div>
-              {NAV.map((n) => {
-                const active = section === n.key;
-                return (
-                  <button
-                    key={n.key}
-                    onClick={() => setSection(n.key)}
-                    style={{
-                      background: active ? 'rgba(0,240,255,0.08)' : 'transparent',
-                      borderLeft: `2px solid ${active ? '#00F0FF' : 'transparent'}`,
-                    }}
-                    className="flex items-center gap-3 px-5 py-3 w-full text-left border-none cursor-pointer"
-                  >
-                    <span
-                      className="w-2 h-2 rounded-full flex-shrink-0"
-                      style={{ background: active ? '#00F0FF' : 'rgba(255,255,255,0.2)' }}
-                    />
-                    <span
-                      style={{ color: active ? '#FFFFFF' : '#A1A1A1' }}
-                      className="text-[11px] font-bold uppercase tracking-[0.1em]"
+              <div className="flex flex-col">
+                {NAV.map((n) => {
+                  const active = section === n.key;
+                  return (
+                    <button
+                      key={n.key}
+                      onClick={() => setSection(n.key)}
+                      className={`flex items-center gap-3 px-5 py-3 w-full text-left border-none cursor-pointer whitespace-nowrap border-l-2 transition-colors ${
+                        active ? 'bg-[rgba(0,240,255,0.08)] border-[#00F0FF]' : 'bg-transparent border-transparent'
+                      }`}
                     >
-                      {n.label}
-                    </span>
-                  </button>
-                );
-              })}
+                      <span
+                        className="w-2 h-2 rounded-full flex-shrink-0"
+                        style={{ background: active ? '#00F0FF' : 'rgba(255,255,255,0.2)' }}
+                      />
+                      <span
+                        style={{ color: active ? '#FFFFFF' : '#A1A1A1' }}
+                        className="text-[11px] font-bold uppercase tracking-[0.1em]"
+                      >
+                        {n.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
-            {/* Content */}
-            <div className="flex-1 flex flex-col min-w-0">
-              {section === 'agency' && (
-                <AgencySection
-                  leads={leads}
-                  filtered={filtered}
-                  filter={filter}
-                  setFilter={setFilter}
-                  stats={stats}
-                  selected={selected}
-                  selectedId={selectedId}
-                  setSelectedId={setSelectedId}
-                  onAccept={handleAccept}
-                  onMilestone={handleMilestone}
-                  onMockupSave={handleMockupSave}
-                  mockupInputId={mockupInputId}
-                  mockupURL={mockupURL}
-                  setMockupURL={setMockupURL}
-                  onCancelMockup={() => { setMockupInputId(null); setMockupURL(''); }}
-                  onLaunchSave={handleLaunchSave}
-                  launchInputId={launchInputId}
-                  launchURL={launchURL}
-                  setLaunchURL={setLaunchURL}
-                  onCancelLaunch={() => { setLaunchInputId(null); setLaunchURL(''); }}
-                  onClose={onClose}
-                  error={error}
-                  actionError={actionError}
-                  accepting={accepting}
-                />
+            {/* Content — desktop only */}
+            <div className="hidden md:flex flex-1 flex-col min-w-0 min-h-0">
+              {sectionContent}
+            </div>
+
+            {/* Mobile — menu → sub-page hierarchy with a back button */}
+            <div className="flex md:hidden flex-1 flex-col min-h-0">
+              {mobileScreen === 'menu' ? (
+                <div className="flex flex-col h-full min-h-0">
+                  <div
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                    className="px-4 py-4 flex items-center justify-between gap-4 flex-shrink-0"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <img src={logo} alt="ConsultPrompts" className="w-6 h-6 object-contain" />
+                      <span className="font-display font-bold italic text-[15px]">Settings</span>
+                    </div>
+                    <button
+                      onClick={onClose}
+                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                      className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+
+                  <div className="flex-1 overflow-y-auto px-4 py-4">
+                    <div className="flex flex-col rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                      {NAV.map((n, i) => {
+                        const Icon = n.icon;
+                        return (
+                          <button
+                            key={n.key}
+                            onClick={() => { setSection(n.key); setMobileScreen('detail'); }}
+                            style={{ borderBottom: i < NAV.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+                            className="flex items-center gap-3.5 px-4 py-4 w-full text-left border-none cursor-pointer bg-bg-surface active:bg-white/[0.04] transition-colors"
+                          >
+                            <div
+                              className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
+                              style={{ background: 'rgba(0,240,255,0.1)' }}
+                            >
+                              <Icon className="w-4 h-4" style={{ color: '#00F0FF' }} />
+                            </div>
+                            <span className="flex-1 text-[14px] font-bold text-white">{n.label}</span>
+                            <ChevronRight className="w-4 h-4 text-ink-muted flex-shrink-0" />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex flex-col h-full min-h-0">
+                  <div
+                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                    className="px-2 py-3 flex items-center gap-2 flex-shrink-0"
+                  >
+                    <button
+                      onClick={() => setMobileScreen('menu')}
+                      className="flex items-center gap-0.5 pl-2 pr-3 py-2 rounded-lg bg-transparent border-none cursor-pointer text-white flex-shrink-0"
+                    >
+                      <ChevronLeft className="w-5 h-5" />
+                      <span className="text-[12px] font-bold uppercase tracking-widest">Back</span>
+                    </button>
+                    <span className="flex-1 text-center text-[12px] font-bold uppercase tracking-widest text-ink-muted truncate">
+                      {NAV.find((n) => n.key === section)?.label}
+                    </span>
+                    <button
+                      onClick={onClose}
+                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                      className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  <div className="flex-1 flex flex-col min-h-0">
+                    {sectionContent}
+                  </div>
+                </div>
               )}
-              {section === 'products' && <StubSection title="Products" subtitle="Ebook Waitlist / Digital Products" onClose={onClose} placeholder="Products admin isn't wired up yet — bring the requirements and we'll build it next." />}
-              {section === 'academy' && <StubSection title="Academy" subtitle="Students / Courses" onClose={onClose} placeholder="Academy admin isn't wired up yet — bring the requirements and we'll build it next." />}
             </div>
           </motion.div>
         </div>
@@ -367,7 +463,7 @@ function AgencySection({
       {/* Header */}
       <div
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="px-8 py-6 flex items-center justify-between gap-6 flex-shrink-0"
+        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
       >
         <div>
           <h1 className="font-display font-bold italic text-[22px] m-0">Admin Command</h1>
@@ -383,11 +479,11 @@ function AgencySection({
       </div>
 
       {/* Main */}
-      <div className="flex-1 flex gap-6 px-8 py-6 min-h-0">
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 md:px-8 py-4 md:py-6 min-h-0 overflow-y-auto lg:overflow-visible">
         {/* Left column: stats + leads */}
-        <div style={{ flex: 1.4 }} className="flex flex-col gap-6 min-w-0 min-h-0">
+        <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
           {/* Stats */}
-          <div className="grid grid-cols-4 gap-3 flex-shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
             {stats.map((s) => (
               <div
                 key={s.label}
@@ -403,7 +499,7 @@ function AgencySection({
           </div>
 
           {/* Leads column */}
-          <div className="flex-1 flex flex-col min-h-0">
+          <div className="flex flex-col lg:flex-1 lg:min-h-0">
             <div className="flex items-center justify-between mb-4 gap-4 flex-wrap flex-shrink-0">
               <div
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -426,7 +522,7 @@ function AgencySection({
               <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
             </div>
 
-            <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
+            <div className="flex flex-col gap-2.5 pr-1 lg:flex-1 lg:overflow-y-auto">
               {error ? (
                 <EmptyState text={error} />
               ) : filtered.length === 0 ? (
@@ -446,7 +542,7 @@ function AgencySection({
         </div>
 
         {/* Drawer */}
-        <div style={{ flex: 1, minWidth: 340, maxWidth: 720 }} className="flex flex-col">
+        <div className="flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
           <AnimatePresence mode="wait">
             {selected ? (
               <motion.div
@@ -456,7 +552,7 @@ function AgencySection({
                 exit={{ opacity: 0, x: 24 }}
                 transition={{ duration: 0.25 }}
                 style={{ border: '1px solid rgba(255,255,255,0.06)' }}
-                className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 h-full overflow-y-auto"
+                className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 lg:h-full lg:overflow-y-auto"
               >
                 <div className="flex justify-between items-start">
                   <div>
@@ -636,7 +732,7 @@ function AgencySection({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
-                className="h-full rounded-sm flex items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
+                className="hidden lg:flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
               >
                 Select a lead to view details and manage milestones.
               </motion.div>
@@ -953,7 +1049,7 @@ function StubSection({ title, subtitle, onClose, placeholder }: { title: string;
     <div className="flex flex-col h-full min-h-0">
       <div
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="px-8 py-6 flex items-center justify-between gap-6 flex-shrink-0"
+        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
       >
         <div>
           <h1 className="font-display font-bold italic text-[22px] m-0">{title}</h1>
@@ -967,10 +1063,10 @@ function StubSection({ title, subtitle, onClose, placeholder }: { title: string;
           ✕
         </button>
       </div>
-      <div className="flex-1 flex items-center justify-center p-10">
+      <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div
           style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
-          className="text-center rounded-sm p-[60px_40px] text-ink-muted italic text-[13px]"
+          className="text-center rounded-sm p-8 md:p-[60px_40px] text-ink-muted italic text-[13px]"
         >
           {placeholder}
         </div>

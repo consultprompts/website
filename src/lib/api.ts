@@ -19,6 +19,8 @@ export interface UserProfile {
   email: string;
   displayName?: string;
   roles: UserRole[];
+  emailVerified: boolean;
+  createdAt: string;
 }
 
 export interface TokenPair {
@@ -166,13 +168,21 @@ export async function logout() {
 }
 
 export async function getMe(): Promise<UserProfile> {
-  const me = await request<{ id: string; roles: UserRole[] }>('/auth/me');
-  const email = tokenStore.getEmail() ?? '';
+  const me = await request<{
+    id: string;
+    roles: UserRole[];
+    email: string;
+    email_verified: boolean;
+    created_at: string;
+  }>('/auth/me');
+  const email = me.email || tokenStore.getEmail() || '';
   return {
     id: me.id,
     email,
     displayName: email ? email.split('@')[0] : undefined,
     roles: me.roles ?? [],
+    emailVerified: me.email_verified,
+    createdAt: me.created_at,
   };
 }
 

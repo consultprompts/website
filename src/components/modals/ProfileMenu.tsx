@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { LayoutDashboard, LogOut, KeyRound, FolderOpen } from 'lucide-react';
+import { Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
-import { requestPasswordReset } from '../../lib/api';
 
 interface ProfileMenuProps {
   isOpen: boolean;
@@ -11,28 +10,8 @@ interface ProfileMenuProps {
 }
 
 export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
-  const [passwordEmailSent, setPasswordEmailSent] = useState(false);
-  const [sendingReset, setSendingReset] = useState(false);
-
-  const handleChangePassword = async () => {
-    if (!user) return;
-    setSendingReset(true);
-    try {
-      await requestPasswordReset(user.email);
-    } catch {
-      // Don't reveal whether email exists
-    } finally {
-      setPasswordEmailSent(true);
-      setSendingReset(false);
-    }
-  };
-
-  const handleClose = () => {
-    setPasswordEmailSent(false);
-    onClose();
-  };
 
   return (
     <AnimatePresence>
@@ -42,7 +21,7 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={handleClose}
+            onClick={onClose}
             className="fixed inset-0 z-[155] bg-transparent cursor-pointer"
           />
           <div className="fixed inset-0 z-[160] flex items-end justify-center p-6 md:items-start md:justify-end md:p-24 overflow-hidden pointer-events-none">
@@ -63,52 +42,20 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
               </div>
 
               <div className="space-y-3">
-                {/* Profile section */}
-                <div className="rounded-xl bg-white/5 p-4 space-y-3">
-                  <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted">Profile</p>
-                  <p className="text-sm font-light text-white/80 truncate">{user.email}</p>
-                  {passwordEmailSent ? (
-                    <p className="text-xs text-brand-primary font-bold uppercase tracking-widest">
-                      Reset link sent — check your inbox
-                    </p>
-                  ) : (
-                    <button
-                      onClick={handleChangePassword}
-                      disabled={sendingReset}
-                      className="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-ink-muted hover:text-white transition-colors disabled:opacity-50 cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      <KeyRound className="w-3.5 h-3.5" />
-                      {sendingReset ? 'Sending...' : 'Change Password'}
-                    </button>
-                  )}
-                </div>
-
                 <button
                   onClick={() => {
-                    navigate('/my-projects');
-                    handleClose();
+                    navigate('/settings');
+                    onClose();
                   }}
                   className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
                 >
-                  <FolderOpen className="w-4 h-4" /> My Projects
+                  <SettingsIcon className="w-4 h-4" /> Console
                 </button>
-
-                {isAdmin && (
-                  <button
-                    onClick={() => {
-                      navigate('/admin-console');
-                      handleClose();
-                    }}
-                    className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-brand-primary hover:text-bg-base transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
-                  >
-                    <LayoutDashboard className="w-4 h-4" /> Admin Console
-                  </button>
-                )}
 
                 <button
                   onClick={() => {
                     logout();
-                    handleClose();
+                    onClose();
                   }}
                   className="w-full flex items-center gap-3 p-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
                 >

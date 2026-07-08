@@ -40,7 +40,7 @@ src/
   index.css
   lib/
     api.ts                   # API client (auth, leads, waitlist) + token storage/refresh
-    milestones.ts            # shared project-milestone stage list/logic (AdminPanel + MyProjects)
+    milestones.ts            # shared project-milestone stage list/logic (SettingsPanel sections)
     urls.ts                  # safeUrl() — rejects javascript:/data: before rendering a link
   context/
     AuthContext.tsx          # global auth state, useAuth() hook
@@ -51,14 +51,13 @@ src/
   components/
     ui/                      # Logo, shared animation variants
     layout/                  # Navbar, MobileMenu, Footer, BackgroundDecor
-    modals/                  # AuthModal, AdminPanel, ProfileMenu
+    modals/                  # AuthModal, ProfileMenu, SettingsPanel (+ AccountSection, MyProjectsSection sub-panels)
     home/                    # Hero, ProcessSection, PricingSection, ReviewsSection, FaqSection, ContactSection, FinalCTA, SeoSchema
   pages/
     Home.tsx                 # composition of home sections
     Ebooks.tsx               # ebook waitlist page
     StartProject.tsx         # multi-step mockup-request form (client-facing)
-    MyProjects.tsx            # client's project/milestone tracker
-    AdminConsole.tsx          # hosts AdminPanel full-screen for admins
+    Settings.tsx              # full-screen Settings (account, project tracker, admin sections)
     AuthCallback.tsx          # lands here after Google OAuth redirect, stores the token pair
     VerifyEmail.tsx / ResetPassword.tsx  # token-link landing pages emailed by auth-service
 ```
@@ -76,9 +75,9 @@ The API Gateway (and auth-service behind it) must be running for auth to work �
 
 ## Endpoints not yet backed by services
 
-`agency-service` is fully live — the mockup-request form (`StartProject.tsx`),
-client project tracker (`MyProjects.tsx`), and admin console (`AdminPanel.tsx`)
-all work end to end against it.
+`agency-service` is fully live — the mockup-request form (`StartProject.tsx`)
+and the Settings panel (`SettingsPanel.tsx`, covering the client project
+tracker and admin sections) all work end to end against it.
 
 Still wired in the client with no backing service yet — the UI handles the
 resulting errors gracefully:

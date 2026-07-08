@@ -6,8 +6,7 @@ import Home from './pages/Home';
 import Ebooks from './pages/Ebooks';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
-import AdminConsole from './pages/AdminConsole';
-import MyProjects from './pages/MyProjects';
+import Settings from './pages/Settings';
 import StartProject from './pages/StartProject';
 import AuthCallback from './pages/AuthCallback';
 import Process from './pages/Process';
@@ -23,7 +22,6 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/my-projects" element={<MyProjects />} />
             <Route path="/start-project" element={<StartProject />} />
             <Route path="/process" element={<Process />} />
             <Route path="/pricing" element={<Pricing />} />
@@ -35,7 +33,7 @@ export default function App() {
           <Route path="/ebooks" element={<Ebooks />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/admin-console" element={<AdminConsole />} />
+          <Route path="/settings" element={<Settings />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
       </BrowserRouter>

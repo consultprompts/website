@@ -21,7 +21,7 @@ const NAV_LINKS = [
 ];
 
 export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth }: MobileMenuProps) {
-  const { user, isAdmin, logout } = useAuth();
+  const { user, logout } = useAuth();
 
   return (
     <AnimatePresence>
@@ -46,13 +46,13 @@ export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth
                 {link.label}
               </a>
             ))}
-            {isAdmin && (
+            {user && (
               <Link
-                to="/admin-console"
+                to="/settings"
                 onClick={onClose}
                 className="text-brand-primary uppercase cursor-pointer"
               >
-                ADMIN PANEL
+                CONSOLE
               </Link>
             )}
           </div>

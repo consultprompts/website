@@ -1,4 +1,4 @@
-// Shared milestone-stage logic for AdminPanel.tsx and MyProjects.tsx.
+// Shared milestone-stage logic for SettingsPanel.tsx and MyProjectsSection.tsx.
 //
 // Leads track progress as a single `milestone_index` int. When a lead opted
 // into a 15-minute call, an extra "Discovery Call Completed" stage is prepended,

@@ -20,7 +20,7 @@ import FinalCTA from '../components/home/FinalCTA';
 
 export default function Home() {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const { openAuthModal, setAuthSuccessHandler } = useLayout();
 
@@ -30,12 +30,18 @@ export default function Home() {
 
   useBodyScrollLock(isAlreadyActiveOpen);
 
-  // Open login modal automatically when redirected from a protected page
+  // Open login modal automatically when redirected from a protected page. If
+  // the user is already logged in (e.g. they navigated back into this exact
+  // URL after logging in — see SettingsPanel's onClose), this is a stale
+  // link: skip the modal and strip the params instead of re-prompting login.
   useEffect(() => {
-    if (searchParams.get('auth') === 'login') {
+    if (searchParams.get('auth') !== 'login') return;
+    if (user) {
+      setSearchParams({}, { replace: true });
+    } else {
       openAuthModal('login');
     }
-  }, [searchParams, openAuthModal]);
+  }, [searchParams, openAuthModal, user, setSearchParams]);
 
   const checkActiveLead = async (): Promise<boolean> => {
     try {
@@ -135,7 +141,7 @@ export default function Home() {
                   Chat on WhatsApp
                 </a>
                 <Link
-                  to="/my-projects"
+                  to="/settings"
                   onClick={() => setIsAlreadyActiveOpen(false)}
                   className="w-full py-4 border border-white/10 text-ink-muted font-bold uppercase tracking-widest text-xs rounded-xl hover:border-white/30 hover:text-white transition-colors"
                 >
