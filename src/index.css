@@ -14,6 +14,9 @@
 }
 
 @layer base {
+  html {
+    overflow-y: scroll;
+  }
   body {
     @apply bg-bg-base text-ink-base font-sans selection:bg-brand-primary selection:text-bg-base;
   }
@@ -103,5 +106,63 @@
   .liquid-glass {
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
+  }
+}
+
+/* ── Responsive layout helpers ── */
+
+/* Process step row: icon-rail | content */
+.step-row {
+  display: grid;
+  grid-template-columns: 80px 1fr;
+  gap: 32px;
+  align-items: start;
+}
+
+/* Pricing package card: left-col | right-col */
+.pkg-card-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 40px;
+}
+
+/* Work & About alternating launch rows */
+.launch-row {
+  display: grid;
+  gap: 32px;
+  align-items: center;
+}
+
+@media (max-width: 767px) {
+  .step-row {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .step-row .step-rail {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+  .step-row .step-connector {
+    display: none;
+  }
+  .pkg-card-grid {
+    grid-template-columns: 1fr;
+    gap: 28px;
+  }
+  .pkg-card-divider {
+    border-left: none !important;
+    border-top: 1px solid rgba(255,255,255,0.08) !important;
+    padding-left: 0 !important;
+    padding-top: 24px !important;
+  }
+  .launch-row {
+    grid-template-columns: 1fr !important;
+  }
+  .launch-row .launch-preview {
+    display: none;
+  }
+  .launch-row > * {
+    order: unset !important;
   }
 }

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ArrowLeft, CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
-import logoSrc from '../logo.png';
+import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
 import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../lib/api';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import ProfileMenu from '../components/modals/ProfileMenu';
 import { PACKAGES } from '../data/content';
 import { safeUrl } from '../lib/urls';
 import { useAuth } from '../context/AuthContext';
@@ -642,6 +644,7 @@ export default function MyProjects() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   useEffect(() => {
     if (authLoading) return;
@@ -664,24 +667,16 @@ export default function MyProjects() {
 
   return (
     <div className="min-h-screen bg-bg-base font-sans">
-      {/* Top bar */}
-      <div className="border-b border-white/5 bg-bg-base/95 backdrop-blur-md sticky top-0 z-50 py-4 px-6">
-        <div className="max-w-3xl mx-auto flex items-center gap-4">
-          <Link to="/" className="flex items-center gap-2 text-ink-muted hover:text-white transition-colors cursor-pointer">
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Back</span>
-          </Link>
-          <div className="flex items-center gap-3 ml-2">
-            <img src={logoSrc} alt="Consult Prompts" className="h-7 w-auto object-contain" />
-            <span className="font-display font-bold uppercase tracking-tight text-base">Consult Prompts</span>
-          </div>
-          {user && (
-            <span className="ml-auto text-xs text-ink-muted truncate hidden sm:block">{user.email}</span>
-          )}
-        </div>
-      </div>
+      <Navbar
+        onStartProject={() => navigate('/#pricing')}
+        onOpenAuth={() => navigate('/?auth=login')}
+        onToggleProfile={() => setIsProfileOpen(v => !v)}
+        onOpenMobileMenu={() => {}}
+        isProfileOpen={isProfileOpen}
+      />
+      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
-      <div className="max-w-3xl mx-auto px-6 py-12 md:py-16">
+      <div className="max-w-3xl mx-auto px-6 pt-32 pb-12 md:pb-16">
         <div className="mb-10">
           <h1 className="font-display text-3xl md:text-4xl font-bold italic tracking-tight">My Projects</h1>
           <p className="text-ink-muted text-sm mt-2 font-light">Track your project status and milestone progress.</p>
@@ -733,6 +728,7 @@ export default function MyProjects() {
           </section>
         )}
       </div>
+      <Footer />
     </div>
   );
 }

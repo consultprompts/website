@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowLeft, Loader2, CheckCircle, MessageCircle, Upload } from 'lucide-react';
+import { Loader2, CheckCircle, MessageCircle, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { submitLead } from '../lib/api';
 import { PACKAGES } from '../data/content';
-import logoSrc from '../logo.png';
+import Navbar from '../components/layout/Navbar';
+import Footer from '../components/layout/Footer';
+import ProfileMenu from '../components/modals/ProfileMenu';
+import AuthModal from '../components/modals/AuthModal';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -281,6 +284,8 @@ export default function StartProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -655,26 +660,23 @@ export default function StartProject() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-base font-sans">
-      <div className="border-b border-white/5 bg-bg-base/95 backdrop-blur-md sticky top-0 z-50 py-4 px-6">
-        <div className="max-w-2xl mx-auto flex items-center gap-4">
-          <Link
-            to="/"
-            className="flex items-center gap-2 text-ink-muted hover:text-white transition-colors cursor-pointer"
-          >
-            <ArrowLeft className="w-4 h-4" />
-            <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Back</span>
-          </Link>
-          <div className="flex items-center gap-3 ml-2">
-            <img src={logoSrc} alt="Consult Prompts" className="h-7 w-auto object-contain" />
-            <span className="font-display font-bold uppercase tracking-tight text-base">
-              Consult Prompts
-            </span>
-          </div>
-        </div>
-      </div>
+    <div className="min-h-screen bg-bg-base font-sans text-white">
+      <Navbar
+        onStartProject={() => {}}
+        onOpenAuth={() => setIsAuthOpen(true)}
+        onToggleProfile={() => setIsProfileOpen(v => !v)}
+        onOpenMobileMenu={() => {}}
+        isProfileOpen={isProfileOpen}
+      />
+      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
+      <AuthModal
+        isOpen={isAuthOpen}
+        mode="login"
+        onModeChange={() => {}}
+        onClose={() => setIsAuthOpen(false)}
+      />
 
-      <div className="max-w-2xl mx-auto px-6 py-12 md:py-16">
+      <div className="max-w-2xl mx-auto px-6 pt-32 pb-16">
         <AnimatePresence mode="wait">
           {submitted ? (
             <motion.div
@@ -813,6 +815,7 @@ export default function StartProject() {
           )}
         </AnimatePresence>
       </div>
+      <Footer />
     </div>
   );
 }
