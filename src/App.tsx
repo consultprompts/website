@@ -28,12 +28,12 @@ export default function App() {
             <Route path="/work" element={<Work />} />
             <Route path="/about" element={<About />} />
             <Route path="/academy" element={<Academy />} />
+            <Route path="/settings" element={<Settings />} />
           </Route>
 
           <Route path="/ebooks" element={<Ebooks />} />
           <Route path="/verify-email" element={<VerifyEmail />} />
           <Route path="/reset-password" element={<ResetPassword />} />
-          <Route path="/settings" element={<Settings />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
         </Routes>
       </BrowserRouter>

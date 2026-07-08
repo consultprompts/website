@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User as UserIcon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
@@ -26,11 +26,18 @@ export default function Navbar({
   onToggleProfile,
   isProfileOpen,
 }: NavbarProps) {
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const closeMobile = () => setMobileOpen(false);
+
+  // Close the hamburger after navigating to /settings so it disappears
+  // behind the already-visible SettingsPanel instead of before it.
+  useEffect(() => {
+    if (location.pathname === '/settings') closeMobile();
+  }, [location.pathname]);
 
   return (
     <>
@@ -92,13 +99,13 @@ export default function Navbar({
       {/* Mobile menu overlay */}
       {mobileOpen && (
         <div className="xl:hidden fixed inset-0 z-40 bg-bg-base flex flex-col pt-20 px-6 pb-8 overflow-y-auto">
-          <nav className="flex flex-col mt-4">
+          <nav className="flex-1 flex flex-col items-center justify-center gap-1">
             {NAV_LINKS.map((link, i) => (
               <Link
                 key={link.href}
                 to={link.href}
                 onClick={closeMobile}
-                className="text-2xl font-display font-bold py-5 border-b border-white/5 hover:text-brand-primary transition-colors"
+                className="text-3xl font-display font-bold py-4 text-center w-full hover:text-brand-primary transition-colors"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 {link.label}
@@ -106,7 +113,7 @@ export default function Navbar({
             ))}
           </nav>
 
-          <div className="mt-8 flex flex-col gap-3">
+          <div className="flex flex-col gap-3">
             <button
               onClick={() => { onStartProject(); closeMobile(); }}
               className="w-full py-4 bg-brand-primary text-bg-base font-bold text-sm rounded-xl hover:bg-brand-primary/90 transition-colors cursor-pointer"
@@ -121,12 +128,20 @@ export default function Navbar({
                 Sign up / Log in
               </button>
             ) : (
-              <button
-                onClick={() => { navigate('/settings'); closeMobile(); }}
-                className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer flex items-center justify-center gap-2"
-              >
-                <UserIcon className="w-4 h-4" /> Console
-              </button>
+              <>
+                <button
+                  onClick={() => navigate('/settings')}
+                  className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer flex items-center justify-center gap-2"
+                >
+                  <UserIcon className="w-4 h-4" /> Console
+                </button>
+                <button
+                  onClick={() => { logout(); closeMobile(); }}
+                  className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer"
+                >
+                  Logout
+                </button>
+              </>
             )}
           </div>
         </div>

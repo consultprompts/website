@@ -12,8 +12,8 @@ import MyProjectsSection from './MyProjectsSection';
 type Section = 'account' | 'my-projects' | 'agency' | 'products' | 'academy';
 type Filter = 'all' | 'pending' | 'accepted' | 'completed' | 'launched';
 type NavItem = { key: Section; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> };
-/** Below `md`, Settings navigates as a menu → sub-page hierarchy instead of a sidebar. */
-type MobileScreen = 'menu' | 'detail';
+/** Below `md`, Settings navigates as a menu → sub-page → lead-detail hierarchy. */
+type MobileScreen = 'menu' | 'detail' | 'lead-detail';
 
 interface SettingsPanelProps {
   isOpen: boolean;
@@ -104,6 +104,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
       setLaunchURL('');
     }
   }, [isOpen]);
+
+  // When lead selection is cleared, step back out of the lead-detail screen.
+  useEffect(() => {
+    if (!selectedId && mobileScreen === 'lead-detail') setMobileScreen('detail');
+  }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const handleAccept = useCallback(async (lead: Lead) => {
     const leadId = lead.id;
@@ -262,6 +267,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
           selected={selected}
           selectedId={selectedId}
           setSelectedId={setSelectedId}
+          onMobileLeadSelect={() => setMobileScreen('lead-detail')}
           onAccept={handleAccept}
           onMilestone={handleMilestone}
           onMockupSave={handleMockupSave}
@@ -340,7 +346,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
               {sectionContent}
             </div>
 
-            {/* Mobile — menu → sub-page hierarchy with a back button */}
+            {/* Mobile — menu → section → lead-detail hierarchy */}
             <div className="flex md:hidden flex-1 flex-col min-h-0">
               {mobileScreen === 'menu' ? (
                 <div className="flex flex-col h-full min-h-0">
@@ -387,20 +393,21 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
                   </div>
                 </div>
               ) : (
+                /* detail + lead-detail share the same header; only the title and back target differ */
                 <div className="flex flex-col h-full min-h-0">
                   <div
                     style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
                     className="px-2 py-3 flex items-center gap-2 flex-shrink-0"
                   >
                     <button
-                      onClick={() => setMobileScreen('menu')}
+                      onClick={() => setMobileScreen(mobileScreen === 'lead-detail' ? 'detail' : 'menu')}
                       className="flex items-center gap-0.5 pl-2 pr-3 py-2 rounded-lg bg-transparent border-none cursor-pointer text-white flex-shrink-0"
                     >
                       <ChevronLeft className="w-5 h-5" />
                       <span className="text-[12px] font-bold uppercase tracking-widest">Back</span>
                     </button>
                     <span className="flex-1 text-center text-[12px] font-bold uppercase tracking-widest text-ink-muted truncate">
-                      {NAV.find((n) => n.key === section)?.label}
+                      {mobileScreen === 'lead-detail' ? (selected?.name ?? '') : NAV.find((n) => n.key === section)?.label}
                     </span>
                     <button
                       onClick={onClose}
@@ -411,7 +418,36 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
                     </button>
                   </div>
                   <div className="flex-1 flex flex-col min-h-0">
-                    {sectionContent}
+                    {mobileScreen === 'detail' ? sectionContent : (
+                      /* lead-detail: scrollable lead info + milestones */
+                      <div className="flex-1 overflow-y-auto px-4 py-5 flex flex-col gap-5">
+                        {selected && (
+                          <>
+                            <div>
+                              <h3 className="font-display font-bold italic text-[20px] m-0 mb-1">{selected.name}</h3>
+                              <p className="text-brand-primary text-[13px] font-medium m-0">{selected.business}</p>
+                            </div>
+                            <LeadDetailPanel
+                              selected={selected}
+                              onAccept={handleAccept}
+                              onMilestone={handleMilestone}
+                              onMockupSave={handleMockupSave}
+                              mockupInputId={mockupInputId}
+                              mockupURL={mockupURL}
+                              setMockupURL={setMockupURL}
+                              onCancelMockup={() => { setMockupInputId(null); setMockupURL(''); }}
+                              onLaunchSave={handleLaunchSave}
+                              launchInputId={launchInputId}
+                              launchURL={launchURL}
+                              setLaunchURL={setLaunchURL}
+                              onCancelLaunch={() => { setLaunchInputId(null); setLaunchURL(''); }}
+                              actionError={actionError}
+                              accepting={accepting}
+                            />
+                          </>
+                        )}
+                      </div>
+                    )}
                   </div>
                 </div>
               )}
@@ -434,6 +470,7 @@ interface AgencySectionProps {
   selected: Lead | null;
   selectedId: string | null;
   setSelectedId: (id: string | null) => void;
+  onMobileLeadSelect: () => void;
   onAccept: (lead: Lead) => Promise<void>;
   onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
   onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
@@ -454,13 +491,21 @@ interface AgencySectionProps {
 
 function AgencySection({
   filtered, filter, setFilter, stats, selected, selectedId, setSelectedId,
-  onAccept, onMilestone, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
+  onMobileLeadSelect, onAccept, onMilestone, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
   onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
   onClose, error, actionError, accepting,
 }: AgencySectionProps) {
+  const detailProps = {
+    selected: selected!,
+    onAccept, onMilestone,
+    onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
+    onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
+    actionError, accepting,
+  };
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Header */}
+      {/* Header — desktop only */}
       <div
         style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
         className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
@@ -533,7 +578,11 @@ function AgencySection({
                     key={lead.id}
                     lead={lead}
                     isSelected={lead.id === selectedId}
-                    onClick={() => setSelectedId(lead.id === selectedId ? null : lead.id)}
+                    onClick={() => {
+                      const newId = lead.id === selectedId ? null : lead.id;
+                      setSelectedId(newId);
+                      if (newId) onMobileLeadSelect();
+                    }}
                   />
                 ))
               )}
@@ -541,8 +590,8 @@ function AgencySection({
           </div>
         </div>
 
-        {/* Drawer */}
-        <div className="flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
+        {/* Desktop drawer — hidden on mobile (lead detail is in the SettingsPanel hierarchy) */}
+        <div className="hidden lg:flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
           <AnimatePresence mode="wait">
             {selected ? (
               <motion.div
@@ -567,163 +616,7 @@ function AgencySection({
                     ✕
                   </button>
                 </div>
-
-                <div className="flex flex-col gap-1">
-                  <p className="text-[13px] m-0">{selected.email}</p>
-                  <p className="text-ink-muted text-[10px] uppercase tracking-[0.1em] m-0">
-                    {formatDate(selected.created_at)}
-                  </p>
-                </div>
-
-                <SubmittedBriefButton lead={selected} />
-
-                {selected.status === 'pending' && (
-                  <button
-                    onClick={() => onAccept(selected)}
-                    disabled={accepting === selected.id}
-                    className="w-full py-3.5 bg-brand-primary text-bg-base border-none rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
-                  >
-                    {accepting === selected.id ? 'Accepting...' : 'Accept & Start Milestones'}
-                  </button>
-                )}
-
-                {actionError && (
-                  <p style={{ color: '#FF6B6B' }} className="text-[11px] font-bold uppercase tracking-[0.08em] text-center m-0">
-                    {actionError}
-                  </p>
-                )}
-
-                {selected.status === 'accepted' && (() => {
-                  const offset = milestoneOffset(selected.wants_call);
-                  const stages = milestoneStages(selected.wants_call);
-                  return (
-                  <div>
-                    <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
-                      Project Milestones
-                    </p>
-                    <div className="flex flex-col gap-0.5">
-                      {stages.map((label, idx) => {
-                        const { current, launchLocked, locked, lockReason, sent, done } = stageRowState(idx, selected);
-                        const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
-                        const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
-                        return (
-                          <div key={idx}>
-                            <button
-                              onClick={() => onMilestone(selected.id, idx, selected)}
-                              disabled={locked}
-                              title={lockReason}
-                              className="flex items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left w-full rounded-sm hover:bg-white/[0.03] transition-colors"
-                              style={{ cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.45 : 1 }}
-                            >
-                              <div
-                                style={{
-                                  background: done ? '#00F0FF' : 'transparent',
-                                  color: done ? '#050505' : '#A1A1A1',
-                                  border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
-                                }}
-                                className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
-                              >
-                                {done ? '✓' : idx + 1}
-                              </div>
-                              <span
-                                style={{
-                                  color: done ? '#FFFFFF' : '#A1A1A1',
-                                  fontWeight: current ? 700 : 500,
-                                }}
-                                className="text-[13px]"
-                              >
-                                {label}
-                                {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
-                                {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
-                              </span>
-                            </button>
-
-                            {/* Mockup URL input — shown when admin clicks "Design Ready for Your Review" */}
-                            {showingMockupInput && (
-                              <div
-                                className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
-                                style={{ background: 'rgba(0,240,255,0.06)', border: '1px solid rgba(0,240,255,0.2)' }}
-                              >
-                                <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#00F0FF' }}>
-                                  Paste Mockup Link
-                                </p>
-                                <input
-                                  type="url"
-                                  value={mockupURL}
-                                  onChange={(e) => setMockupURL(e.target.value)}
-                                  placeholder="https://figma.com/..."
-                                  className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
-                                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                                  autoFocus
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => onMockupSave(selected.id, mockupURL, selected)}
-                                    disabled={!mockupURL.trim()}
-                                    className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
-                                    style={{ background: '#00F0FF', color: '#050505' }}
-                                  >
-                                    Save &amp; Notify Client
-                                  </button>
-                                  <button
-                                    onClick={onCancelMockup}
-                                    className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-                                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-
-                            {/* Launch site URL input — shown when admin clicks "Launched" */}
-                            {showingLaunchInput && (
-                              <div
-                                className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
-                                style={{ background: 'rgba(112,0,255,0.08)', border: '1px solid rgba(112,0,255,0.3)' }}
-                              >
-                                <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#B98CFF' }}>
-                                  Paste Live Site URL
-                                </p>
-                                <input
-                                  type="url"
-                                  value={launchURL}
-                                  onChange={(e) => setLaunchURL(e.target.value)}
-                                  placeholder="https://clientsite.com"
-                                  className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
-                                  style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                                  autoFocus
-                                />
-                                <div className="flex gap-2">
-                                  <button
-                                    onClick={() => onLaunchSave(selected.id, launchURL, selected)}
-                                    disabled={!launchURL.trim()}
-                                    className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
-                                    style={{ background: '#B98CFF', color: '#050505' }}
-                                  >
-                                    Launch &amp; Notify Client
-                                  </button>
-                                  <button
-                                    onClick={onCancelLaunch}
-                                    className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-                                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
-                                  >
-                                    Cancel
-                                  </button>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })}
-                    </div>
-                  </div>
-                  );
-                })()}
-
-                {(selected.status === 'launched' || selected.status === 'completed') && (
-                  <LaunchedDetails lead={selected} />
-                )}
+                <LeadDetailPanel {...detailProps} />
               </motion.div>
             ) : (
               <motion.div
@@ -732,7 +625,7 @@ function AgencySection({
                 animate={{ opacity: 1 }}
                 exit={{ opacity: 0 }}
                 style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
-                className="hidden lg:flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
+                className="flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
               >
                 Select a lead to view details and manage milestones.
               </motion.div>
@@ -740,6 +633,188 @@ function AgencySection({
           </AnimatePresence>
         </div>
       </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+interface LeadDetailPanelProps {
+  selected: Lead;
+  onAccept: (lead: Lead) => Promise<void>;
+  onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
+  onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
+  mockupInputId: string | null;
+  mockupURL: string;
+  setMockupURL: (v: string) => void;
+  onCancelMockup: () => void;
+  onLaunchSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
+  launchInputId: string | null;
+  launchURL: string;
+  setLaunchURL: (v: string) => void;
+  onCancelLaunch: () => void;
+  actionError: string | null;
+  accepting: string | null;
+}
+
+function LeadDetailPanel({
+  selected, onAccept, onMilestone,
+  onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
+  onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
+  actionError, accepting,
+}: LeadDetailPanelProps) {
+  const offset = milestoneOffset(selected.wants_call);
+  const stages = milestoneStages(selected.wants_call);
+
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <p className="text-[13px] m-0">{selected.email}</p>
+        <p className="text-ink-muted text-[10px] uppercase tracking-[0.1em] m-0">
+          {formatDate(selected.created_at)}
+        </p>
+      </div>
+
+      <SubmittedBriefButton lead={selected} />
+
+      {selected.status === 'pending' && (
+        <button
+          onClick={() => onAccept(selected)}
+          disabled={accepting === selected.id}
+          className="w-full py-3.5 bg-brand-primary text-bg-base border-none rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        >
+          {accepting === selected.id ? 'Accepting...' : 'Accept & Start Milestones'}
+        </button>
+      )}
+
+      {actionError && (
+        <p style={{ color: '#FF6B6B' }} className="text-[11px] font-bold uppercase tracking-[0.08em] text-center m-0">
+          {actionError}
+        </p>
+      )}
+
+      {selected.status === 'accepted' && (
+        <div>
+          <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
+            Project Milestones
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {stages.map((label, idx) => {
+              const { current, launchLocked, locked, lockReason, sent, done } = stageRowState(idx, selected);
+              const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
+              const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
+              return (
+                <div key={idx}>
+                  <button
+                    onClick={() => onMilestone(selected.id, idx, selected)}
+                    disabled={locked}
+                    title={lockReason}
+                    className="flex items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left w-full rounded-sm hover:bg-white/[0.03] transition-colors"
+                    style={{ cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.45 : 1 }}
+                  >
+                    <div
+                      style={{
+                        background: done ? '#00F0FF' : 'transparent',
+                        color: done ? '#050505' : '#A1A1A1',
+                        border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
+                      }}
+                      className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
+                    >
+                      {done ? '✓' : idx + 1}
+                    </div>
+                    <span
+                      style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: current ? 700 : 500 }}
+                      className="text-[13px]"
+                    >
+                      {label}
+                      {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
+                      {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
+                    </span>
+                  </button>
+
+                  {showingMockupInput && (
+                    <div
+                      className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
+                      style={{ background: 'rgba(0,240,255,0.06)', border: '1px solid rgba(0,240,255,0.2)' }}
+                    >
+                      <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#00F0FF' }}>
+                        Paste Mockup Link
+                      </p>
+                      <input
+                        type="url"
+                        value={mockupURL}
+                        onChange={(e) => setMockupURL(e.target.value)}
+                        placeholder="https://figma.com/..."
+                        className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
+                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onMockupSave(selected.id, mockupURL, selected)}
+                          disabled={!mockupURL.trim()}
+                          className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
+                          style={{ background: '#00F0FF', color: '#050505' }}
+                        >
+                          Save &amp; Notify Client
+                        </button>
+                        <button
+                          onClick={onCancelMockup}
+                          className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+                          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+
+                  {showingLaunchInput && (
+                    <div
+                      className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
+                      style={{ background: 'rgba(112,0,255,0.08)', border: '1px solid rgba(112,0,255,0.3)' }}
+                    >
+                      <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#B98CFF' }}>
+                        Paste Live Site URL
+                      </p>
+                      <input
+                        type="url"
+                        value={launchURL}
+                        onChange={(e) => setLaunchURL(e.target.value)}
+                        placeholder="https://clientsite.com"
+                        className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
+                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => onLaunchSave(selected.id, launchURL, selected)}
+                          disabled={!launchURL.trim()}
+                          className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
+                          style={{ background: '#B98CFF', color: '#050505' }}
+                        >
+                          Launch &amp; Notify Client
+                        </button>
+                        <button
+                          onClick={onCancelLaunch}
+                          className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+                          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(selected.status === 'launched' || selected.status === 'completed') && (
+        <LaunchedDetails lead={selected} />
+      )}
     </div>
   );
 }
