@@ -2,9 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
 import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../lib/api';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import ProfileMenu from '../components/modals/ProfileMenu';
+import { useStartProjectHandler } from '../hooks';
 import { PACKAGES } from '../data/content';
 import { safeUrl } from '../lib/urls';
 import { useAuth } from '../context/AuthContext';
@@ -644,7 +642,8 @@ export default function MyProjects() {
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
+
+  useStartProjectHandler(() => navigate('/#pricing'));
 
   useEffect(() => {
     if (authLoading) return;
@@ -666,16 +665,7 @@ export default function MyProjects() {
   const past   = leads.filter((l) => l.status === 'completed' || l.status === 'launched');
 
   return (
-    <div className="min-h-screen bg-bg-base font-sans">
-      <Navbar
-        onStartProject={() => navigate('/#pricing')}
-        onOpenAuth={() => navigate('/?auth=login')}
-        onToggleProfile={() => setIsProfileOpen(v => !v)}
-        onOpenMobileMenu={() => {}}
-        isProfileOpen={isProfileOpen}
-      />
-      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-
+    <div>
       <div className="max-w-3xl mx-auto px-6 pt-32 pb-12 md:pb-16">
         <div className="mb-10">
           <h1 className="font-display text-3xl md:text-4xl font-bold italic tracking-tight">My Projects</h1>
@@ -728,7 +718,6 @@ export default function MyProjects() {
           </section>
         )}
       </div>
-      <Footer />
     </div>
   );
 }

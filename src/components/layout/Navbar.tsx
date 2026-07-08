@@ -43,9 +43,9 @@ export default function Navbar({
           {/* Desktop nav */}
           <div className="hidden xl:flex items-center gap-8 text-sm font-medium text-ink-muted">
             {NAV_LINKS.map(link => (
-              <a key={link.href} href={link.href} className="hover:text-white transition-colors cursor-pointer">
+              <Link key={link.href} to={link.href} className="hover:text-white transition-colors cursor-pointer">
                 {link.label}
-              </a>
+              </Link>
             ))}
           </div>
 
@@ -93,15 +93,15 @@ export default function Navbar({
         <div className="xl:hidden fixed inset-0 z-40 bg-bg-base flex flex-col pt-20 px-6 pb-8 overflow-y-auto">
           <nav className="flex flex-col mt-4">
             {NAV_LINKS.map((link, i) => (
-              <a
+              <Link
                 key={link.href}
-                href={link.href}
+                to={link.href}
                 onClick={closeMobile}
                 className="text-2xl font-display font-bold py-5 border-b border-white/5 hover:text-brand-primary transition-colors"
                 style={{ animationDelay: `${i * 40}ms` }}
               >
                 {link.label}
-              </a>
+              </Link>
             ))}
           </nav>
 

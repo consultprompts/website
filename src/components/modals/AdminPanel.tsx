@@ -382,68 +382,71 @@ function AgencySection({
         </button>
       </div>
 
-      {/* Stats */}
-      <div className="grid grid-cols-4 gap-4 px-8 pt-6 flex-shrink-0">
-        {stats.map((s) => (
-          <div
-            key={s.label}
-            style={{ border: '1px solid rgba(255,255,255,0.05)' }}
-            className="bg-bg-surface p-5 rounded-sm flex flex-col gap-1.5"
-          >
-            <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0">{s.label}</p>
-            <p className="font-display text-[30px] font-bold m-0" style={{ color: s.color }}>
-              {s.value}
-            </p>
-          </div>
-        ))}
-      </div>
-
       {/* Main */}
       <div className="flex-1 flex gap-6 px-8 py-6 min-h-0">
-        {/* Leads column */}
-        <div style={{ flex: 1.4 }} className="flex flex-col min-w-0">
-          <div className="flex items-center justify-between mb-4 gap-4 flex-wrap flex-shrink-0">
-            <div
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              className="flex p-1 rounded-sm"
-            >
-              {(['all', 'pending', 'accepted', 'launched'] as Filter[]).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  style={{
-                    background: filter === f ? '#00F0FF' : 'transparent',
-                    color: filter === f ? '#050505' : '#A1A1A1',
-                  }}
-                  className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
-                >
-                  {f}
-                </button>
-              ))}
-            </div>
-            <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
+        {/* Left column: stats + leads */}
+        <div style={{ flex: 1.4 }} className="flex flex-col gap-6 min-w-0 min-h-0">
+          {/* Stats */}
+          <div className="grid grid-cols-4 gap-3 flex-shrink-0">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+                className="bg-bg-surface p-4 rounded-sm flex flex-col gap-1"
+              >
+                <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0">{s.label}</p>
+                <p className="font-display text-[32px] font-bold m-0" style={{ color: s.color }}>
+                  {s.value}
+                </p>
+              </div>
+            ))}
           </div>
 
-          <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
-            {error ? (
-              <EmptyState text={error} />
-            ) : filtered.length === 0 ? (
-              <EmptyState text="No matching communications detected in the stream." />
-            ) : (
-              filtered.map((lead) => (
-                <LeadRow
-                  key={lead.id}
-                  lead={lead}
-                  isSelected={lead.id === selectedId}
-                  onClick={() => setSelectedId(lead.id === selectedId ? null : lead.id)}
-                />
-              ))
-            )}
+          {/* Leads column */}
+          <div className="flex-1 flex flex-col min-h-0">
+            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap flex-shrink-0">
+              <div
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                className="flex p-1 rounded-sm"
+              >
+                {(['all', 'pending', 'accepted', 'launched'] as Filter[]).map((f) => (
+                  <button
+                    key={f}
+                    onClick={() => setFilter(f)}
+                    style={{
+                      background: filter === f ? '#00F0FF' : 'transparent',
+                      color: filter === f ? '#050505' : '#A1A1A1',
+                    }}
+                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
+                  >
+                    {f}
+                  </button>
+                ))}
+              </div>
+              <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto flex flex-col gap-2.5 pr-1">
+              {error ? (
+                <EmptyState text={error} />
+              ) : filtered.length === 0 ? (
+                <EmptyState text="No matching communications detected in the stream." />
+              ) : (
+                filtered.map((lead) => (
+                  <LeadRow
+                    key={lead.id}
+                    lead={lead}
+                    isSelected={lead.id === selectedId}
+                    onClick={() => setSelectedId(lead.id === selectedId ? null : lead.id)}
+                  />
+                ))
+              )}
+            </div>
           </div>
         </div>
 
         {/* Drawer */}
-        <div style={{ flex: 1, minWidth: 340, maxWidth: 420 }} className="flex flex-col">
+        <div style={{ flex: 1, minWidth: 340, maxWidth: 720 }} className="flex flex-col">
           <AnimatePresence mode="wait">
             {selected ? (
               <motion.div

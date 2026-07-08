@@ -34,9 +34,8 @@ export default function FaqSection() {
                     initial={{ height: 0, opacity: 0 }}
                     animate={{ height: 'auto', opacity: 1 }}
                     exit={{ height: 0, opacity: 0 }}
-                    className="px-6 pb-6"
                   >
-                    <p className="text-ink-muted text-sm leading-relaxed font-light">{faq.answer}</p>
+                    <p className="px-6 pb-6 text-ink-muted text-sm leading-relaxed font-light">{faq.answer}</p>
                   </motion.div>
                 )}
               </AnimatePresence>

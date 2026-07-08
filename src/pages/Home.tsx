@@ -3,16 +3,11 @@ import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, CheckCircle, MessageCircle } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import { useBodyScrollLock } from '../hooks';
+import { useBodyScrollLock, useStartProjectHandler } from '../hooks';
 import { getMyLeads } from '../lib/api';
+import { useLayout } from '../context/LayoutContext';
 
-import Navbar from '../components/layout/Navbar';
-import MobileMenu from '../components/layout/MobileMenu';
-import Footer from '../components/layout/Footer';
 import BackgroundDecor from '../components/layout/BackgroundDecor';
-
-import AuthModal, { type AuthMode } from '../components/modals/AuthModal';
-import ProfileMenu from '../components/modals/ProfileMenu';
 
 import SeoSchema from '../components/home/SeoSchema';
 import Hero from '../components/home/Hero';
@@ -27,25 +22,20 @@ export default function Home() {
   const { user } = useAuth();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const { openAuthModal, setAuthSuccessHandler } = useLayout();
 
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isAlreadyActiveOpen, setIsAlreadyActiveOpen] = useState(false);
-
-  const [authMode, setAuthMode] = useState<AuthMode>('login');
   const [selectedPackage, setSelectedPackage] = useState('visibility');
   const [pendingAction, setPendingAction] = useState<'NAVIGATE_START_PROJECT' | null>(null);
 
-  useBodyScrollLock(isMobileMenuOpen || isAuthOpen || isAlreadyActiveOpen);
+  useBodyScrollLock(isAlreadyActiveOpen);
 
   // Open login modal automatically when redirected from a protected page
   useEffect(() => {
     if (searchParams.get('auth') === 'login') {
-      setAuthMode('login');
-      setIsAuthOpen(true);
+      openAuthModal('login');
     }
-  }, [searchParams]);
+  }, [searchParams, openAuthModal]);
 
   const checkActiveLead = async (): Promise<boolean> => {
     try {
@@ -61,8 +51,7 @@ export default function Home() {
     setSelectedPackage(pkg);
     if (!user) {
       setPendingAction('NAVIGATE_START_PROJECT');
-      setAuthMode('signup');
-      setIsAuthOpen(true);
+      openAuthModal('signup');
     } else {
       if (await checkActiveLead()) {
         setIsAlreadyActiveOpen(true);
@@ -88,8 +77,16 @@ export default function Home() {
     }
   };
 
+  useStartProjectHandler(() => handleStartProject());
+
+  // Runs after a successful login/signup in the shared auth modal.
+  useEffect(() => {
+    setAuthSuccessHandler(handleAuthSuccess);
+    return () => setAuthSuccessHandler(null);
+  });
+
   return (
-    <div className="min-h-screen bg-bg-base overflow-x-hidden selection:bg-brand-primary selection:text-bg-base font-sans">
+    <div className="overflow-x-hidden">
       <SeoSchema />
       <BackgroundDecor />
 
@@ -140,7 +137,7 @@ export default function Home() {
                 <Link
                   to="/my-projects"
                   onClick={() => setIsAlreadyActiveOpen(false)}
-                  className="w-full py-3 border border-white/10 text-ink-muted font-bold uppercase tracking-widest text-xs rounded-xl hover:border-white/30 hover:text-white transition-colors"
+                  className="w-full py-4 border border-white/10 text-ink-muted font-bold uppercase tracking-widest text-xs rounded-xl hover:border-white/30 hover:text-white transition-colors"
                 >
                   Track My Project
                 </Link>
@@ -150,40 +147,6 @@ export default function Home() {
         )}
       </AnimatePresence>
 
-      <AuthModal
-        isOpen={isAuthOpen}
-        mode={authMode}
-        onModeChange={setAuthMode}
-        onClose={() => setIsAuthOpen(false)}
-        onSuccess={handleAuthSuccess}
-      />
-
-      <ProfileMenu
-        isOpen={isProfileOpen}
-        onClose={() => setIsProfileOpen(false)}
-      />
-
-      <Navbar
-        onStartProject={() => handleStartProject()}
-        onOpenAuth={() => {
-          setAuthMode('login');
-          setIsAuthOpen(true);
-        }}
-        onToggleProfile={() => setIsProfileOpen((v) => !v)}
-        onOpenMobileMenu={() => setIsMobileMenuOpen(true)}
-        isProfileOpen={isProfileOpen}
-      />
-
-      <MobileMenu
-        isOpen={isMobileMenuOpen}
-        onClose={() => setIsMobileMenuOpen(false)}
-        onStartProject={() => handleStartProject()}
-        onOpenAuth={() => {
-          setAuthMode('signup');
-          setIsAuthOpen(true);
-        }}
-      />
-
       <Hero />
       <ProcessSection />
       <PricingSection onSelectPackage={handleStartProject} />
@@ -191,7 +154,6 @@ export default function Home() {
       <FaqSection />
       <ContactSection />
       <FinalCTA onStartProject={() => handleStartProject()} />
-      <Footer />
     </div>
   );
 }

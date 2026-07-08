@@ -1,11 +1,6 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import ProfileMenu from '../components/modals/ProfileMenu';
-import AuthModal from '../components/modals/AuthModal';
-import { useAuth } from '../context/AuthContext';
 import { VALUES, SITE_STATS } from '../data/content';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,27 +8,9 @@ const EASE = [0.16, 1, 0.3, 1] as any;
 
 export default function About() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
 
   return (
-    <div className="min-h-screen bg-bg-base font-sans text-white">
-      <Navbar
-        onStartProject={() => navigate('/start-project')}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onToggleProfile={() => setIsProfileOpen(v => !v)}
-        onOpenMobileMenu={() => {}}
-        isProfileOpen={isProfileOpen}
-      />
-      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-      <AuthModal
-        isOpen={isAuthOpen}
-        mode="login"
-        onModeChange={() => {}}
-        onClose={() => setIsAuthOpen(false)}
-      />
-
+    <div className="text-white">
       {/* ── Header ── */}
       <header style={{ position: 'relative', padding: '148px 24px 64px', overflow: 'hidden' }}>
         {/* Cyan glow blob */}
@@ -94,13 +71,13 @@ export default function About() {
       >
         <div>
           <span
-            style={{ color: '#00F0FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', marginBottom: 14 }}
+            style={{ color: '#00F0FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', display: 'block', marginBottom: 14 }}
           >
             The Mission
           </span>
           <h2
             className="font-display font-bold italic"
-            style={{ fontSize: 28, margin: '0 0 16px' }}
+            style={{ fontSize: 36, margin: '0 0 16px' }}
           >
             Real websites for real neighborhoods.
           </h2>
@@ -254,8 +231,6 @@ export default function About() {
           See pricing →
         </button>
       </motion.section>
-
-      <Footer />
     </div>
   );
 }

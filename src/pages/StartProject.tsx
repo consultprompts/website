@@ -5,10 +5,7 @@ import { Loader2, CheckCircle, MessageCircle, Upload } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { submitLead } from '../lib/api';
 import { PACKAGES } from '../data/content';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import ProfileMenu from '../components/modals/ProfileMenu';
-import AuthModal from '../components/modals/AuthModal';
+import { useStartProjectHandler } from '../hooks';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -284,8 +281,9 @@ export default function StartProject() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
+  // Already on the start-project flow — the navbar's CTA shouldn't re-navigate here.
+  useStartProjectHandler(() => {});
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -660,22 +658,7 @@ export default function StartProject() {
   }
 
   return (
-    <div className="min-h-screen bg-bg-base font-sans text-white">
-      <Navbar
-        onStartProject={() => {}}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onToggleProfile={() => setIsProfileOpen(v => !v)}
-        onOpenMobileMenu={() => {}}
-        isProfileOpen={isProfileOpen}
-      />
-      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-      <AuthModal
-        isOpen={isAuthOpen}
-        mode="login"
-        onModeChange={() => {}}
-        onClose={() => setIsAuthOpen(false)}
-      />
-
+    <div className="text-white">
       <div className="max-w-2xl mx-auto px-6 pt-32 pb-16">
         <AnimatePresence mode="wait">
           {submitted ? (
@@ -815,7 +798,6 @@ export default function StartProject() {
           )}
         </AnimatePresence>
       </div>
-      <Footer />
     </div>
   );
 }

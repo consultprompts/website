@@ -3,16 +3,16 @@ import { Link } from 'react-router-dom';
 import logoSrc from '../../logo.png';
 
 const EXPLORE_LINKS = [
-  { label: 'Our Process', href: '/process' },
-  { label: 'Pricing',     href: '/pricing' },
-  { label: 'Our Work',    href: '/work' },
-  { label: 'FAQ',         href: '/#faq' },
+  { label: 'About Us',    to: '/about' },
+  { label: 'Our Process', to: '/process' },
+  { label: 'Pricing',     to: '/pricing' },
+  { label: 'Our Work',    to: '/work' },
 ];
 
 const MORE_LINKS: { label: string; to: string }[] = [
-  { label: 'Digital Products', to: '/ebooks' },
-  { label: 'Academy',          to: '/academy' },
   { label: 'Track My Project', to: '/my-projects' },
+  { label: 'Academy',          to: '/academy' },
+  { label: 'Digital Products', to: '/ebooks' },
 ];
 
 const colLabel = 'text-[11px] font-bold uppercase tracking-[0.14em] text-white m-0';
@@ -48,7 +48,7 @@ export default function Footer() {
           <div className="flex flex-col gap-[14px]">
             <p className={colLabel}>Explore</p>
             {EXPLORE_LINKS.map(l => (
-              <a key={l.label} href={l.href} className={navLink}>{l.label}</a>
+              <Link key={l.label} to={l.to} className={navLink}>{l.label}</Link>
             ))}
           </div>
 

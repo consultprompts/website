@@ -1,11 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import Navbar from '../components/layout/Navbar';
-import Footer from '../components/layout/Footer';
-import ProfileMenu from '../components/modals/ProfileMenu';
-import AuthModal from '../components/modals/AuthModal';
-import { useAuth } from '../context/AuthContext';
 import { PACKAGES, COMPARISON_ROWS } from '../data/content';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -31,28 +26,10 @@ const PRICING_FAQS = [
 
 export default function Pricing() {
   const navigate = useNavigate();
-  const { user } = useAuth();
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
-  const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (
-    <div className="min-h-screen bg-bg-base font-sans text-white">
-      <Navbar
-        onStartProject={() => navigate('/start-project')}
-        onOpenAuth={() => setIsAuthOpen(true)}
-        onToggleProfile={() => setIsProfileOpen(v => !v)}
-        onOpenMobileMenu={() => {}}
-        isProfileOpen={isProfileOpen}
-      />
-      <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
-      <AuthModal
-        isOpen={isAuthOpen}
-        mode="login"
-        onModeChange={() => {}}
-        onClose={() => setIsAuthOpen(false)}
-      />
-
+    <div className="text-white">
       {/* ── Header ── */}
       <header style={{ padding: '148px 24px 56px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
         <motion.span
@@ -397,7 +374,6 @@ export default function Pricing() {
           </div>
         </div>
       </motion.section>
-      <Footer />
     </div>
   );
 }
