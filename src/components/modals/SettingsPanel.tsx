@@ -47,25 +47,32 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = 
 // lead. Auto-set stages are locked with a tooltip saying what checks them;
 // "sent" marks a stage whose admin action fired but is awaiting the client
 // (mockup under review, payment email out), so it shows a badge instead of a
-// premature checkmark.
+// premature checkmark. The mockup-delivered row is additionally locked while
+// awaiting that first review — so a second click can't re-fire the "send
+// mockup" flow before the client has looked — and unlocked again once the
+// client requests changes, so the admin can submit a revised URL.
 function stageRowState(idx: number, lead: Lead) {
   const offset = milestoneOffset(lead.wants_call);
   const current = idx === lead.milestone_index && lead.status !== 'launched';
   const launchLocked = idx === offset + CORE_IDX.launched && !lead.is_paid;
+  const mockupDeliveredCurrent = idx === offset + CORE_IDX.mockupDelivered && current;
+  const revisionRequested = mockupDeliveredCurrent && !!lead.revision_feedback;
+  const awaitingReview = mockupDeliveredCurrent && !revisionRequested;
   const lockReason =
     launchLocked ? 'Client must complete payment first'
     : idx === offset + CORE_IDX.designingMockup ? 'Automatically checked when you send the mockup below'
     : idx === offset + CORE_IDX.revisionsSignedOff ? 'Automatically checked when the client accepts their mockup'
     : idx === offset + CORE_IDX.payment ? 'Automatically checked when the client pays'
     : idx === offset + CORE_IDX.waitingForLaunch ? 'Automatically checked once you launch the site below'
+    : awaitingReview ? 'Waiting for the client to review the mockup'
     : undefined;
   const sentWebsiteReady =
     idx === offset + CORE_IDX.siteCompleted &&
     lead.milestone_index === offset + CORE_IDX.payment &&
     !lead.is_paid;
-  const sent = sentWebsiteReady || (idx === offset + CORE_IDX.mockupDelivered && current);
+  const sent = sentWebsiteReady || awaitingReview;
   const done = idx < lead.milestone_index && !sentWebsiteReady;
-  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, done };
+  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, revisionRequested, done };
 }
 
 function normalizeText(s: string) {
@@ -234,7 +241,9 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
       await apiSetMockupURL(leadId, url.trim());
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: targetIndex, mockup_url: url.trim(), status: 'accepted' } : l,
+          // Clears any prior revision_feedback — otherwise the row would still read
+          // "Request Changes" after this resubmission instead of flipping back to "Sent".
+          l.id === leadId ? { ...l, milestone_index: targetIndex, mockup_url: url.trim(), status: 'accepted', revision_feedback: undefined } : l,
         ),
       );
       setMockupInputId(null);
@@ -739,7 +748,7 @@ function LeadDetailPanel({
           </p>
           <div className="flex flex-col gap-0.5">
             {stages.map((label, idx) => {
-              const { current, launchLocked, locked, lockReason, sent, done } = stageRowState(idx, selected);
+              const { current, launchLocked, locked, lockReason, sent, revisionRequested, done } = stageRowState(idx, selected);
               const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
               const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
               return (
@@ -768,6 +777,7 @@ function LeadDetailPanel({
                       {label}
                       {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
                       {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
+                      {revisionRequested && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>Requested Changes</span>}
                     </span>
                   </button>
 
