@@ -1,10 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Star, CheckCircle2, X, Loader2, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useBodyScrollLock } from '../hooks';
 import { joinWaitlist, checkWaitlistStatus, getEnrollmentCount } from '../lib/api';
-import { FADE_UP } from '../components/ui/animations';
 import AuthModal, { type AuthMode } from '../components/modals/AuthModal';
 import Logo from '../components/ui/Logo';
 import Footer from '../components/layout/Footer';
@@ -68,20 +66,14 @@ export default function Ebooks() {
       />
 
       {/* Waitlist Modal */}
-      <AnimatePresence>
+      <>
         {isWaitlistModalOpen && (
           <div className="fixed inset-0 z-[160] flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
+            <div
               onClick={() => setIsWaitlistModalOpen(false)}
               className="fixed inset-0 bg-bg-base/95 backdrop-blur-md cursor-pointer"
             />
-            <motion.div
-              initial={{ opacity: 0, scale: 0.95, y: 20 }}
-              animate={{ opacity: 1, scale: 1, y: 0 }}
-              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+            <div
               className="relative w-full max-w-md liquid-glass p-8 md:p-10 rounded-3xl border-brand-primary/20 z-10 shadow-2xl"
             >
               <button
@@ -146,10 +138,10 @@ export default function Ebooks() {
                   </p>
                 </div>
               )}
-            </motion.div>
+            </div>
           </div>
         )}
-      </AnimatePresence>
+      </>
 
       {/* Navigation */}
       <nav className="fixed top-0 left-0 right-0 z-50 bg-bg-base/80 backdrop-blur-md border-b border-white/5 h-20 px-4 md:px-6">
@@ -160,8 +152,7 @@ export default function Ebooks() {
 
       <main className="relative flex-grow flex items-center justify-center pt-32 pb-24 px-6">
         <div className="max-w-4xl w-full mx-auto">
-          <motion.div
-            {...FADE_UP}
+          <div
             className="liquid-glass p-8 md:p-12 rounded-[2rem] border-white/10 relative overflow-hidden group shadow-2xl"
           >
             <div className="absolute top-0 left-1/4 w-1/2 h-px bg-linear-to-r from-transparent via-brand-primary/50 to-transparent" />
@@ -170,14 +161,12 @@ export default function Ebooks() {
               {/* Left: Ebook Mockup */}
               <div className="w-full lg:w-1/2 perspective-1000 text-white relative">
                 {enrollmentCount !== null && (
-                  <motion.div
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
+                  <div
                     className="absolute -top-4 -right-4 z-20 bg-brand-primary text-bg-base px-4 py-2 rounded-full font-display font-black italic text-sm shadow-[0_0_20px_rgba(var(--color-brand-primary),0.4)] flex items-center gap-2"
                   >
                     <Users className="w-4 h-4" />
                     <span>{enrollmentCount} ENROLLED</span>
-                  </motion.div>
+                  </div>
                 )}
 
                 <div className="relative transform-gpu group-hover:rotate-y-6 transition-transform duration-700">
@@ -250,7 +239,7 @@ export default function Ebooks() {
                 </button>
               </div>
             </div>
-          </motion.div>
+          </div>
         </div>
       </main>
 

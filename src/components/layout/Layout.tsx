@@ -1,6 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { AnimatePresence, motion } from 'motion/react';
-import { Outlet, useLocation, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate } from 'react-router-dom';
 import { useBodyScrollLock } from '../../hooks';
 import { LayoutContext, type LayoutContextValue } from '../../context/LayoutContext';
 import Navbar from './Navbar';
@@ -8,28 +7,6 @@ import Footer from './Footer';
 import AuthModal, { type AuthMode } from '../modals/AuthModal';
 import ProfileMenu from '../modals/ProfileMenu';
 
-/**
- * Crossfades page content on route change without remounting the navbar/footer
- * around it. Uses `popLayout` so the incoming page starts fading in immediately
- * (the outgoing one is pulled out of flow) instead of `wait`, which fades the
- * old page fully to invisible before the new one appears — a visible blink.
- */
-function AnimatedOutlet() {
-  const location = useLocation();
-  return (
-    <AnimatePresence mode="popLayout" initial={false}>
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
-        transition={{ duration: 0.22, ease: 'easeInOut' }}
-      >
-        <Outlet />
-      </motion.div>
-    </AnimatePresence>
-  );
-}
 
 export default function Layout() {
   const navigate = useNavigate();
@@ -51,7 +28,7 @@ export default function Layout() {
     if (startProjectHandler.current) {
       startProjectHandler.current();
     } else {
-      navigate('/start-project');
+      navigate('/settings/my-projects/new-project');
     }
   }, [navigate]);
 
@@ -84,7 +61,7 @@ export default function Layout() {
         />
 
         <main className="flex-1">
-          <AnimatedOutlet />
+          <Outlet />
         </main>
 
         <Footer />

@@ -1,6 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { FADE_UP } from '../ui/animations';
 
 interface FinalCTAProps {
   onStartProject: () => void;
@@ -14,27 +12,21 @@ export default function FinalCTA({ onStartProject }: FinalCTAProps) {
         <div className="hidden md:block absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-primary/25 rounded-full blur-[90px]" />
       </div>
       <div className="relative max-w-3xl mx-auto w-full">
-        <motion.p {...FADE_UP} className="text-brand-primary text-xs font-bold uppercase tracking-[0.3em] mb-6">
+        <p className="text-brand-primary text-xs font-bold uppercase tracking-[0.3em] mb-6">
           Get Started
-        </motion.p>
-        <motion.h2
-          {...FADE_UP}
-          transition={{ delay: 0.1 }}
+        </p>
+        <h2
           className="font-display font-black tracking-tight leading-[0.95] mb-6"
         >
           <span className="text-4xl sm:text-6xl md:text-8xl text-white block">Live in 72 hours.</span>
           <span className="text-4xl sm:text-6xl md:text-8xl text-brand-primary italic block">Or it's free.</span>
-        </motion.h2>
-        <motion.p
-          {...FADE_UP}
-          transition={{ delay: 0.2 }}
+        </h2>
+        <p
           className="text-ink-muted text-base md:text-lg max-w-md mx-auto mb-10"
         >
           Tell us about your business in 5 minutes. We'll send back a mockup in 24 hours.
-        </motion.p>
-        <motion.div
-          {...FADE_UP}
-          transition={{ delay: 0.3 }}
+        </p>
+        <div
           className="flex flex-col sm:flex-row items-center justify-center gap-4"
         >
           <button
@@ -43,7 +35,7 @@ export default function FinalCTA({ onStartProject }: FinalCTAProps) {
           >
             Start your project →
           </button>
-        </motion.div>
+        </div>
       </div>
     </section>
   );

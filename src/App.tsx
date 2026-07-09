@@ -7,7 +7,6 @@ import Ebooks from './pages/Ebooks';
 import VerifyEmail from './pages/VerifyEmail';
 import ResetPassword from './pages/ResetPassword';
 import Settings from './pages/Settings';
-import StartProject from './pages/StartProject';
 import AuthCallback from './pages/AuthCallback';
 import Process from './pages/Process';
 import Pricing from './pages/Pricing';
@@ -22,13 +21,12 @@ export default function App() {
         <Routes>
           <Route element={<Layout />}>
             <Route path="/" element={<Home />} />
-            <Route path="/start-project" element={<StartProject />} />
             <Route path="/process" element={<Process />} />
             <Route path="/pricing" element={<Pricing />} />
             <Route path="/work" element={<Work />} />
             <Route path="/about" element={<About />} />
             <Route path="/academy" element={<Academy />} />
-            <Route path="/settings" element={<Settings />} />
+            <Route path="/settings/*" element={<Settings />} />
           </Route>
 
           <Route path="/ebooks" element={<Ebooks />} />

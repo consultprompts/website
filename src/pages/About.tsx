@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { VALUES, SITE_STATS } from '../data/content';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -28,44 +27,31 @@ export default function About() {
           }}
         />
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <motion.span
+          <span
             className="font-bold uppercase block"
             style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, ease: EASE }}
           >
             Who We Are
-          </motion.span>
-          <motion.h1
+          </span>
+          <h1
             className="font-display font-bold italic"
             style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px' }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
           >
             We think agencies got too slow.
-          </motion.h1>
-          <motion.p
+          </h1>
+          <p
             className="text-ink-muted font-light"
             style={{ fontSize: 16, lineHeight: 1.6, margin: 0 }}
-            initial={{ opacity: 0, y: 16 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
           >
             Consult Prompts started with one belief: a local business shouldn't wait six weeks and pay
             six grand for a website that actually works. So we rebuilt the process from scratch around
             speed, and we haven't slowed down since.
-          </motion.p>
+          </p>
         </div>
       </header>
 
       {/* ── Mission / Story ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.65, ease: EASE }}
+      <section
         className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center"
         style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 80px' }}
       >
@@ -107,16 +93,12 @@ export default function About() {
         >
           Team photo
         </div>
-      </motion.section>
+      </section>
 
       {/* ── Values ── */}
       <section style={{ padding: '80px 24px', background: 'rgba(255,255,255,0.02)' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.6, ease: EASE }}
+          <div
             style={{ textAlign: 'center', marginBottom: 48 }}
           >
             <span
@@ -130,16 +112,12 @@ export default function About() {
             >
               Our Values.
             </h2>
-          </motion.div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {VALUES.map((v, i) => (
-              <motion.div
+              <div
                 key={v.title}
-                initial={{ opacity: 0, y: 24 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true, margin: '-40px' }}
-                transition={{ duration: 0.55, delay: i * 0.08, ease: EASE }}
                 style={{
                   background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
                   border: '1px solid rgba(255,255,255,0.08)',
@@ -154,18 +132,14 @@ export default function About() {
                 <p className="text-ink-muted font-light" style={{ fontSize: 13, lineHeight: 1.6, margin: 0 }}>
                   {v.description}
                 </p>
-              </motion.div>
+              </div>
             ))}
           </div>
         </div>
       </section>
 
       {/* ── Stats band ── */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{
           padding: '64px 24px',
           borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -196,14 +170,10 @@ export default function About() {
             </div>
           ))}
         </div>
-      </motion.section>
+      </section>
 
       {/* ── Closing CTA ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{ padding: '96px 24px', textAlign: 'center' }}
       >
         <h2
@@ -230,7 +200,7 @@ export default function About() {
         >
           See pricing →
         </button>
-      </motion.section>
+      </section>
     </div>
   );
 }

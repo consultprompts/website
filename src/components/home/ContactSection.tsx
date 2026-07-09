@@ -1,13 +1,11 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { Mail as MailIcon, Instagram, MessageCircle } from 'lucide-react';
-import { FADE_UP } from '../ui/animations';
 
 export default function ContactSection() {
   return (
     <section id="contact" className="py-16 md:py-24 px-6 bg-white/[0.01]">
       <div className="max-w-7xl mx-auto flex flex-col gap-12">
-        <motion.div {...FADE_UP} className="max-w-xl">
+        <div className="max-w-xl">
           <span className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-4 block">Direct Comms</span>
           <h2 className="font-display text-3xl md:text-6xl font-bold mb-6 italic">
             No gatekeepers. <br /> Just results.
@@ -15,7 +13,7 @@ export default function ContactSection() {
           <p className="text-ink-muted font-light leading-relaxed">
             Have a question about a specific integration or a custom bulk deal? Reach out to the source.
           </p>
-        </motion.div>
+        </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
           <a

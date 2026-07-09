@@ -1,7 +1,5 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { Star, User as UserIcon } from 'lucide-react';
-import { FADE_UP, REVIEWS_VARIANTS } from '../ui/animations';
 import { REVIEWS } from '../../data/content';
 
 const STATS = [
@@ -14,8 +12,7 @@ export default function ReviewsSection() {
   return (
     <section id="reviews" aria-label="Client Results and Success Stories" className="py-16 md:py-24 px-6 relative overflow-x-hidden">
       <div className="max-w-7xl mx-auto">
-        <motion.div
-          {...FADE_UP}
+        <div
           className="mb-12 md:mb-16 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8"
         >
           <div>
@@ -34,18 +31,12 @@ export default function ReviewsSection() {
               </div>
             ))}
           </div>
-        </motion.div>
+        </div>
 
         <div className="flex md:flex-row overflow-x-auto lg:overflow-visible lg:grid lg:grid-cols-3 gap-6 pt-4 pb-6 lg:pb-4 px-1 snap-x snap-mandatory brutalist-scrollbar scroll-smooth">
           {REVIEWS.map((review, i) => (
-            <motion.div
+            <div
               key={review.client}
-              custom={i}
-              initial="hidden"
-              whileInView="visible"
-              viewport={{ once: true, margin: '-50px' }}
-              variants={REVIEWS_VARIANTS}
-              whileHover={{ y: -6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
               className="liquid-glass group flex flex-col gap-5 p-6 rounded-2xl flex-shrink-0 w-[calc(100vw-3rem)] md:w-[calc(50vw-3rem)] lg:w-auto snap-start transition-[border-color,box-shadow,ring] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.12)]"
             >
               <div className="flex gap-1">
@@ -81,7 +72,7 @@ export default function ReviewsSection() {
                   <div className="text-xs text-ink-muted mt-0.5">{review.role}</div>
                 </div>
               </div>
-            </motion.div>
+            </div>
           ))}
         </div>
       </div>

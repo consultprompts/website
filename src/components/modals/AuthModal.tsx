@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { User as UserIcon, Eye, EyeOff, Loader2, MailCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestPasswordReset, googleLoginUrl } from '../../lib/api';
@@ -77,20 +76,14 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
   };
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
         <div className="fixed inset-0 z-[110] overflow-y-auto flex items-start md:items-center justify-center p-4 md:p-6 py-12 md:py-6">
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={handleClose}
             className="fixed inset-0 bg-bg-base/95 backdrop-blur-md cursor-pointer"
           />
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.95 }}
+          <div
             className="relative w-full max-w-sm liquid-glass p-6 md:p-10 rounded-xl border-brand-primary/30 z-10 my-auto"
           >
             {/* Forgot password flow */}
@@ -288,9 +281,9 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                 </div>
               </>
             )}
-          </motion.div>
+          </div>
         </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

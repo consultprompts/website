@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { MousePointer2, Rocket, CheckCircle } from 'lucide-react';
 import { useStartProjectHandler } from '../hooks';
 
@@ -80,45 +79,32 @@ export default function Process() {
     <div className="text-white">
       {/* ── Header ── */}
       <header style={{ padding: '148px 24px 56px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
-        <motion.span
+        <span
           className="font-bold uppercase block"
           style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
         >
           Our DNA
-        </motion.span>
-        <motion.h1
+        </span>
+        <h1
           className="font-display font-bold italic"
           style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px' }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
         >
           Simple. Brutal. Fast Web Design.
-        </motion.h1>
-        <motion.p
+        </h1>
+        <p
           className="text-ink-muted font-light"
           style={{ fontSize: 16, lineHeight: 1.6, margin: 0 }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
         >
           We've automated the fluff out of local business web design. Here's exactly how we get
           your new site live in record time — no discovery calls, no scope creep, no waiting.
-        </motion.p>
+        </p>
       </header>
 
       {/* ── Steps ── */}
       <section style={{ maxWidth: 1000, margin: '0 auto', padding: '0 24px 96px' }}>
         {STEPS.map((step, i) => (
-          <motion.div
+          <div
             key={step.id}
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true, margin: '-60px' }}
-            transition={{ duration: 0.65, delay: i * 0.08, ease: EASE }}
             className="step-row"
             style={{
               padding: '40px 0',
@@ -127,13 +113,7 @@ export default function Process() {
           >
             {/* Left rail — icon badge + connector */}
             <div className="step-rail" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-              <motion.div
-                initial={{ scale: 0.7, opacity: 0 }}
-                whileInView={{ scale: 1, opacity: 1 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 + 0.15, ease: EASE }}
-                animate={{ boxShadow: ['0 0 0px rgba(0,240,255,0)', '0 0 18px rgba(0,240,255,0.35)', '0 0 0px rgba(0,240,255,0)'] }}
-                /* @ts-ignore — motion animate accepts string[] for keyframe sequences */
+              <div
                 style={{
                   width: 64,
                   height: 64,
@@ -147,14 +127,10 @@ export default function Process() {
                 }}
               >
                 {step.icon}
-              </motion.div>
+              </div>
               {i < STEPS.length - 1 && (
-                <motion.div
+                <div
                   className="step-connector"
-                  initial={{ scaleY: 0, originY: 0 }}
-                  whileInView={{ scaleY: 1 }}
-                  viewport={{ once: true, margin: '-80px' }}
-                  transition={{ duration: 0.7, delay: i * 0.08 + 0.3, ease: EASE }}
                   style={{ width: 1, flex: 1, minHeight: 40, background: 'rgba(255,255,255,0.08)', transformOrigin: 'top' }}
                 />
               )}
@@ -187,11 +163,7 @@ export default function Process() {
 
               {/* What You Do / What We Do */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
-                <motion.div
-                  initial={{ opacity: 0, x: -16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.08 + 0.25, ease: EASE }}
+                <div
                   style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}
                 >
                   <p
@@ -207,13 +179,9 @@ export default function Process() {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
 
-                <motion.div
-                  initial={{ opacity: 0, x: 16 }}
-                  whileInView={{ opacity: 1, x: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.08 + 0.35, ease: EASE }}
+                <div
                   style={{
                     background: 'rgba(0,240,255,0.05)',
                     border: '1px solid rgba(0,240,255,0.18)',
@@ -234,7 +202,7 @@ export default function Process() {
                       </div>
                     ))}
                   </div>
-                </motion.div>
+                </div>
               </div>
 
               {/* You Get callout */}
@@ -260,16 +228,12 @@ export default function Process() {
                 </span>
               </div>
             </div>
-          </motion.div>
+          </div>
         ))}
       </section>
 
       {/* ── Closing CTA ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{ padding: '80px 24px', background: 'rgba(255,255,255,0.02)', textAlign: 'center' }}
       >
         <h2
@@ -282,7 +246,7 @@ export default function Process() {
           Tell us about your business — the first draft is in your inbox within 24 hours.
         </p>
         <button
-          onClick={() => navigate('/start-project')}
+          onClick={() => navigate('/settings/my-projects/new-project')}
           className="font-black transition-opacity hover:opacity-90 cursor-pointer"
           style={{
             background: '#00F0FF',
@@ -296,7 +260,7 @@ export default function Process() {
         >
           Start a project →
         </button>
-      </motion.section>
+      </section>
     </div>
   );
 }

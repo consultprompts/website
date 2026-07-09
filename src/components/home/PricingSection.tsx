@@ -1,6 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
-import { FADE_UP, CONTAINER_STAGGER, ITEM_STAGGER } from '../ui/animations';
 import { PACKAGES } from '../../data/content';
 
 interface PricingSectionProps {
@@ -11,23 +9,17 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
   return (
     <section id="pricing" aria-label="Pricing and Web Design Services" className="py-16 md:py-24 px-6 bg-white/[0.02]">
       <div className="max-w-7xl mx-auto">
-        <motion.div {...FADE_UP} className="mb-16 text-center lg:text-left">
+        <div className="mb-16 text-center lg:text-left">
           <span className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-4 block">Scalable Growth Tiers</span>
           <h2 className="font-display text-4xl md:text-6xl font-bold mb-8 italic leading-tight">Pick Your Fuel.</h2>
-        </motion.div>
+        </div>
 
-        <motion.div
-          variants={CONTAINER_STAGGER}
-          initial="hidden"
-          whileInView="show"
-          viewport={{ once: true, margin: '-100px' }}
+        <div
           className="grid lg:grid-cols-3 gap-8 pt-4"
         >
           {PACKAGES.map((pkg) => (
-            <motion.div
+            <div
               key={pkg.id}
-              variants={ITEM_STAGGER}
-              whileHover={{ y: -6, transition: { duration: 0.25, ease: [0.16, 1, 0.3, 1] } }}
               className={
                 pkg.featured
                   ? 'liquid-glass p-8 rounded-xl border border-brand-primary/40 relative flex flex-col bg-linear-to-br from-white/10 to-white/5 overflow-hidden transition-[border-color,box-shadow] duration-300 hover:border-brand-primary hover:ring-[3px] hover:ring-brand-primary/40 hover:shadow-[0_0_48px_rgba(0,240,255,0.18)]'
@@ -72,9 +64,9 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
               >
                 {pkg.cta}
               </button>
-            </motion.div>
+            </div>
           ))}
-        </motion.div>
+        </div>
       </div>
     </section>
   );

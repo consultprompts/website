@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
@@ -11,11 +10,8 @@ export default function Academy() {
   return (
     <div className="text-white">
       <section style={{ padding: '148px 24px', textAlign: 'center' }}>
-        <motion.div
+        <div
           style={{ maxWidth: 560, margin: '0 auto' }}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: EASE }}
         >
           <span
             style={{ color: '#B98CFF', fontSize: 12, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', marginBottom: 16 }}
@@ -52,7 +48,7 @@ export default function Academy() {
           >
             ← Back home
           </button>
-        </motion.div>
+        </div>
       </section>
     </div>
   );

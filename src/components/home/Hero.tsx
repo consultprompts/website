@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion } from 'motion/react';
 import { Zap } from 'lucide-react';
 
 export default function Hero() {
@@ -13,19 +12,13 @@ export default function Hero() {
       <div className="hidden md:block absolute top-0 right-0 w-[700px] h-[550px] bg-brand-primary/6 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto w-full flex flex-col flex-1 relative z-10">
-        <motion.p
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+        <p
           className="text-brand-primary text-xs font-bold uppercase tracking-widest mt-32 mb-10"
         >
           Local Web Design — Live in 72 Hours
-        </motion.p>
+        </p>
 
-        <motion.h1
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1], delay: 0.05 }}
+        <h1
           className="font-display font-black leading-[0.95] tracking-[-0.03em] mb-8"
         >
           <span className="block text-5xl sm:text-6xl md:text-6xl lg:text-7xl xl:text-[5.5rem] text-white">
@@ -34,12 +27,9 @@ export default function Hero() {
           <span className="block text-5xl sm:text-6xl md:text-6xl lg:text-7xl xl:text-[5.5rem] text-white">
             neighbors <em className="text-brand-primary italic">actually</em> use.
           </span>
-        </motion.h1>
+        </h1>
 
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1], delay: 0.2 }}
+        <div
           className="max-w-lg"
         >
           <p className="text-ink-muted text-base md:text-lg leading-relaxed mb-10">
@@ -60,7 +50,7 @@ export default function Hero() {
               View recent work
             </button>
           </div>
-        </motion.div>
+        </div>
       </div>
 
       <div className="relative py-10 md:py-16 border-y border-white/5 bg-bg-base/50 backdrop-blur-sm z-20">

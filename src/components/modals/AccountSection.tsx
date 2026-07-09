@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { KeyRound, MailWarning, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestPasswordReset, resendVerification } from '../../lib/api';
+import SettingsHeader from './SettingsHeader';
 
 const card = 'bg-bg-surface rounded-sm';
 const cardBorder = { border: '1px solid rgba(255,255,255,0.05)' };
@@ -47,23 +48,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Header */}
-      <div
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
-      >
-        <div>
-          <h1 className="font-display font-bold italic text-[22px] m-0">Account</h1>
-          <p className="text-ink-muted text-[11px] uppercase tracking-[0.14em] mt-0.5">Profile / Security</p>
-        </div>
-        <button
-          onClick={onClose}
-          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
-        >
-          ✕
-        </button>
-      </div>
+      <SettingsHeader title="Account" subtitle="Profile / Security" onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-xl flex flex-col gap-6">

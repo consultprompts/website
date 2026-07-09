@@ -1,10 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
+import React, { useCallback, useEffect, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink, Plus } from 'lucide-react';
 import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
 import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
+import NewProjectForm from './NewProjectForm';
+import SettingsHeader from './SettingsHeader';
 
 // Monthly maintenance price — update this constant when pricing changes.
 const MAINTENANCE_MONTHLY_PRICE = 29;
@@ -634,16 +636,23 @@ function ProjectCard({ lead, active, onUpdate }: { lead: Lead; active: boolean; 
 // ---------------------------------------------------------------------------
 
 export default function MyProjectsSection({ onClose }: { onClose: () => void }) {
+  const location = useLocation();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    getMyLeads()
+  const refresh = useCallback(() => {
+    setLoading(true);
+    return getMyLeads()
       .then(setLeads)
       .catch(() => setError('Could not load your projects — please try again.'))
       .finally(() => setLoading(false));
   }, []);
+
+  useEffect(() => {
+    refresh();
+  }, [refresh]);
 
   const updateLead = (updated: Lead) => {
     setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
@@ -652,28 +661,41 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   const active = leads.filter((l) => l.status !== 'completed' && l.status !== 'launched');
   const past   = leads.filter((l) => l.status === 'completed' || l.status === 'launched');
 
+  const showNewProjectForm = location.pathname.endsWith('/new-project');
+  const backToList = () => navigate('/settings/my-projects', { replace: true });
+
+  // Only one project in flight at a time — mirrors the same rule the public
+  // "Start a project" CTAs already enforce (see Home.tsx's checkActiveLead).
+  // A direct URL hit while one's already active bounces back to the list.
+  useEffect(() => {
+    if (showNewProjectForm && !loading && active.length > 0) backToList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [showNewProjectForm, loading, active.length]);
+
+  if (showNewProjectForm) {
+    return (
+      <NewProjectForm
+        onBack={() => { refresh(); backToList(); }}
+        onClose={onClose}
+      />
+    );
+  }
+
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Header */}
-      <div
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
-      >
-        <div>
-          <h1 className="font-display font-bold italic text-[22px] m-0">My Projects</h1>
-          <p className="text-ink-muted text-[11px] uppercase tracking-[0.14em] mt-0.5">Track Your Project Status</p>
-        </div>
-        <button
-          onClick={onClose}
-          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
-        >
-          ✕
-        </button>
-      </div>
+      <SettingsHeader title="My Projects" subtitle="Track Your Project Status" onClose={onClose} />
 
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-3xl mx-auto w-full">
+          <button
+            onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
+            disabled={active.length > 0}
+            title={active.length > 0 ? 'You already have an active project in progress' : undefined}
+            className="w-full mb-6 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs uppercase tracking-widest border-none cursor-pointer bg-brand-primary text-bg-base hover:bg-brand-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-primary"
+          >
+            <Plus className="w-4 h-4" /> New Project
+          </button>
+
           {loading && (
             <div className="flex justify-center py-20">
               <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
@@ -693,13 +715,12 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               <p className="text-ink-muted text-sm font-light mb-8">
                 Start a project and your mockup request will appear here.
               </p>
-              <Link
-                to="/#pricing"
-                onClick={onClose}
-                className="inline-block bg-brand-primary text-bg-base font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand-primary/90 transition-colors"
+              <button
+                onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
+                className="inline-block bg-brand-primary text-bg-base font-bold text-sm px-6 py-3 rounded-xl hover:bg-brand-primary/90 transition-colors border-none cursor-pointer"
               >
                 Start a project
-              </Link>
+              </button>
             </div>
           )}
 

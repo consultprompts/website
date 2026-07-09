@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { PACKAGES, COMPARISON_ROWS } from '../data/content';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -32,34 +31,25 @@ export default function Pricing() {
     <div className="text-white">
       {/* ── Header ── */}
       <header style={{ padding: '148px 24px 56px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
-        <motion.span
+        <span
           className="font-bold uppercase block"
           style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
         >
           Scalable Growth Tiers
-        </motion.span>
-        <motion.h1
+        </span>
+        <h1
           className="font-display font-bold italic"
           style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px' }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
         >
           Pick Your Fuel.
-        </motion.h1>
-        <motion.p
+        </h1>
+        <p
           className="text-ink-muted font-light"
           style={{ fontSize: 16, lineHeight: 1.6, margin: 0 }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
         >
           Three flat, one-time prices. No retainers, no hidden fees, no surprise invoices — just a
           website that works, live in 48–72 hours.
-        </motion.p>
+        </p>
       </header>
 
       {/* ── Package cards ── */}
@@ -73,12 +63,8 @@ export default function Pricing() {
           const ctaBorder = featured ? 'none' : '1px solid rgba(255,255,255,0.15)';
 
           return (
-            <motion.div
+            <div
               key={pkg.id}
-              initial={{ opacity: 0, y: 28 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, delay: i * 0.07, ease: EASE }}
               className="pkg-card-grid"
               style={{
                 background: featured
@@ -157,7 +143,7 @@ export default function Pricing() {
                   {pkg.timeline}
                 </p>
                 <button
-                  onClick={() => navigate('/start-project')}
+                  onClick={() => navigate('/settings/my-projects/new-project')}
                   style={{
                     marginTop: 'auto',
                     textAlign: 'center',
@@ -237,17 +223,13 @@ export default function Pricing() {
                   </div>
                 ))}
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </section>
 
       {/* ── Comparison table ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 24 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 80px' }}
       >
         <h2
@@ -340,14 +322,10 @@ export default function Pricing() {
             </tbody>
           </table>
         </div>
-      </motion.section>
+      </section>
 
       {/* ── Guarantee banner ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{ maxWidth: 900, margin: '0 auto', padding: '0 24px 96px' }}
       >
         <div
@@ -373,7 +351,7 @@ export default function Pricing() {
             </p>
           </div>
         </div>
-      </motion.section>
+      </section>
     </div>
   );
 }

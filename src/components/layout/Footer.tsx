@@ -10,7 +10,7 @@ const EXPLORE_LINKS = [
 ];
 
 const MORE_LINKS: { label: string; to: string }[] = [
-  { label: 'Track My Project', to: '/settings' },
+  { label: 'Track My Project', to: '/settings/my-projects' },
   { label: 'Academy',          to: '/academy' },
   { label: 'Digital Products', to: '/ebooks' },
 ];

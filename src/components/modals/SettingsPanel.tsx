@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
-import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft } from 'lucide-react';
+import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft, Search, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
@@ -8,8 +7,12 @@ import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones
 import logo from '../../logo.png';
 import AccountSection from './AccountSection';
 import MyProjectsSection from './MyProjectsSection';
+import SettingsHeader from './SettingsHeader';
 
-type Section = 'account' | 'my-projects' | 'agency' | 'products' | 'academy';
+export const SETTINGS_SECTIONS = ['account', 'my-projects', 'agency', 'products', 'academy'] as const;
+export type Section = (typeof SETTINGS_SECTIONS)[number];
+/** Sections only rendered for admins — non-admins hitting these URLs get bounced to my-projects. */
+export const ADMIN_SECTIONS: readonly Section[] = ['agency', 'products', 'academy'];
 type Filter = 'all' | 'pending' | 'accepted' | 'completed' | 'launched';
 type NavItem = { key: Section; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> };
 /** Below `md`, Settings navigates as a menu → sub-page → lead-detail hierarchy. */
@@ -19,6 +22,9 @@ interface SettingsPanelProps {
   isOpen: boolean;
   onClose: () => void;
   fullScreen?: boolean;
+  /** Active section — owned by the route (/settings/:section). */
+  section: Section;
+  onSectionChange: (s: Section) => void;
 }
 
 function formatDate(iso: string) {
@@ -62,14 +68,49 @@ function stageRowState(idx: number, lead: Lead) {
   return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, done };
 }
 
-export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: SettingsPanelProps) {
+function normalizeText(s: string) {
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+// True when `a` and `b` are within one edit (insert/delete/substitute) of each
+// other — enough to forgive a single typo without a full fuzzy-search library.
+function withinOneEdit(a: string, b: string) {
+  if (a === b) return true;
+  if (Math.abs(a.length - b.length) > 1) return false;
+  const [short, long] = a.length <= b.length ? [a, b] : [b, a];
+  let i = 0, j = 0, edits = 0;
+  while (i < short.length && j < long.length) {
+    if (short[i] === long[j]) { i++; j++; continue; }
+    if (++edits > 1) return false;
+    if (short.length === long.length) i++; // substitution
+    j++; // insertion into `short` / skip in `long`
+  }
+  return edits + (long.length - j) <= 1;
+}
+
+// Matches when every search token appears in the lead's customer name,
+// business/project name, or email — as a substring, or as a near-miss
+// (one typo) against any single word.
+function leadMatchesSearch(lead: Lead, query: string) {
+  const q = normalizeText(query).trim();
+  if (!q) return true;
+  const haystack = normalizeText(`${lead.name} ${lead.business} ${lead.email}`);
+  const words = haystack.split(/[^a-z0-9]+/).filter(Boolean);
+  return q.split(/\s+/).every((tok) =>
+    haystack.includes(tok) ||
+    (tok.length >= 4 && words.some((w) => withinOneEdit(tok, w))),
+  );
+}
+
+export default function SettingsPanel({ isOpen, onClose, fullScreen = false, section, onSectionChange }: SettingsPanelProps) {
   const { user, isAdmin } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [section, setSection] = useState<Section>('my-projects');
-  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('menu');
+  // Landing on /settings/<section> shows that section directly; "Back" steps out to the menu.
+  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('detail');
   const [filter, setFilter] = useState<Filter>('all');
+  const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
   const [mockupInputId, setMockupInputId] = useState<string | null>(null);
@@ -94,9 +135,9 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
   useEffect(() => {
     if (!isOpen) {
       setSelectedId(null);
-      setSection('my-projects');
-      setMobileScreen('menu');
+      setMobileScreen('detail');
       setFilter('all');
+      setSearch('');
       setActionError(null);
       setMockupInputId(null);
       setMockupURL('');
@@ -223,11 +264,12 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
 
   const filtered = useMemo(
     () => leads.filter((l) => {
+      if (!leadMatchesSearch(l, search)) return false;
       if (filter === 'all') return true;
       if (filter === 'launched') return l.status === 'launched' || l.status === 'completed';
       return l.status === filter;
     }),
-    [leads, filter],
+    [leads, filter, search],
   );
   const selected = useMemo(
     () => leads.find((l) => l.id === selectedId) ?? null,
@@ -263,6 +305,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
           filtered={filtered}
           filter={filter}
           setFilter={setFilter}
+          search={search}
+          setSearch={setSearch}
           stats={stats}
           selected={selected}
           selectedId={selectedId}
@@ -292,19 +336,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
   );
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && user && (
         <div className={`fixed inset-0 z-[120] flex items-center justify-center ${fullScreen ? 'p-0' : 'p-6'}`}>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="absolute inset-0 bg-bg-base"
-          />
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 20 }}
+          <div className="absolute inset-0 bg-bg-base" />
+          <div
             style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
             className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex text-white"
           >
@@ -320,7 +356,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
                   return (
                     <button
                       key={n.key}
-                      onClick={() => setSection(n.key)}
+                      onClick={() => onSectionChange(n.key)}
                       className={`flex items-center gap-3 px-5 py-3 w-full text-left border-none cursor-pointer whitespace-nowrap border-l-2 transition-colors ${
                         active ? 'bg-[rgba(0,240,255,0.08)] border-[#00F0FF]' : 'bg-transparent border-transparent'
                       }`}
@@ -374,7 +410,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
                         return (
                           <button
                             key={n.key}
-                            onClick={() => { setSection(n.key); setMobileScreen('detail'); }}
+                            onClick={() => { onSectionChange(n.key); setMobileScreen('detail'); }}
                             style={{ borderBottom: i < NAV.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
                             className="flex items-center gap-3.5 px-4 py-4 w-full text-left border-none cursor-pointer bg-bg-surface active:bg-white/[0.04] transition-colors"
                           >
@@ -452,10 +488,10 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false }: S
                 </div>
               )}
             </div>
-          </motion.div>
+          </div>
         </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }
 
@@ -466,6 +502,8 @@ interface AgencySectionProps {
   filtered: Lead[];
   filter: Filter;
   setFilter: (f: Filter) => void;
+  search: string;
+  setSearch: (v: string) => void;
   stats: { label: string; value: number; color: string }[];
   selected: Lead | null;
   selectedId: string | null;
@@ -490,7 +528,7 @@ interface AgencySectionProps {
 }
 
 function AgencySection({
-  filtered, filter, setFilter, stats, selected, selectedId, setSelectedId,
+  filtered, filter, setFilter, search, setSearch, stats, selected, selectedId, setSelectedId,
   onMobileLeadSelect, onAccept, onMilestone, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
   onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
   onClose, error, actionError, accepting,
@@ -505,23 +543,7 @@ function AgencySection({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      {/* Header — desktop only */}
-      <div
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
-      >
-        <div>
-          <h1 className="font-display font-bold italic text-[22px] m-0">Admin Command</h1>
-          <p className="text-ink-muted text-[11px] uppercase tracking-[0.14em] mt-0.5">Mockup Requests / Pipeline</p>
-        </div>
-        <button
-          onClick={onClose}
-          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
-        >
-          ✕
-        </button>
-      </div>
+      <SettingsHeader title="Admin Command" subtitle="Mockup Requests / Pipeline" onClose={onClose} />
 
       {/* Main */}
       <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 md:px-8 py-4 md:py-6 min-h-0 overflow-y-auto lg:overflow-visible">
@@ -545,6 +567,30 @@ function AgencySection({
 
           {/* Leads column */}
           <div className="flex flex-col lg:flex-1 lg:min-h-0">
+            {/* Search — matches customer name, business/project name, or email; forgives one typo */}
+            <div
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="flex items-center gap-2.5 px-3.5 rounded-sm mb-3 flex-shrink-0"
+            >
+              <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search customer, project name or email..."
+                className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
+            </div>
+
             <div className="flex items-center justify-between mb-4 gap-4 flex-wrap flex-shrink-0">
               <div
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
@@ -571,7 +617,7 @@ function AgencySection({
               {error ? (
                 <EmptyState text={error} />
               ) : filtered.length === 0 ? (
-                <EmptyState text="No matching communications detected in the stream." />
+                <EmptyState text={search ? `No leads match "${search}".` : 'No matching communications detected in the stream.'} />
               ) : (
                 filtered.map((lead) => (
                   <LeadRow
@@ -592,14 +638,10 @@ function AgencySection({
 
         {/* Desktop drawer — hidden on mobile (lead detail is in the SettingsPanel hierarchy) */}
         <div className="hidden lg:flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
-          <AnimatePresence mode="wait">
+          <>
             {selected ? (
-              <motion.div
+              <div
                 key={selected.id}
-                initial={{ opacity: 0, x: 24 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: 24 }}
-                transition={{ duration: 0.25 }}
                 style={{ border: '1px solid rgba(255,255,255,0.06)' }}
                 className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 lg:h-full lg:overflow-y-auto"
               >
@@ -617,20 +659,17 @@ function AgencySection({
                   </button>
                 </div>
                 <LeadDetailPanel {...detailProps} />
-              </motion.div>
+              </div>
             ) : (
-              <motion.div
+              <div
                 key="empty"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
                 style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
                 className="flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
               >
                 Select a lead to view details and manage milestones.
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
+          </>
         </div>
       </div>
     </div>
@@ -843,9 +882,9 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
         <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
         <span className="text-[10px] text-ink-muted">▸</span>
       </button>
-      <AnimatePresence>
+      <>
         {open && <BriefModal lead={lead} onClose={() => setOpen(false)} />}
-      </AnimatePresence>
+      </>
     </>
   );
 }
@@ -875,18 +914,12 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        exit={{ opacity: 0 }}
+      <div
         onClick={onClose}
         className="absolute inset-0"
         style={{ background: 'rgba(0,0,0,0.65)' }}
       />
-      <motion.div
-        initial={{ opacity: 0, y: 12 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 12 }}
+      <div
         className="relative w-full flex flex-col text-white"
         style={{ maxWidth: 480, maxHeight: '84vh', background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden' }}
       >
@@ -985,7 +1018,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             </div>
           )}
         </div>
-      </motion.div>
+      </div>
     </div>
   );
 }
@@ -1122,22 +1155,7 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
 function StubSection({ title, subtitle, onClose, placeholder }: { title: string; subtitle: string; onClose: () => void; placeholder: string }) {
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div
-        style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-        className="hidden md:flex px-4 md:px-8 py-4 md:py-6 items-center justify-between gap-6 flex-shrink-0"
-      >
-        <div>
-          <h1 className="font-display font-bold italic text-[22px] m-0">{title}</h1>
-          <p className="text-ink-muted text-[11px] uppercase tracking-[0.14em] mt-0.5">{subtitle}</p>
-        </div>
-        <button
-          onClick={onClose}
-          style={{ border: '1px solid rgba(255,255,255,0.1)' }}
-          className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center"
-        >
-          ✕
-        </button>
-      </div>
+      <SettingsHeader title={title} subtitle={subtitle} onClose={onClose} />
       <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div
           style={{ border: '1px dashed rgba(255,255,255,0.1)' }}

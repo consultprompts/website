@@ -3,6 +3,7 @@ import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, X, User as UserIcon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
+import { useBodyScrollLock } from '../../hooks';
 
 interface NavbarProps {
   onStartProject: () => void;
@@ -31,12 +32,16 @@ export default function Navbar({
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  // Lock the page behind the full-screen menu so its scrollbar isn't visible
+  // and touch scrolling can't move the background.
+  useBodyScrollLock(mobileOpen);
+
   const closeMobile = () => setMobileOpen(false);
 
   // Close the hamburger after navigating to /settings so it disappears
   // behind the already-visible SettingsPanel instead of before it.
   useEffect(() => {
-    if (location.pathname === '/settings') closeMobile();
+    if (location.pathname.startsWith('/settings')) closeMobile();
   }, [location.pathname]);
 
   return (
@@ -130,7 +135,7 @@ export default function Navbar({
             ) : (
               <>
                 <button
-                  onClick={() => navigate('/settings')}
+                  onClick={() => navigate('/settings/my-projects')}
                   className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
                   <UserIcon className="w-4 h-4" /> Console

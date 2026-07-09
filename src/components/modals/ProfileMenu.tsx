@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
@@ -14,21 +13,15 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
   const navigate = useNavigate();
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && user && (
         <>
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+          <div
             onClick={onClose}
             className="fixed inset-0 z-[155] bg-transparent cursor-pointer"
           />
           <div className="fixed inset-0 z-[160] flex items-end justify-center p-6 md:items-start md:justify-end md:p-24 overflow-hidden pointer-events-none">
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 20 }}
+            <div
               className="w-full max-w-sm liquid-glass border-brand-primary/20 pointer-events-auto shadow-2xl p-8 rounded-xl"
             >
               <div className="flex items-center gap-4 mb-6">
@@ -44,7 +37,7 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
               <div className="space-y-3">
                 <button
                   onClick={() => {
-                    navigate('/settings');
+                    navigate('/settings/my-projects');
                     onClose();
                   }}
                   className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
@@ -62,10 +55,10 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
                   <LogOut className="w-4 h-4" /> Log Out Signal
                 </button>
               </div>
-            </motion.div>
+            </div>
           </div>
         </>
       )}
-    </AnimatePresence>
+    </>
   );
 }

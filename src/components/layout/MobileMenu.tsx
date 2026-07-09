@@ -1,5 +1,4 @@
 import React from 'react';
-import { motion, AnimatePresence } from 'motion/react';
 import { X } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import Logo from '../ui/Logo';
@@ -24,13 +23,9 @@ export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth
   const { user, logout } = useAuth();
 
   return (
-    <AnimatePresence>
+    <>
       {isOpen && (
-        <motion.div
-          initial={{ x: '100%' }}
-          animate={{ x: 0 }}
-          exit={{ x: '100%' }}
-          transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+        <div
           className="fixed inset-0 z-[150] bg-bg-base p-8 flex flex-col overflow-y-auto"
         >
           <div className="flex justify-between items-center mb-12 flex-shrink-0">
@@ -105,8 +100,8 @@ export default function MobileMenu({ isOpen, onClose, onStartProject, onOpenAuth
               </>
             )}
           </div>
-        </motion.div>
+        </div>
       )}
-    </AnimatePresence>
+    </>
   );
 }

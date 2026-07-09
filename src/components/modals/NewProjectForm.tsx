@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
 import { Loader2, CheckCircle, MessageCircle, Upload } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { submitLead } from '../lib/api';
-import { PACKAGES } from '../data/content';
-import { useStartProjectHandler } from '../hooks';
+import { useAuth } from '../../context/AuthContext';
+import { submitLead } from '../../lib/api';
+import { PACKAGES } from '../../data/content';
+import SettingsHeader from './SettingsHeader';
+import Notification from '../ui/Notification';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -234,29 +234,25 @@ function CheckBtn({
   );
 }
 
-// ─── Step animation variants ──────────────────────────────────────────────────
+// ─── Component ────────────────────────────────────────────────────────────────
 
-const stepVariants = {
-  enter: (dir: number) => ({ opacity: 0, x: dir > 0 ? 32 : -32 }),
-  center: { opacity: 1, x: 0 },
-  exit: (dir: number) => ({ opacity: 0, x: dir > 0 ? -32 : 32 }),
-};
+interface NewProjectFormProps {
+  /** Back to the My Projects list — also called after a successful submission. */
+  onBack: () => void;
+  /** Fully exits Settings (the header's ✕, same as every other section). */
+  onClose: () => void;
+}
 
-// ─── Page component ───────────────────────────────────────────────────────────
-
-export default function StartProject() {
-  const { user, loading: authLoading } = useAuth();
-  const navigate = useNavigate();
+export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps) {
+  const { user } = useAuth();
   const location = useLocation();
 
-  const initialPackage =
-    (location.state as { package?: string } | null)?.package ?? 'visibility';
+  const initialPackage = (location.state as { package?: string } | null)?.package ?? 'visibility';
 
   const [step, setStep] = useState(1);
-  const [stepDir, setStepDir] = useState(1);
 
   const [form, setForm] = useState<FormState>({
-    businessName: '',
+    businessName: user?.displayName ?? '',
     businessType: '',
     message: '',
     hasExistingWebsite: false,
@@ -282,32 +278,10 @@ export default function StartProject() {
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Already on the start-project flow — the navbar's CTA shouldn't re-navigate here.
-  useStartProjectHandler(() => {});
-
-  useEffect(() => {
-    if (!authLoading && !user) {
-      navigate('/?auth=login&next=/start-project', { replace: true });
-    }
-  }, [user, authLoading, navigate]);
-
-  useEffect(() => {
-    if (user?.displayName) {
-      setForm(f => ({ ...f, businessName: f.businessName || user.displayName! }));
-    }
-  }, [user?.displayName]);
-
   const patch = (partial: Partial<FormState>) => setForm(f => ({ ...f, ...partial }));
 
-  const goNext = () => {
-    setStepDir(1);
-    setStep(s => s + 1);
-  };
-
-  const goBack = () => {
-    setStepDir(-1);
-    setStep(s => s - 1);
-  };
+  const goNext = () => setStep(s => s + 1);
+  const goBack = () => setStep(s => s - 1);
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
@@ -372,24 +346,17 @@ export default function StartProject() {
                 onChange={v => patch({ hasExistingWebsite: v })}
               />
             </div>
-            <AnimatePresence>
-              {form.hasExistingWebsite && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: 'auto' }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <FieldLabel>Current Website URL</FieldLabel>
-                  <TextInput
-                    type="url"
-                    value={form.existingWebsiteUrl}
-                    onChange={v => patch({ existingWebsiteUrl: v })}
-                    placeholder="https://yourbusiness.com"
-                  />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {form.hasExistingWebsite && (
+              <div>
+                <FieldLabel>Current Website URL</FieldLabel>
+                <TextInput
+                  type="url"
+                  value={form.existingWebsiteUrl}
+                  onChange={v => patch({ existingWebsiteUrl: v })}
+                  placeholder="https://yourbusiness.com"
+                />
+              </div>
+            )}
           </div>
         );
 
@@ -465,30 +432,22 @@ export default function StartProject() {
                 value={form.hasLogo}
                 onChange={v => patch({ hasLogo: v, logoFile: v ? form.logoFile : null })}
               />
-              <AnimatePresence>
-                {form.hasLogo && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-4"
-                  >
-                    <label className="cursor-pointer">
-                      <div className="inline-flex items-center gap-3 py-3 px-4 rounded-xl border border-white/10 hover:border-white/30 transition-colors text-sm text-ink-muted">
-                        <Upload className="w-4 h-4 flex-shrink-0" />
-                        <span>{form.logoFile ? form.logoFile.name : 'Upload logo file'}</span>
-                      </div>
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={e => patch({ logoFile: e.target.files?.[0] ?? null })}
-                      />
-                    </label>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+              {form.hasLogo && (
+                <div className="mt-4">
+                  <label className="cursor-pointer">
+                    <div className="inline-flex items-center gap-3 py-3 px-4 rounded-xl border border-white/10 hover:border-white/30 transition-colors text-sm text-ink-muted">
+                      <Upload className="w-4 h-4 flex-shrink-0" />
+                      <span>{form.logoFile ? form.logoFile.name : 'Upload logo file'}</span>
+                    </div>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={e => patch({ logoFile: e.target.files?.[0] ?? null })}
+                    />
+                  </label>
+                </div>
+              )}
             </div>
 
             <div>
@@ -497,42 +456,34 @@ export default function StartProject() {
                 value={form.hasBrandColors}
                 onChange={v => patch({ hasBrandColors: v })}
               />
-              <AnimatePresence>
-                {form.hasBrandColors && (
-                  <motion.div
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="mt-4 grid grid-cols-2 gap-4"
-                  >
-                    <div>
-                      <FieldLabel>Primary Color</FieldLabel>
-                      <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
-                        <input
-                          type="color"
-                          value={form.primaryColor}
-                          onChange={e => patch({ primaryColor: e.target.value })}
-                          className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <span className="text-sm font-mono text-ink-muted">{form.primaryColor}</span>
-                      </div>
+              {form.hasBrandColors && (
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div>
+                    <FieldLabel>Primary Color</FieldLabel>
+                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+                      <input
+                        type="color"
+                        value={form.primaryColor}
+                        onChange={e => patch({ primaryColor: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+                      />
+                      <span className="text-sm font-mono text-ink-muted">{form.primaryColor}</span>
                     </div>
-                    <div>
-                      <FieldLabel>Secondary Color</FieldLabel>
-                      <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
-                        <input
-                          type="color"
-                          value={form.secondaryColor}
-                          onChange={e => patch({ secondaryColor: e.target.value })}
-                          className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
-                        />
-                        <span className="text-sm font-mono text-ink-muted">{form.secondaryColor}</span>
-                      </div>
+                  </div>
+                  <div>
+                    <FieldLabel>Secondary Color</FieldLabel>
+                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+                      <input
+                        type="color"
+                        value={form.secondaryColor}
+                        onChange={e => patch({ secondaryColor: e.target.value })}
+                        className="w-8 h-8 rounded cursor-pointer border-0 bg-transparent"
+                      />
+                      <span className="text-sm font-mono text-ink-muted">{form.secondaryColor}</span>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
@@ -649,63 +600,38 @@ export default function StartProject() {
     }
   };
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen bg-bg-base flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-      </div>
-    );
-  }
-
   return (
-    <div className="text-white">
-      <div className="max-w-2xl mx-auto px-6 pt-32 pb-16">
-        <AnimatePresence mode="wait">
-          {submitted ? (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
-              className="liquid-glass rounded-xl p-8 md:p-12 text-center"
-            >
-              <div className="w-20 h-20 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
-                <CheckCircle className="w-10 h-10 text-brand-primary" />
-              </div>
-              <h2 className="font-display text-3xl font-bold italic mb-4">
-                Transmission Received
-              </h2>
-              <p className="text-ink-muted leading-relaxed font-light mb-8 max-w-sm mx-auto">
-                We're already analyzing your business DNA. Expect your mockup within 24–48 hours.
-              </p>
-              <div className="flex flex-col gap-4 items-center max-w-xs mx-auto">
-                <a
-                  href="https://wa.me/13026622736"
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-                >
-                  <MessageCircle className="w-5 h-5" />
-                  Chat on WhatsApp
-                </a>
-                <Link
-                  to="/"
-                  className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary hover:border-white transition-colors"
-                >
-                  Back Home
-                </Link>
-              </div>
-            </motion.div>
-          ) : (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
-            >
-              {/* Progress indicator */}
+    <div className="flex flex-col h-full min-h-0">
+      <SettingsHeader title="My Projects / New Project" onClose={onClose} onBack={onBack} />
+
+      <Notification
+        isOpen={submitted}
+        onClose={onBack}
+        icon={<CheckCircle className="w-10 h-10 text-brand-primary" />}
+        title="Transmission Received"
+        description="We're already analyzing your business DNA. Expect your mockup within 24–48 hours."
+      >
+        <a
+          href="https://wa.me/13026622736"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
+        >
+          <MessageCircle className="w-5 h-5" />
+          Chat on WhatsApp
+        </a>
+        <button
+          onClick={onBack}
+          className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary hover:border-white transition-colors bg-transparent cursor-pointer"
+        >
+          Back to My Projects
+        </button>
+      </Notification>
+
+      <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
+        <div className="max-w-2xl mx-auto w-full text-white">
+          <div>
+            {/* Progress indicator */}
               <div className="mb-8">
                 <div className="flex items-center justify-between mb-3">
                   <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">
@@ -716,10 +642,9 @@ export default function StartProject() {
                   </span>
                 </div>
                 <div className="h-px bg-white/10 rounded-full overflow-hidden">
-                  <motion.div
+                  <div
                     className="h-full bg-brand-primary rounded-full"
-                    animate={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-                    transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+                    style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
                   />
                 </div>
               </div>
@@ -730,19 +655,7 @@ export default function StartProject() {
                   {STEP_TITLES[step - 1]}
                 </h2>
 
-                <AnimatePresence mode="wait" custom={stepDir}>
-                  <motion.div
-                    key={step}
-                    custom={stepDir}
-                    variants={stepVariants}
-                    initial="enter"
-                    animate="center"
-                    exit="exit"
-                    transition={{ duration: 0.25, ease: [0.16, 1, 0.3, 1] }}
-                  >
-                    {renderStep()}
-                  </motion.div>
-                </AnimatePresence>
+                {renderStep()}
 
                 {error && (
                   <p className="mt-6 text-red-400 text-xs font-bold uppercase tracking-widest text-center">
@@ -794,9 +707,8 @@ export default function StartProject() {
                   )}
                 </div>
               </div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            </div>
+        </div>
       </div>
     </div>
   );

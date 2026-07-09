@@ -1,6 +1,5 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion } from 'motion/react';
 import { REVIEWS } from '../data/content';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -22,43 +21,30 @@ export default function Work() {
     <div className="text-white">
       {/* ── Header ── */}
       <header style={{ padding: '148px 24px 48px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
-        <motion.span
+        <span
           className="font-bold uppercase block"
           style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, ease: EASE }}
         >
           The Receipts
-        </motion.span>
-        <motion.h1
+        </span>
+        <h1
           className="font-display font-bold italic"
           style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px', lineHeight: 1.05 }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.08, ease: EASE }}
         >
           Built for the block.{' '}
           <span style={{ color: '#00F0FF' }}>Loved</span> by it.
-        </motion.h1>
-        <motion.p
+        </h1>
+        <p
           className="text-ink-muted font-light"
           style={{ fontSize: 16, margin: 0 }}
-          initial={{ opacity: 0, y: 16 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, delay: 0.18, ease: EASE }}
         >
           Three real businesses, three real launches. Here's the problem we walked into, the fix we
           shipped, and what happened next.
-        </motion.p>
+        </p>
       </header>
 
       {/* ── Featured spotlight ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 28 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.65, ease: EASE }}
+      <section
         style={{ maxWidth: 1080, margin: '0 auto', padding: '24px 24px 64px' }}
       >
         <div
@@ -156,7 +142,7 @@ export default function Work() {
             </div>
           </div>
         </div>
-      </motion.section>
+      </section>
 
       {/* ── More Launches ── */}
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 80px', display: 'flex', flexDirection: 'column', gap: 24 }}>
@@ -168,12 +154,8 @@ export default function Work() {
         {others.map((cs, i) => {
           const imgLeft = i % 2 !== 0;
           return (
-            <motion.div
+            <div
               key={cs.client}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-60px' }}
-              transition={{ duration: 0.6, delay: i * 0.07, ease: EASE }}
               className="launch-row"
               style={{
                 gridTemplateColumns: imgLeft ? '1fr 1.1fr' : '1.1fr 1fr',
@@ -243,17 +225,13 @@ export default function Work() {
               >
                 Site preview — {cs.siteLabel}
               </div>
-            </motion.div>
+            </div>
           );
         })}
       </section>
 
       {/* ── Trust strip ── */}
-      <motion.section
-        initial={{ opacity: 0 }}
-        whileInView={{ opacity: 1 }}
-        viewport={{ once: true, margin: '-40px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{
           padding: '56px 24px',
           borderTop: '1px solid rgba(255,255,255,0.06)',
@@ -284,14 +262,10 @@ export default function Work() {
             </div>
           ))}
         </div>
-      </motion.section>
+      </section>
 
       {/* ── Closing CTA ── */}
-      <motion.section
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true, margin: '-60px' }}
-        transition={{ duration: 0.6, ease: EASE }}
+      <section
         style={{ padding: '80px 24px', textAlign: 'center' }}
       >
         <h2
@@ -301,7 +275,7 @@ export default function Work() {
           Want to be the next one here?
         </h2>
         <button
-          onClick={() => navigate('/start-project')}
+          onClick={() => navigate('/settings/my-projects/new-project')}
           className="font-black transition-opacity hover:opacity-90 cursor-pointer"
           style={{
             background: '#00F0FF',
@@ -316,7 +290,7 @@ export default function Work() {
         >
           Start your project →
         </button>
-      </motion.section>
+      </section>
     </div>
   );
 }

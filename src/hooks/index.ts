@@ -3,7 +3,7 @@ import { useLayout } from '../context/LayoutContext';
 
 /**
  * Overrides what the shared navbar's "Start a project" button does while this
- * page is mounted, restoring the default (navigate to /start-project) on unmount.
+ * page is mounted, restoring the default (navigate to /settings/my-projects/new-project) on unmount.
  */
 export function useStartProjectHandler(handler: () => void) {
   const { setStartProjectHandler } = useLayout();
