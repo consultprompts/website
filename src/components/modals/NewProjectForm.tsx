@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Loader2, CheckCircle, MessageCircle, Upload } from 'lucide-react';
+import { Loader2, CheckCircle, MessageCircle, Phone, Mail, Upload } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { submitLead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
@@ -9,16 +9,18 @@ import Notification from '../ui/Notification';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
-const TOTAL_STEPS = 8;
+const TOTAL_STEPS = 10;
 
 const STEP_TITLES = [
   'Business Basics',
+  'Location',
   'About Your Business',
   'Site Goal',
   'Pages Needed',
   'Style Direction',
   'Branding',
-  'Inspiration & Contact',
+  'Inspiration',
+  'Contact',
   'Package',
 ];
 
@@ -57,6 +59,14 @@ const TIMELINES = [
   'Just exploring',
 ];
 
+// CTA on the post-submit confirmation popup — matches whichever contact
+// method the client picked, instead of always pointing at WhatsApp.
+const CONTACT_CTA: Record<string, { href: string; label: string; icon: React.ReactNode; external?: boolean }> = {
+  WhatsApp: { href: 'https://wa.me/13026622736', label: 'Chat on WhatsApp', icon: <MessageCircle className="w-5 h-5" />, external: true },
+  Phone: { href: 'tel:+13026622736', label: 'Call Us', icon: <Phone className="w-5 h-5" /> },
+  Email: { href: 'mailto:consultprompts@gmail.com', label: 'Email Us', icon: <Mail className="w-5 h-5" /> },
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface FormState {
@@ -65,6 +75,7 @@ interface FormState {
   message: string;
   hasExistingWebsite: boolean;
   existingWebsiteUrl: string;
+  location: string;
   siteGoal: string;
   pagesNeeded: string[];
   styleDirection: string;
@@ -87,13 +98,15 @@ interface FormState {
 function isStepValid(step: number, form: FormState): boolean {
   switch (step) {
     case 1: return !!form.businessName.trim() && !!form.businessType.trim();
-    case 2: return true;
-    case 3: return !!form.siteGoal;
-    case 4: return true;
-    case 5: return !!form.styleDirection;
-    case 6: return true;
-    case 7: return !!form.phoneNumber.trim() && !!form.contactMethod && !!form.timeline;
-    case 8: return !!form.selectedPackage;
+    case 2: return !!form.location.trim();
+    case 3: return true;
+    case 4: return !!form.siteGoal;
+    case 5: return true;
+    case 6: return !!form.styleDirection;
+    case 7: return true;
+    case 8: return true;
+    case 9: return !!form.phoneNumber.trim() && !!form.contactMethod && !!form.timeline;
+    case 10: return !!form.selectedPackage;
     default: return true;
   }
 }
@@ -257,6 +270,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
     message: '',
     hasExistingWebsite: false,
     existingWebsiteUrl: '',
+    location: '',
     siteGoal: '',
     pagesNeeded: [],
     styleDirection: '',
@@ -303,6 +317,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
         message: form.message.trim() || undefined,
         existing_website: form.hasExistingWebsite,
         existing_website_url: form.hasExistingWebsite ? normalizeUrl(form.existingWebsiteUrl) || undefined : undefined,
+        location: form.location.trim() || undefined,
         site_goal: form.siteGoal || undefined,
         pages_needed: form.pagesNeeded.length ? form.pagesNeeded : undefined,
         style_direction: form.styleDirection || undefined,
@@ -371,6 +386,18 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
       case 2:
         return (
           <div className="space-y-3">
+            <FieldLabel>Business Location *</FieldLabel>
+            <TextInput
+              value={form.location}
+              onChange={v => patch({ location: v })}
+              placeholder="e.g. Austin, TX or 123 Main St, Austin, TX"
+            />
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-3">
             <FieldLabel>Tell us about your business (a couple of sentences)</FieldLabel>
             <TextArea
               value={form.message}
@@ -380,7 +407,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 3:
+      case 4:
         return (
           <div className="space-y-3">
             {SITE_GOALS.map(goal => (
@@ -395,7 +422,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 4:
+      case 5:
         return (
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {PAGES.map(page => (
@@ -416,7 +443,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 5:
+      case 6:
         return (
           <div className="space-y-3">
             {STYLE_DIRECTIONS.map(style => (
@@ -431,7 +458,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 6:
+      case 7:
         return (
           <div className="space-y-8">
             <div>
@@ -496,24 +523,28 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 7:
+      case 8:
+        return (
+          <div className="space-y-3">
+            <FieldLabel>Links to websites you like (optional)</FieldLabel>
+            <TextInput
+              type="url"
+              value={form.inspirationUrl1}
+              onChange={v => patch({ inspirationUrl1: v })}
+              placeholder="https://example.com"
+            />
+            <TextInput
+              type="url"
+              value={form.inspirationUrl2}
+              onChange={v => patch({ inspirationUrl2: v })}
+              placeholder="https://another-example.com"
+            />
+          </div>
+        );
+
+      case 9:
         return (
           <div className="space-y-6">
-            <div className="space-y-3">
-              <FieldLabel>Links to websites you like (optional)</FieldLabel>
-              <TextInput
-                type="url"
-                value={form.inspirationUrl1}
-                onChange={v => patch({ inspirationUrl1: v })}
-                placeholder="https://example.com"
-              />
-              <TextInput
-                type="url"
-                value={form.inspirationUrl2}
-                onChange={v => patch({ inspirationUrl2: v })}
-                placeholder="https://another-example.com"
-              />
-            </div>
             <div>
               <FieldLabel>Do you want a 15-minute call?</FieldLabel>
               <Toggle
@@ -560,7 +591,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
           </div>
         );
 
-      case 8:
+      case 10:
         return (
           <div className="space-y-4">
             {PACKAGES.map(pkg => (
@@ -619,18 +650,22 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
         title="Transmission Received"
         description="We're already analyzing your business DNA. Expect your mockup within 24–48 hours."
       >
-        <a
-          href="https://wa.me/13026622736"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-        >
-          <MessageCircle className="w-5 h-5" />
-          Chat on WhatsApp
-        </a>
+        {(() => {
+          const cta = CONTACT_CTA[form.contactMethod] ?? CONTACT_CTA.WhatsApp;
+          return (
+            <a
+              href={cta.href}
+              {...(cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
+              className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
+            >
+              {cta.icon}
+              {cta.label}
+            </a>
+          );
+        })()}
         <button
           onClick={onBack}
-          className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary hover:border-white transition-colors bg-transparent cursor-pointer"
+          className="w-full py-4 border border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer bg-transparent"
         >
           Back to My Projects
         </button>

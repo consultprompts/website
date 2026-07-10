@@ -1,36 +1,67 @@
-// Shared milestone-stage logic for SettingsPanel.tsx and MyProjectsSection.tsx.
+// Shared six-milestone model for SettingsPanel.tsx (admin checklist) and
+// MyProjectsSection.tsx (client tracker).
 //
-// Leads track progress as a single `milestone_index` int. When a lead opted
-// into a 15-minute call, an extra "Discovery Call Completed" stage is prepended,
-// shifting every later stage's index by one — `milestoneOffset` is that shift.
+// `milestone_index` counts COMPLETED milestones: milestone k (1-based) is
+// complete iff milestone_index >= k. Mirrors the constants in
+// agency-service/internal/model/milestone.go — keep the two in sync.
 
-const CORE_STAGES = [
-  'Designing Your Website',
-  'Design Ready for Your Review',
+import type { Lead } from './api';
+
+export const MILESTONES = [
+  'Meeting Completed',
+  'Mockup Completed',
   'Design Approved',
-  'Building Your Website',
-  'Website Ready',
-  'Payment',
-  'Waiting for Launch',
-  'Website Is Live',
-];
+  'Website Completed',
+  'Payment Completed',
+  'Website is Live',
+] as const;
 
-export function milestoneOffset(wantsCall: boolean): number {
-  return wantsCall ? 1 : 0;
-}
+// In-progress labels shown on the client tracker while a milestone is still
+// pending; each row switches to its MILESTONES label once completed.
+export const MILESTONES_PENDING = [
+  'Awaiting Meeting',
+  'Designing Mockup',
+  'Waiting for Review',
+  'Building Website',
+  'Awaiting Payment',
+  'Preparing for Launch',
+] as const;
 
-export function milestoneStages(wantsCall: boolean): string[] {
-  return wantsCall ? ['Discovery Call Completed', ...CORE_STAGES] : CORE_STAGES;
-}
-
-// Core stage indices, relative to milestoneOffset(wantsCall).
-export const CORE_IDX = {
-  designingMockup: 0,
-  mockupDelivered: 1,
-  revisionsSignedOff: 2,
-  siteInDevelopment: 3,
-  siteCompleted: 4,
+// 1-based milestone numbers (values of milestone_index once complete).
+export const MILESTONE = {
+  meeting: 1,
+  mockup: 2,
+  approved: 3,
+  website: 4,
   payment: 5,
-  waitingForLaunch: 6,
-  launched: 7,
-};
+  live: 6,
+} as const;
+
+export function isMilestoneDone(lead: Lead, milestone: number): boolean {
+  return lead.milestone_index >= milestone;
+}
+
+/** A mockup has been sent and is waiting on the client's approve/request-changes. */
+export function isAwaitingDesignReview(lead: Lead): boolean {
+  return (
+    lead.milestone_index === MILESTONE.meeting &&
+    !!lead.mockup_url &&
+    !lead.revision_feedback
+  );
+}
+
+/**
+ * The client-facing status line, derived from the highest completed milestone
+ * (plus the in-between mockup-review state, which lives on mockup_url rather
+ * than the index — "Mockup Completed" stays unchecked until approval).
+ */
+export function projectStatusText(lead: Lead): string {
+  if (isMilestoneDone(lead, MILESTONE.live)) return 'Website is Live! 🎉';
+  if (isMilestoneDone(lead, MILESTONE.payment)) return 'Preparing for Launch';
+  if (isMilestoneDone(lead, MILESTONE.website)) return 'Awaiting Final Payment';
+  if (isMilestoneDone(lead, MILESTONE.approved)) return 'Website Building';
+  if (isMilestoneDone(lead, MILESTONE.meeting)) {
+    return isAwaitingDesignReview(lead) ? 'Awaiting Design Review' : 'Mockup Designing';
+  }
+  return 'Waiting for Meeting';
+}

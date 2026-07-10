@@ -239,6 +239,7 @@ export interface Lead {
   message?: string;
   existing_website?: boolean;
   existing_website_url?: string;
+  location?: string;
   site_goal?: string;
   pages_needed?: string[];
   style_direction?: string;
@@ -253,7 +254,8 @@ export interface Lead {
   timeline?: string;
   package?: string;
   wants_call: boolean;
-  status: 'pending' | 'accepted' | 'completed' | 'launched' | 'revision';
+  meeting_skipped: boolean;
+  status: 'pending' | 'accepted' | 'completed' | 'launched' | 'revision' | 'suspended';
   milestone_index: number;
   mockup_url?: string;
   revision_feedback?: string;
@@ -274,6 +276,7 @@ export interface LeadInput {
   message?: string;
   existing_website?: boolean;
   existing_website_url?: string;
+  location?: string;
   site_goal?: string;
   pages_needed?: string[];
   style_direction?: string;
@@ -373,6 +376,17 @@ export async function launchSite(leadId: string, siteUrl: string) {
   return request<{ message: string }>(`/agency/leads/${leadId}/launch`, {
     method: 'PATCH',
     body: JSON.stringify({ site_url: siteUrl }),
+  });
+}
+
+export async function requestMeeting(leadId: string) {
+  return request<{ message: string }>(`/agency/leads/${leadId}/request-meeting`, { method: 'POST' });
+}
+
+export async function setLeadSuspended(leadId: string, suspended: boolean) {
+  return request<{ message: string; status: Lead['status'] }>(`/agency/leads/${leadId}/suspend`, {
+    method: 'PATCH',
+    body: JSON.stringify({ suspended }),
   });
 }
 

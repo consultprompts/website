@@ -1,10 +1,10 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink, Plus } from 'lucide-react';
-import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } from '../../lib/api';
+import { getMyLeads, submitReview, setWantsMaintenance, markPaid, requestMeeting, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
-import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
+import { MILESTONES, MILESTONES_PENDING, MILESTONE, projectStatusText } from '../../lib/milestones';
 import NewProjectForm from './NewProjectForm';
 import SettingsHeader from './SettingsHeader';
 
@@ -26,6 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }
   revision:  { label: 'Revision',     color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
   completed: { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
   launched:  { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
+  suspended: { label: 'Suspended',    color: '#FF6B6B', bg: 'rgba(255,107,107,0.14)' },
 };
 
 // ---------------------------------------------------------------------------
@@ -38,15 +39,14 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const handleAccept = async () => {
+  const handleApprove = async () => {
     setSubmitting(true);
     setError('');
     try {
       await submitReview(lead.id, 'accept');
-      // Accepting advances straight into "Building Your Website" — that's what
-      // makes "Design Approved" show as done rather than just current.
-      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.siteInDevelopment;
-      onUpdate({ ...lead, milestone_index: targetIndex });
+      // Approving checks off BOTH "Mockup Completed" and "Design Approved" —
+      // the tracker moves straight to "Website Building".
+      onUpdate({ ...lead, milestone_index: MILESTONE.approved });
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong');
     } finally {
@@ -63,9 +63,9 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
     setError('');
     try {
       await submitReview(lead.id, 'request_changes', feedback.trim());
-      // Un-checks "Design Ready for Your Review" — the admin needs to deliver a new one.
-      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.mockupDelivered;
-      onUpdate({ ...lead, revision_feedback: feedback.trim(), milestone_index: targetIndex, status: 'revision' });
+      // Milestone doesn't move — "Mockup Completed" was never checked; the
+      // admin sends a revised mockup and the review starts over.
+      onUpdate({ ...lead, revision_feedback: feedback.trim(), status: 'revision' });
       setShowFeedback(false);
       setFeedback('');
     } catch (e) {
@@ -87,11 +87,11 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             href={safeUrl(lead.mockup_url)!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-bold hover:underline"
-            style={{ color: '#00F0FF' }}
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-lg font-bold text-sm"
+            style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.3)' }}
           >
             <ExternalLink className="w-4 h-4" />
-            Open Mockup
+            View Your Mockup
           </a>
         </div>
       )}
@@ -116,12 +116,12 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             {!showFeedback && (
               <div className="flex gap-3 flex-wrap">
                 <button
-                  onClick={handleAccept}
+                  onClick={handleApprove}
                   disabled={submitting}
                   className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
                   style={{ background: '#00F0FF', color: '#050505' }}
                 >
-                  {submitting ? 'Saving…' : 'Accept'}
+                  {submitting ? 'Saving…' : 'Approve Design'}
                 </button>
                 <button
                   onClick={() => setShowFeedback(true)}
@@ -178,6 +178,44 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
 }
 
 // ---------------------------------------------------------------------------
+// Request Meeting Button — shown next to "Meeting Skipped" so a client who
+// opted out of the 15-minute call up front can still ask for one.
+// ---------------------------------------------------------------------------
+
+function RequestMeetingButton({ leadId }: { leadId: string }) {
+  const [state, setState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
+
+  const handleClick = async () => {
+    setState('sending');
+    try {
+      await requestMeeting(leadId);
+      setState('sent');
+    } catch {
+      setState('error');
+    }
+  };
+
+  if (state === 'sent') {
+    return (
+      <span className="text-[10px] uppercase tracking-widest font-bold" style={{ color: '#00F0FF' }}>
+        Meeting Requested
+      </span>
+    );
+  }
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={state === 'sending'}
+      className="px-3 py-1.5 rounded-lg text-[10px] font-bold uppercase tracking-widest border cursor-pointer disabled:opacity-60"
+      style={{ background: 'transparent', borderColor: 'rgba(0,240,255,0.3)', color: '#00F0FF' }}
+    >
+      {state === 'sending' ? 'Sending…' : state === 'error' ? 'Try Again' : 'Request Meeting'}
+    </button>
+  );
+}
+
+// ---------------------------------------------------------------------------
 // Payment & Maintenance Panel
 // ---------------------------------------------------------------------------
 
@@ -205,10 +243,9 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     setPayError('');
     try {
       await markPaid(lead.id);
-      // Checks off "Website Ready" and "Payment" and makes "Waiting for
-      // Launch" current — the client now waits on the admin to launch.
-      const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.waitingForLaunch;
-      onUpdate({ ...lead, is_paid: true, paid_at: new Date().toISOString(), milestone_index: targetIndex });
+      // Checks off "Payment Completed" — the tracker moves to "Preparing for
+      // Launch" while the admin puts the site live.
+      onUpdate({ ...lead, is_paid: true, paid_at: new Date().toISOString(), milestone_index: MILESTONE.payment });
     } catch (e) {
       setPayError(e instanceof Error ? e.message : 'Payment failed — please try again.');
     } finally {
@@ -450,6 +487,17 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
+  if (lead.status === 'suspended') {
+    return (
+      <div className="mt-6 p-4 rounded-xl" style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)' }}>
+        <p className="text-xs font-black uppercase tracking-widest" style={{ color: '#FF6B6B' }}>Project Suspended</p>
+        <p className="mt-1 text-sm text-white/70 font-light">
+          Work on this project is temporarily paused. Reach out if you have questions — we'll resume as soon as it's reactivated.
+        </p>
+      </div>
+    );
+  }
+
   if (lead.status === 'launched' || lead.status === 'completed') {
     const paidDate = lead.paid_at ? new Date(lead.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : null;
     const renewalDate = lead.domain_renewal_date ? new Date(lead.domain_renewal_date).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : null;
@@ -513,29 +561,50 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
-  const offset = milestoneOffset(lead.wants_call);
-  const stages = milestoneStages(lead.wants_call);
-  // When the client pays, advance the effective milestone past payment so both
-  // "Website Ready" and "Payment" show as done even if the backend hasn't
-  // advanced milestone_index yet.
-  const effectiveMilestone = lead.is_paid && lead.milestone_index === offset + CORE_IDX.payment
-    ? offset + CORE_IDX.waitingForLaunch
-    : lead.milestone_index;
-  const mockupDeliveredIdx = offset + CORE_IDX.mockupDelivered;
-  const showMockupReview = effectiveMilestone === mockupDeliveredIdx && !!lead.mockup_url;
-  const showPayment = effectiveMilestone >= offset + CORE_IDX.payment;
+  // Milestone k (1-based) is done iff milestone_index >= k; the current row is
+  // always the first unchecked one. The mockup review lives on the "Mockup
+  // Completed" row while it's current and a mockup URL has been delivered —
+  // the box itself only checks when the client approves.
+  const showMockupReview = lead.milestone_index === MILESTONE.meeting && !!lead.mockup_url;
+  const showPayment = lead.milestone_index >= MILESTONE.website;
+
+  const pct = Math.round((lead.milestone_index / MILESTONES.length) * 100);
 
   return (
     <div className="mt-6">
+      {/* Progress bar, derived from the highest completed milestone */}
+      <div className="mb-5">
+        <div className="flex items-center justify-between mb-1.5">
+          <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">
+            {projectStatusText(lead)}
+          </p>
+          <p className="text-[9px] font-bold text-ink-muted">
+            {lead.milestone_index}/{MILESTONES.length} complete
+          </p>
+        </div>
+        <div className="h-2.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div
+            className="h-full rounded-full"
+            style={{ width: `${pct}%`, background: '#00F0FF' }}
+          />
+        </div>
+      </div>
+
       <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Project Milestones</p>
       <div className="flex flex-col gap-0">
-        {stages.map((label, idx) => {
-          const done = idx < effectiveMilestone;
-          const current = idx === effectiveMilestone;
+        {MILESTONES.map((doneLabel, i) => {
+          const done = lead.milestone_index >= i + 1;
+          const current = lead.milestone_index === i;
+          const isSkippedMeeting = i + 1 === MILESTONE.meeting && lead.meeting_skipped;
+          // Pending rows show the in-progress name; it flips to the
+          // completed name once the milestone is checked off. The meeting
+          // row shows "Meeting Skipped" instead when it was auto-completed
+          // because the client opted out of the 15-minute call.
+          const label = isSkippedMeeting && done ? 'Meeting Skipped' : done ? doneLabel : MILESTONES_PENDING[i];
           return (
-            <div key={idx} className="flex items-start gap-3 relative">
+            <div key={doneLabel} className="flex items-start gap-3 relative">
               {/* connector line */}
-              {idx < stages.length - 1 && (
+              {i < MILESTONES.length - 1 && (
                 <div
                   className="absolute left-[10px] top-[22px] w-px"
                   style={{
@@ -565,21 +634,24 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                 )}
               </div>
               <div className="pb-7 w-full">
-                <p
-                  className="text-sm font-bold leading-tight"
-                  style={{
-                    color: done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.35)',
-                  }}
-                >
-                  {label}
-                </p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <p
+                    className="text-sm font-bold leading-tight m-0"
+                    style={{
+                      color: done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.35)',
+                    }}
+                  >
+                    {label}
+                  </p>
+                  {isSkippedMeeting && done && <RequestMeetingButton leadId={lead.id} />}
+                </div>
                 {current && (
                   <p className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: '#00F0FF' }}>
-                    Current stage
+                    In progress
                   </p>
                 )}
-                {/* Mockup review UI — shown while "Design Ready for Your Review" is current */}
-                {idx === mockupDeliveredIdx && current && showMockupReview && (
+                {/* Mockup review — prominent link + Approve Design / Request Changes */}
+                {i + 1 === MILESTONE.mockup && current && showMockupReview && (
                   <MockupReviewPanel lead={lead} onUpdate={onUpdate} />
                 )}
               </div>
@@ -588,7 +660,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
         })}
       </div>
 
-      {/* Payment + maintenance — shown from "Payment" milestone onward */}
+      {/* Payment gateway UI — injected once "Website Completed" is checked */}
       {showPayment && (
         <PaymentPanel lead={lead} onUpdate={onUpdate} />
       )}

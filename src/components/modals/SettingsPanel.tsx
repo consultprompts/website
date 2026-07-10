@@ -1,9 +1,10 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft, Search, X, Undo2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
+import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, setLeadSuspended, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
-import { milestoneStages, milestoneOffset, CORE_IDX } from '../../lib/milestones';
+import { MILESTONES, MILESTONE, projectStatusText } from '../../lib/milestones';
+import { PACKAGES } from '../../data/content';
 import logo from '../../logo.png';
 import AccountSection from './AccountSection';
 import MyProjectsSection from './MyProjectsSection';
@@ -42,43 +43,75 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = 
   revision:  { bg: 'rgba(245,197,66,0.18)',  fg: '#F5C542', label: 'revision' },
   completed: { bg: 'rgba(112,0,255,0.22)',   fg: '#B98CFF', label: 'completed' },
   launched:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'launched' },
+  suspended: { bg: 'rgba(255,107,107,0.18)', fg: '#FF6B6B', label: 'suspended' },
 };
 
-// Derives how one milestone row renders (and whether it accepts clicks) for a
-// lead. Auto-set stages are locked with a tooltip saying what checks them;
-// "sent" marks a stage whose admin action fired but is awaiting the client
-// (mockup under review, payment email out), so it shows a badge instead of a
-// premature checkmark. The mockup-delivered row is additionally locked while
-// awaiting that first review — so a second click can't re-fire the "send
-// mockup" flow before the client has looked — and unlocked again once the
-// client requests changes, so the admin can submit a revised URL.
-function stageRowState(idx: number, lead: Lead) {
-  const offset = milestoneOffset(lead.wants_call);
-  // When client pays, advance the effective milestone past payment so both
-  // "Website Ready" and "Payment" show as done even if the backend hasn't
-  // advanced milestone_index yet.
-  const effectiveMilestone = lead.is_paid && lead.milestone_index === offset + CORE_IDX.payment
-    ? offset + CORE_IDX.waitingForLaunch
-    : lead.milestone_index;
-  const current = idx === effectiveMilestone && lead.status !== 'launched';
-  const launchLocked = idx === offset + CORE_IDX.launched && !lead.is_paid;
-  const mockupDeliveredCurrent = idx === offset + CORE_IDX.mockupDelivered && current;
-  const revisionRequested = mockupDeliveredCurrent && !!lead.revision_feedback;
-  const awaitingReview = mockupDeliveredCurrent && !revisionRequested && !!lead.mockup_url;
-  const lockReason =
-    (idx > effectiveMilestone && lead.status !== 'launched' && idx !== offset + CORE_IDX.mockupDelivered) ? 'Complete previous milestones first'
-    : launchLocked ? 'Client must complete payment first'
-    : idx === offset + CORE_IDX.revisionsSignedOff ? 'Automatically checked when the client accepts their mockup'
-    : idx === offset + CORE_IDX.payment ? 'Automatically checked when the client pays'
-    : awaitingReview ? 'Waiting for the client to review the mockup'
-    : undefined;
-  const sentWebsiteReady =
-    idx === offset + CORE_IDX.siteCompleted &&
-    effectiveMilestone === offset + CORE_IDX.payment &&
-    !lead.is_paid;
-  const sent = sentWebsiteReady || awaitingReview;
-  const done = idx < effectiveMilestone && !sentWebsiteReady;
-  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, revisionRequested, done, effectiveMilestone };
+// Admin checklist state for milestone k (1-based). Milestone k is done iff
+// milestone_index >= k. Only two rows are plain manual checks (Meeting,
+// Website Completed — the latter also fires the payment-request email);
+// Mockup opens the send-URL modal and stays unchecked until the client
+// approves; Design Approved and Payment Completed are auto-set and always
+// disabled; Website is Live opens the launch-URL modal once payment is in.
+type RowState = {
+  done: boolean;
+  clickable: boolean;
+  lockReason?: string;
+  badge?: { label: string; color: string };
+};
+
+function rowState(k: number, lead: Lead): RowState {
+  const done = lead.milestone_index >= k;
+  if (done && k === MILESTONE.meeting && lead.meeting_skipped) {
+    return { done, clickable: false, badge: { label: 'Skipped', color: '#A1A1A1' } };
+  }
+  if (done || lead.status === 'launched') return { done, clickable: false };
+  const current = lead.milestone_index === k - 1;
+
+  const state = rowStateActive(k, lead, current);
+  // Frozen while suspended — visible for reference, but reactivate the
+  // project before touching anything. Badges (Sent, Changes Requested, etc.)
+  // still show for context.
+  if (lead.status === 'suspended' && state.clickable) {
+    return { ...state, clickable: false, lockReason: 'Reactivate the project to make changes' };
+  }
+  return state;
+}
+
+function rowStateActive(k: number, lead: Lead, current: boolean): RowState {
+  const done = lead.milestone_index >= k;
+  switch (k) {
+    case MILESTONE.meeting:
+      return { done, clickable: current };
+    case MILESTONE.mockup:
+      if (!current) return { done, clickable: false, lockReason: 'Complete previous milestones first' };
+      if (lead.revision_feedback) {
+        return { done, clickable: true, badge: { label: 'Changes Requested', color: '#F5C542' } };
+      }
+      if (lead.mockup_url) {
+        return {
+          done, clickable: false,
+          lockReason: 'Waiting for the client to review the mockup',
+          badge: { label: 'Sent', color: '#00F0FF' },
+        };
+      }
+      return { done, clickable: true };
+    case MILESTONE.approved:
+      return { done, clickable: false, lockReason: 'Checked automatically when the client approves the design' };
+    case MILESTONE.website:
+      return current
+        ? { done, clickable: true }
+        : { done, clickable: false, lockReason: 'Complete previous milestones first' };
+    case MILESTONE.payment:
+      return { done, clickable: false, lockReason: "Checked automatically when the client's payment is confirmed" };
+    default: // MILESTONE.live
+      if (current) return { done, clickable: true };
+      return {
+        done, clickable: false,
+        lockReason: lead.milestone_index === MILESTONE.website && !lead.is_paid
+          ? 'Client must complete payment first'
+          : 'Complete previous milestones first',
+      };
+  }
 }
 
 function normalizeText(s: string) {
@@ -120,15 +153,15 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('menu');
+  // Starts on 'detail', not 'menu' — `section` is always already resolved by
+  // the route (Settings.tsx canonicalizes to my-projects), so opening should
+  // land directly on that section instead of an extra section-picker tap.
+  // 'menu' is still reachable via the in-panel Back button to switch sections.
+  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('detail');
   const [filter, setFilter] = useState<Filter | null>(null);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
-  const [mockupInputId, setMockupInputId] = useState<string | null>(null);
-  const [mockupURL, setMockupURL] = useState('');
-  const [launchInputId, setLaunchInputId] = useState<string | null>(null);
-  const [launchURL, setLaunchURL] = useState('');
 
   const refreshLeads = useCallback(async () => {
     try {
@@ -147,14 +180,10 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   useEffect(() => {
     if (!isOpen) {
       setSelectedId(null);
-      setMobileScreen('menu');
+      setMobileScreen('detail');
       setFilter(null);
       setSearch('');
       setActionError(null);
-      setMockupInputId(null);
-      setMockupURL('');
-      setLaunchInputId(null);
-      setLaunchURL('');
     }
   }, [isOpen]);
 
@@ -165,15 +194,14 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
 
   const handleAccept = useCallback(async (lead: Lead) => {
     const leadId = lead.id;
-    // Always start at the first stage, unchecked — "Discovery Call Completed"
-    // when the lead opted into a call, otherwise "Designing Your Website".
-    const startIndex = 0;
+    // Accepting starts the checklist with nothing checked — "Meeting
+    // Completed" becomes the first actionable milestone.
     setAccepting(leadId);
     setActionError(null);
     try {
-      await updateLeadMilestone(leadId, startIndex);
+      await updateLeadMilestone(leadId, 0);
       setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, status: 'accepted', milestone_index: startIndex } : l)),
+        prev.map((l) => (l.id === leadId ? { ...l, status: 'accepted', milestone_index: 0 } : l)),
       );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to accept lead');
@@ -182,97 +210,65 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
     }
   }, []);
 
-  const handleMilestone = useCallback(async (leadId: string, idx: number, lead: Lead) => {
-    const offset = milestoneOffset(lead.wants_call);
-    // "Design Ready for Your Review" — show URL input before advancing.
-    if (idx === offset + CORE_IDX.mockupDelivered) {
-      setMockupInputId(leadId);
-      setMockupURL('');
-      return;
-    }
-    // "Website Ready" — dedicated complete endpoint + email. Sends the payment
-    // email and makes "Payment" current. "Website Ready" itself is rendered as
-    // "sent" (not done) until the client actually pays — see the sentWebsiteReady
-    // check below.
-    if (idx === offset + CORE_IDX.siteCompleted) {
-      setActionError(null);
-      try {
-        await completeSite(leadId);
-        setLeads((prev) =>
-          prev.map((l) => (l.id === leadId ? { ...l, milestone_index: idx + 1, status: 'accepted' } : l)),
-        );
-      } catch (err) {
-        setActionError(err instanceof Error ? err.message : 'Failed to mark site complete');
-      }
-      return;
-    }
-    // "Launched" — requires payment; show site URL input.
-    if (idx === offset + CORE_IDX.launched) {
-      if (!lead.is_paid) {
-        setActionError('Client must complete payment before the site can be launched.');
-        return;
-      }
-      setLaunchInputId(leadId);
-      setLaunchURL('');
-      return;
-    }
-    // Auto-set stages ("Designing Your Website", "Design Approved", "Payment",
-    // "Waiting for Launch") can't be checked off manually — their rows are
-    // also disabled, so this is just a safety net.
-    if (stageRowState(idx, lead).locked) {
-      return;
-    }
-    // Clicking a stage marks *that* stage done and advances current to the next one.
+  // Checks off "Meeting Completed" — the only milestone that's a plain manual check.
+  const handleCheckMeeting = useCallback(async (leadId: string) => {
     setActionError(null);
     try {
-      await updateLeadMilestone(leadId, idx + 1);
+      await updateLeadMilestone(leadId, MILESTONE.meeting);
       setLeads((prev) =>
-        prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: idx + 1, status: 'accepted' } : l,
-        ),
+        prev.map((l) => (l.id === leadId ? { ...l, milestone_index: MILESTONE.meeting, status: 'accepted' } : l)),
       );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to update milestone');
     }
   }, []);
 
-  const handleMockupSave = useCallback(async (leadId: string, url: string, lead: Lead) => {
-    if (!url.trim()) return;
+  // Checks off "Website Completed" and fires the payment-request email.
+  const handleCompleteSite = useCallback(async (leadId: string) => {
     setActionError(null);
-    // Marks "Designing Your Website" done and advances current to "Design Ready
-    // for Your Review", where the client approves it or requests changes.
-    const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.mockupDelivered;
     try {
-      await apiSetMockupURL(leadId, url.trim());
+      await completeSite(leadId);
       setLeads((prev) =>
-        prev.map((l) =>
-          // Clears any prior revision_feedback — otherwise the row would still read
-          // "Request Changes" after this resubmission instead of flipping back to "Sent".
-          l.id === leadId ? { ...l, milestone_index: targetIndex, mockup_url: url.trim(), status: 'accepted', revision_feedback: undefined } : l,
-        ),
+        prev.map((l) => (l.id === leadId ? { ...l, milestone_index: MILESTONE.website, status: 'accepted' } : l)),
       );
-      setMockupInputId(null);
-      setMockupURL('');
     } catch (err) {
-      setActionError(err instanceof Error ? err.message : 'Failed to save mockup URL');
+      setActionError(err instanceof Error ? err.message : 'Failed to mark the website complete');
     }
   }, []);
 
-  const handleLaunchSave = useCallback(async (leadId: string, url: string, lead: Lead) => {
-    if (!url.trim()) return;
+  // Saves the mockup URL and notifies the client. "Mockup Completed" stays
+  // UNCHECKED — it only completes when the client approves the design.
+  // Returns success so the URL modal knows whether to close.
+  const handleMockupSave = useCallback(async (leadId: string, url: string): Promise<boolean> => {
     setActionError(null);
-    const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.launched;
     try {
-      await launchSite(leadId, url.trim());
+      await apiSetMockupURL(leadId, url);
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, milestone_index: targetIndex, status: 'launched', site_url: url.trim() } : l,
+          l.id === leadId ? { ...l, mockup_url: url, revision_feedback: undefined, status: 'accepted' } : l,
         ),
       );
-      setLaunchInputId(null);
-      setLaunchURL('');
+      return true;
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to save mockup URL');
+      return false;
+    }
+  }, []);
+
+  // Checks off "Website is Live" with the final site URL.
+  const handleLaunchSave = useCallback(async (leadId: string, url: string): Promise<boolean> => {
+    setActionError(null);
+    try {
+      await launchSite(leadId, url);
+      setLeads((prev) =>
+        prev.map((l) =>
+          l.id === leadId ? { ...l, milestone_index: MILESTONE.live, status: 'launched', site_url: url } : l,
+        ),
+      );
+      return true;
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to launch site');
+      return false;
     }
   }, []);
 
@@ -281,17 +277,24 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
     try {
       await updateLeadMilestone(leadId, targetIndex);
       setLeads((prev) =>
-        prev.map((l) => {
-          if (l.id !== leadId) return l;
-          const offset = milestoneOffset(l.wants_call);
-          const cleared = targetIndex <= offset + CORE_IDX.mockupDelivered
-            ? { mockup_url: undefined as string | undefined, revision_feedback: undefined as string | undefined }
-            : {};
-          return { ...l, ...cleared, milestone_index: targetIndex, status: 'accepted' as const };
-        }),
+        prev.map((l) => (l.id === leadId ? { ...l, milestone_index: targetIndex, status: 'accepted' } : l)),
       );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to undo milestone');
+    }
+  }, []);
+
+  // The server decides what status a reactivated lead resumes to (it's the
+  // only place that knows pre_suspend_status), so it returns the resulting
+  // status and we patch it in directly — same pattern as every other action
+  // here, and avoids a refetch racing a second click before it lands.
+  const handleSuspend = useCallback(async (leadId: string, suspended: boolean) => {
+    setActionError(null);
+    try {
+      const { status } = await setLeadSuspended(leadId, suspended);
+      setLeads((prev) => prev.map((l) => (l.id === leadId ? { ...l, status } : l)));
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to update project status');
     }
   }, []);
 
@@ -347,18 +350,12 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
           setSelectedId={setSelectedId}
           onMobileLeadSelect={() => setMobileScreen('lead-detail')}
           onAccept={handleAccept}
-          onMilestone={handleMilestone}
-          onUndo={handleUndo}
+          onCheckMeeting={handleCheckMeeting}
+          onCompleteSite={handleCompleteSite}
           onMockupSave={handleMockupSave}
-          mockupInputId={mockupInputId}
-          mockupURL={mockupURL}
-          setMockupURL={setMockupURL}
-          onCancelMockup={() => { setMockupInputId(null); setMockupURL(''); }}
           onLaunchSave={handleLaunchSave}
-          launchInputId={launchInputId}
-          launchURL={launchURL}
-          setLaunchURL={setLaunchURL}
-          onCancelLaunch={() => { setLaunchInputId(null); setLaunchURL(''); }}
+          onUndo={handleUndo}
+          onSuspend={handleSuspend}
           onClose={onClose}
           error={error}
           actionError={actionError}
@@ -501,17 +498,12 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                             <LeadDetailPanel
                               selected={selected}
                               onAccept={handleAccept}
-                              onMilestone={handleMilestone}
+                              onCheckMeeting={handleCheckMeeting}
+                              onCompleteSite={handleCompleteSite}
                               onMockupSave={handleMockupSave}
-                              mockupInputId={mockupInputId}
-                              mockupURL={mockupURL}
-                              setMockupURL={setMockupURL}
-                              onCancelMockup={() => { setMockupInputId(null); setMockupURL(''); }}
                               onLaunchSave={handleLaunchSave}
-                              launchInputId={launchInputId}
-                              launchURL={launchURL}
-                              setLaunchURL={setLaunchURL}
-                              onCancelLaunch={() => { setLaunchInputId(null); setLaunchURL(''); }}
+                              onUndo={handleUndo}
+                              onSuspend={handleSuspend}
                               actionError={actionError}
                               accepting={accepting}
                             />
@@ -545,18 +537,12 @@ interface AgencySectionProps {
   setSelectedId: (id: string | null) => void;
   onMobileLeadSelect: () => void;
   onAccept: (lead: Lead) => Promise<void>;
-  onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
+  onCheckMeeting: (leadId: string) => Promise<void>;
+  onCompleteSite: (leadId: string) => Promise<void>;
+  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
+  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
   onUndo: (leadId: string, targetIndex: number) => Promise<void>;
-  onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
-  mockupInputId: string | null;
-  mockupURL: string;
-  setMockupURL: (v: string) => void;
-  onCancelMockup: () => void;
-  onLaunchSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
-  launchInputId: string | null;
-  launchURL: string;
-  setLaunchURL: (v: string) => void;
-  onCancelLaunch: () => void;
+  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
   onClose: () => void;
   error: string | null;
   actionError: string | null;
@@ -565,15 +551,12 @@ interface AgencySectionProps {
 
 function AgencySection({
   filtered, filter, setFilter, search, setSearch, stats, selected, selectedId, setSelectedId,
-  onMobileLeadSelect, onAccept, onMilestone, onUndo, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
-  onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
+  onMobileLeadSelect, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
   onClose, error, actionError, accepting,
 }: AgencySectionProps) {
   const detailProps = {
     selected: selected!,
-    onAccept, onMilestone, onUndo,
-    onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
-    onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
+    onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
     actionError, accepting,
   };
 
@@ -603,31 +586,7 @@ function AgencySection({
 
           {/* Leads column */}
           <div className="flex flex-col lg:flex-1 lg:min-h-0">
-            {/* Search — matches customer name, business/project name, or email; forgives one typo */}
-            <div
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
-              className="flex items-center gap-2.5 px-3.5 rounded-sm mb-3 flex-shrink-0"
-            >
-              <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search customer, project name or email..."
-                className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
-              />
-              {search && (
-                <button
-                  onClick={() => setSearch('')}
-                  aria-label="Clear search"
-                  className="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
-              )}
-            </div>
-
-            <div className="flex items-center justify-between mb-4 gap-4 flex-wrap flex-shrink-0">
+            <div className="flex items-center justify-between mb-3 gap-4 flex-wrap flex-shrink-0">
               <div
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                 className="flex p-1 rounded-sm"
@@ -650,6 +609,30 @@ function AgencySection({
                 })}
               </div>
               <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
+            </div>
+
+            {/* Search — matches customer name, business/project name, or email; forgives one typo */}
+            <div
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              className="flex items-center gap-2.5 px-3.5 rounded-sm mb-4 flex-shrink-0"
+            >
+              <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search customer, project name or email..."
+                className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
+              />
+              {search && (
+                <button
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  className="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </button>
+              )}
             </div>
 
             <div className="flex flex-col gap-2.5 pr-1 lg:flex-1 lg:overflow-y-auto">
@@ -720,30 +703,40 @@ function AgencySection({
 interface LeadDetailPanelProps {
   selected: Lead;
   onAccept: (lead: Lead) => Promise<void>;
-  onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
+  onCheckMeeting: (leadId: string) => Promise<void>;
+  onCompleteSite: (leadId: string) => Promise<void>;
+  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
+  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
   onUndo: (leadId: string, targetIndex: number) => Promise<void>;
-  onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
-  mockupInputId: string | null;
-  mockupURL: string;
-  setMockupURL: (v: string) => void;
-  onCancelMockup: () => void;
-  onLaunchSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
-  launchInputId: string | null;
-  launchURL: string;
-  setLaunchURL: (v: string) => void;
-  onCancelLaunch: () => void;
+  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
   actionError: string | null;
   accepting: string | null;
 }
 
 function LeadDetailPanel({
-  selected, onAccept, onMilestone, onUndo,
-  onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
-  onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
+  selected, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
   actionError, accepting,
 }: LeadDetailPanelProps) {
-  const offset = milestoneOffset(selected.wants_call);
-  const stages = milestoneStages(selected.wants_call);
+  const [urlModal, setUrlModal] = useState<'mockup' | 'launch' | null>(null);
+
+  const handleRowClick = (k: number) => {
+    switch (k) {
+      case MILESTONE.meeting: onCheckMeeting(selected.id); break;
+      case MILESTONE.mockup:  setUrlModal('mockup'); break;
+      case MILESTONE.website: onCompleteSite(selected.id); break;
+      case MILESTONE.live:    setUrlModal('launch'); break;
+      // approved / payment rows are never clickable
+    }
+  };
+
+  // Undo is offered on the most recent milestone only when it was a plain
+  // manual check — client-driven ones (approval, payment) can't be unwound.
+  const undoTarget = (k: number): number | null => {
+    if (k !== selected.milestone_index || selected.is_paid) return null;
+    if (k === MILESTONE.meeting && !selected.mockup_url) return 0;
+    if (k === MILESTONE.website) return MILESTONE.approved;
+    return null;
+  };
 
   return (
     <div className="flex flex-col gap-5">
@@ -766,156 +759,289 @@ function LeadDetailPanel({
         </button>
       )}
 
-      {actionError && (
+      {actionError && !urlModal && (
         <p style={{ color: '#FF6B6B' }} className="text-[11px] font-bold uppercase tracking-[0.08em] text-center m-0">
           {actionError}
         </p>
       )}
 
-      {(selected.status === 'accepted' || selected.status === 'revision') && (
+      {selected.status === 'suspended' && (
+        <div className="p-4 rounded-sm" style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)' }}>
+          <p className="m-0 text-[11px] font-black uppercase tracking-[0.1em]" style={{ color: '#FF6B6B' }}>
+            Project Suspended
+          </p>
+          <p className="mt-1 mb-0 text-[12px] text-ink-muted font-light">
+            Milestones are frozen below — reactivate to resume work.
+          </p>
+        </div>
+      )}
+
+      {(selected.status === 'accepted' || selected.status === 'revision' || selected.status === 'suspended') && (
         <div>
           <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
             Project Milestones
           </p>
           <div className="flex flex-col gap-0.5">
-            {(() => {
-              // Compute effectiveMilestone once so every row agrees on which is "last done".
-              const effectiveMilestone = selected.is_paid && selected.milestone_index === offset + CORE_IDX.payment
-                ? offset + CORE_IDX.waitingForLaunch
-                : selected.milestone_index;
-              const autoSet = new Set([
-                offset + CORE_IDX.revisionsSignedOff,
-                offset + CORE_IDX.payment,
-              ]);
-              return stages.map((label, idx) => {
-              const { current, launchLocked, locked, lockReason, sent, revisionRequested, done } = stageRowState(idx, selected);
-              const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
-              const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
+            {MILESTONES.map((label, i) => {
+              const k = i + 1;
+              const { done, clickable, lockReason, badge } = rowState(k, selected);
+              const undoTo = selected.status !== 'suspended' && done ? undoTarget(k) : null;
               return (
-                <div key={idx}>
-                  <div className="flex items-center gap-1">
+                <div key={label} className="flex items-center gap-1">
+                  <button
+                    onClick={() => handleRowClick(k)}
+                    disabled={!clickable}
+                    title={lockReason}
+                    className="flex flex-1 items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left rounded-sm hover:bg-white/[0.03] transition-colors"
+                    style={{ cursor: clickable ? 'pointer' : 'default', opacity: !done && !clickable && !badge ? 0.45 : 1 }}
+                  >
+                    <div
+                      style={{
+                        background: done ? '#00F0FF' : 'transparent',
+                        color: done ? '#050505' : '#A1A1A1',
+                        border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
+                      }}
+                      className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
+                    >
+                      {done ? '✓' : k}
+                    </div>
+                    <span
+                      style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: clickable ? 700 : 500 }}
+                      className="text-[13px]"
+                    >
+                      {label}
+                      {badge && (
+                        <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: badge.color }}>
+                          {badge.label}
+                        </span>
+                      )}
+                    </span>
+                  </button>
+                  {undoTo !== null && (
                     <button
-                      onClick={() => onMilestone(selected.id, idx, selected)}
-                      disabled={locked || done}
-                      title={lockReason}
-                      className="flex flex-1 items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left rounded-sm hover:bg-white/[0.03] transition-colors"
-                      style={{ cursor: (locked || done) ? 'default' : 'pointer', opacity: locked ? 0.45 : 1 }}
+                      onClick={() => onUndo(selected.id, undoTo)}
+                      title="Undo this milestone"
+                      className="p-1.5 rounded-sm bg-transparent border-none cursor-pointer text-ink-muted hover:text-white transition-colors flex-shrink-0"
                     >
-                      <div
-                        style={{
-                          background: done ? '#00F0FF' : 'transparent',
-                          color: done ? '#050505' : '#A1A1A1',
-                          border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
-                        }}
-                        className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
-                      >
-                        {done ? '✓' : idx + 1}
-                      </div>
-                      <span
-                        style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: current ? 700 : 500 }}
-                        className="text-[13px]"
-                      >
-                        {label}
-                        {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
-                        {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
-                        {revisionRequested && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>Requested Changes</span>}
-                      </span>
+                      <Undo2 className="w-3.5 h-3.5" />
                     </button>
-                    {done && !sent && idx === effectiveMilestone - 1 && !autoSet.has(idx) && (
-                      <button
-                        onClick={() => onUndo(selected.id, idx)}
-                        title="Undo this milestone"
-                        className="p-1.5 rounded-sm bg-transparent border-none cursor-pointer text-ink-muted hover:text-white transition-colors flex-shrink-0"
-                      >
-                        <Undo2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
-                  </div>
-
-                  {showingMockupInput && (
-                    <div
-                      className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
-                      style={{ background: 'rgba(0,240,255,0.06)', border: '1px solid rgba(0,240,255,0.2)' }}
-                    >
-                      <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#00F0FF' }}>
-                        Paste Mockup Link
-                      </p>
-                      <input
-                        type="url"
-                        value={mockupURL}
-                        onChange={(e) => setMockupURL(e.target.value)}
-                        placeholder="https://figma.com/..."
-                        className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
-                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onMockupSave(selected.id, mockupURL, selected)}
-                          disabled={!mockupURL.trim()}
-                          className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
-                          style={{ background: '#00F0FF', color: '#050505' }}
-                        >
-                          Save &amp; Notify Client
-                        </button>
-                        <button
-                          onClick={onCancelMockup}
-                          className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-                          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
-                  )}
-
-                  {showingLaunchInput && (
-                    <div
-                      className="mx-2 mb-2 p-3 rounded-sm flex flex-col gap-2"
-                      style={{ background: 'rgba(112,0,255,0.08)', border: '1px solid rgba(112,0,255,0.3)' }}
-                    >
-                      <p className="m-0 text-[10px] uppercase tracking-[0.1em] font-bold" style={{ color: '#B98CFF' }}>
-                        Paste Live Site URL
-                      </p>
-                      <input
-                        type="url"
-                        value={launchURL}
-                        onChange={(e) => setLaunchURL(e.target.value)}
-                        placeholder="https://clientsite.com"
-                        className="w-full rounded-sm px-3 py-2 text-[13px] text-white border-none focus:outline-none"
-                        style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
-                        autoFocus
-                      />
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => onLaunchSave(selected.id, launchURL, selected)}
-                          disabled={!launchURL.trim()}
-                          className="flex-1 py-2 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
-                          style={{ background: '#B98CFF', color: '#050505' }}
-                        >
-                          Launch &amp; Notify Client
-                        </button>
-                        <button
-                          onClick={onCancelLaunch}
-                          className="px-3 py-2 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-                          style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
-                        >
-                          Cancel
-                        </button>
-                      </div>
-                    </div>
                   )}
                 </div>
               );
-            });
-            })()}
+            })}
           </div>
         </div>
+      )}
+
+      {(selected.status === 'accepted' || selected.status === 'revision' || selected.status === 'suspended') && (
+        <SuspendButton lead={selected} onSuspend={onSuspend} />
       )}
 
       {(selected.status === 'launched' || selected.status === 'completed') && (
         <LaunchedDetails lead={selected} />
       )}
+
+      {urlModal === 'mockup' && (
+        <UrlModal
+          title="Enter Mockup URL"
+          note={selected.revision_feedback ? `Client requested changes: ${selected.revision_feedback}` : undefined}
+          placeholder="https://figma.com/..."
+          cta="Send to Client"
+          accent="#00F0FF"
+          error={actionError}
+          onSubmit={(url) => onMockupSave(selected.id, url)}
+          onClose={() => setUrlModal(null)}
+        />
+      )}
+      {urlModal === 'launch' && (
+        <UrlModal
+          title="Enter Live Site URL"
+          placeholder="https://clientsite.com"
+          cta="Launch & Notify Client"
+          accent="#B98CFF"
+          error={actionError}
+          onSubmit={(url) => onLaunchSave(selected.id, url)}
+          onClose={() => setUrlModal(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+// Pauses (or resumes) an in-flight project. Suspending asks for confirmation
+// via an in-app popup (not the browser's native confirm()) since there's no
+// separate undo — reactivating restores whatever status the project had
+// beforehand.
+function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: string, suspended: boolean) => Promise<void> }) {
+  const [loading, setLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const suspended = lead.status === 'suspended';
+
+  const doToggle = async () => {
+    setConfirming(false);
+    setLoading(true);
+    try {
+      await onSuspend(lead.id, !suspended);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (suspended) {
+      doToggle();
+    } else {
+      setConfirming(true);
+    }
+  };
+
+  return (
+    <>
+      <button
+        onClick={handleClick}
+        disabled={loading}
+        className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        style={
+          suspended
+            ? { background: 'transparent', border: '1px solid rgba(0,240,255,0.3)', color: '#00F0FF' }
+            : { background: 'transparent', border: '1px solid rgba(255,107,107,0.4)', color: '#FF6B6B' }
+        }
+      >
+        {loading ? (suspended ? 'Reactivating…' : 'Suspending…') : suspended ? 'Reactivate Project' : 'Suspend Project'}
+      </button>
+
+      {confirming && (
+        <ConfirmModal
+          title="Suspend Project"
+          message={`Suspend the project for ${lead.business}? Work will pause until you reactivate it.`}
+          confirmLabel="Suspend Project"
+          accent="#FF6B6B"
+          onConfirm={doToggle}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+// Generic in-app confirm popup — replaces the browser's native window.confirm
+// so destructive admin actions get a styled, dismissible dialog instead.
+function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCancel }: {
+  title: string;
+  message: string;
+  confirmLabel: string;
+  accent: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center p-6">
+      <div onClick={onCancel} className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.65)' }} />
+      <div
+        className="relative w-full flex flex-col gap-4 text-white p-6"
+        style={{ maxWidth: 420, background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 }}
+      >
+        <p className="m-0 font-bold uppercase" style={{ fontSize: 11, letterSpacing: '0.14em', color: accent }}>
+          {title}
+        </p>
+        <p className="m-0 text-[13px] font-light text-ink-muted">{message}</p>
+        <div className="flex gap-2">
+          <button
+            onClick={onConfirm}
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer"
+            style={{ background: accent, color: '#050505' }}
+          >
+            {confirmLabel}
+          </button>
+          <button
+            onClick={onCancel}
+            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+// Popup for the two milestones that need a URL before they can act: sending
+// the mockup for review, and putting the final website live. Closes only on
+// success — a failed save keeps it open with the error shown inline.
+function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onClose }: {
+  title: string;
+  note?: string;
+  placeholder: string;
+  cta: string;
+  accent: string;
+  error: string | null;
+  onSubmit: (url: string) => Promise<boolean>;
+  onClose: () => void;
+}) {
+  const [url, setUrl] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const submit = async () => {
+    if (!url.trim() || saving) return;
+    setSaving(true);
+    const ok = await onSubmit(url.trim());
+    setSaving(false);
+    if (ok) onClose();
+  };
+
+  return (
+    <div className="fixed inset-0 z-[140] flex items-center justify-center p-6">
+      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.65)' }} />
+      <div
+        className="relative w-full flex flex-col gap-4 text-white p-6"
+        style={{ maxWidth: 420, background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 }}
+      >
+        <p className="m-0 font-bold uppercase" style={{ fontSize: 11, letterSpacing: '0.14em', color: accent }}>
+          {title}
+        </p>
+        {note && (
+          <p className="m-0 text-[12px] font-light whitespace-pre-wrap" style={{ color: '#F5C542' }}>{note}</p>
+        )}
+        <input
+          type="url"
+          value={url}
+          onChange={(e) => setUrl(e.target.value)}
+          onKeyDown={(e) => e.key === 'Enter' && submit()}
+          placeholder={placeholder}
+          className="w-full rounded-sm px-3 py-2.5 text-[13px] text-white focus:outline-none"
+          style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+          autoFocus
+        />
+        {error && (
+          <p className="m-0 text-[11px] font-bold uppercase tracking-[0.08em]" style={{ color: '#FF6B6B' }}>
+            {error}
+          </p>
+        )}
+        <div className="flex gap-2">
+          <button
+            onClick={submit}
+            disabled={!url.trim() || saving}
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
+            style={{ background: accent, color: '#050505' }}
+          >
+            {saving ? 'Sending…' : cta}
+          </button>
+          <button
+            onClick={onClose}
+            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+          >
+            Cancel
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
@@ -953,8 +1079,20 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
 
 function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   const rows: { label: string; value: React.ReactNode }[] = [];
-  if (lead.package) rows.push({ label: 'Package', value: lead.package });
+  if (lead.package) {
+    const pkg = PACKAGES.find((p) => p.id === lead.package);
+    rows.push({
+      label: 'Package',
+      value: (
+        <span className="uppercase" style={{ letterSpacing: '0.04em' }}>
+          {pkg?.name ?? lead.package}
+          {pkg && <span className="ml-2 font-bold" style={{ color: '#00F0FF' }}>{pkg.price}</span>}
+        </span>
+      ),
+    });
+  }
   rows.push({ label: 'Wants a Call', value: lead.wants_call ? 'Yes' : 'No' });
+  if (lead.location) rows.push({ label: 'Location', value: lead.location });
   if (lead.site_goal) rows.push({ label: 'Site Goal', value: lead.site_goal });
   if (lead.existing_website !== undefined) {
     rows.push({
@@ -1153,9 +1291,8 @@ function LaunchedDetails({ lead }: { lead: Lead }) {
 
 function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSelected: boolean; onClick: () => void }) {
   const ss = STATUS_STYLE[lead.status] ?? STATUS_STYLE['accepted'];
-  const showBar = lead.status === 'accepted';
-  const stages = milestoneStages(lead.wants_call);
-  const pct = showBar ? Math.round(((lead.milestone_index + 1) / stages.length) * 100) : 0;
+  const showBar = lead.status === 'accepted' || lead.status === 'revision';
+  const pct = showBar ? Math.round((lead.milestone_index / MILESTONES.length) * 100) : 0;
 
   return (
     <div
@@ -1196,10 +1333,10 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
         <div className="mt-3.5">
           <div className="flex items-center justify-between mb-1.5">
             <p className="m-0 text-[9px] uppercase tracking-[0.1em] text-ink-muted font-bold">
-              {stages[lead.milestone_index]}
+              {projectStatusText(lead)}
             </p>
             <p className="m-0 text-[9px] text-ink-muted">
-              Stage {lead.milestone_index + 1}/{stages.length}
+              {lead.milestone_index}/{MILESTONES.length} complete
             </p>
           </div>
           <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
