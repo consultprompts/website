@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, User as UserIcon } from 'lucide-react';
+import { Menu, X, Settings, User as UserIcon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
 import { useBodyScrollLock } from '../../hooks';
@@ -138,11 +138,11 @@ export default function Navbar({
                   onClick={() => navigate('/settings/my-projects')}
                   className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer flex items-center justify-center gap-2"
                 >
-                  <UserIcon className="w-4 h-4" /> Console
+                  <Settings className="w-4 h-4" /> Console
                 </button>
                 <button
                   onClick={() => { logout(); closeMobile(); }}
-                  className="w-full py-4 border border-white/10 text-sm font-bold uppercase tracking-widest rounded-xl hover:border-brand-primary transition-colors cursor-pointer"
+                  className="w-full py-4 border border-red-500/30 bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white text-sm font-bold uppercase tracking-widest rounded-xl transition-all cursor-pointer"
                 >
                   Logout
                 </button>

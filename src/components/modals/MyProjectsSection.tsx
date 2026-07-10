@@ -23,6 +23,7 @@ const PACKAGE_NAME: Record<string, string> = Object.fromEntries(
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   pending:   { label: 'Under Review', color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
   accepted:  { label: 'In Progress',  color: '#00F0FF', bg: 'rgba(0,240,255,0.10)' },
+  revision:  { label: 'Revision',     color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
   completed: { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
   launched:  { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
 };
@@ -64,7 +65,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
       await submitReview(lead.id, 'request_changes', feedback.trim());
       // Un-checks "Design Ready for Your Review" — the admin needs to deliver a new one.
       const targetIndex = milestoneOffset(lead.wants_call) + CORE_IDX.mockupDelivered;
-      onUpdate({ ...lead, revision_feedback: feedback.trim(), milestone_index: targetIndex });
+      onUpdate({ ...lead, revision_feedback: feedback.trim(), milestone_index: targetIndex, status: 'revision' });
       setShowFeedback(false);
       setFeedback('');
     } catch (e) {
@@ -514,28 +515,23 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
 
   const offset = milestoneOffset(lead.wants_call);
   const stages = milestoneStages(lead.wants_call);
-  // Delivering the mockup marks "Designing Your Website" done and makes
-  // "Design Ready for Your Review" current — that's where the client's
-  // accept/reject decision lives. Accepting jumps straight to "Building Your
-  // Website", leaving "Design Approved" checked without ever being current.
-  // If the client requests changes instead, current reverts to "Design Ready
-  // for Your Review" (unchecked) until the admin delivers a new mockup.
+  // When the client pays, advance the effective milestone past payment so both
+  // "Website Ready" and "Payment" show as done even if the backend hasn't
+  // advanced milestone_index yet.
+  const effectiveMilestone = lead.is_paid && lead.milestone_index === offset + CORE_IDX.payment
+    ? offset + CORE_IDX.waitingForLaunch
+    : lead.milestone_index;
   const mockupDeliveredIdx = offset + CORE_IDX.mockupDelivered;
-  const showMockupReview = lead.milestone_index === mockupDeliveredIdx && !!lead.mockup_url;
-  // Payment becomes available once "Website Ready" is done and current is
-  // "Payment" — that's where the PaymentPanel (and, once paid, its "waiting
-  // to launch" card) lives. Paying advances current to "Waiting for Launch"
-  // until the admin actually launches, which flips lead.status to 'launched'
-  // and swaps this whole tracker for the "Project Launched" view above.
-  const showPayment = lead.milestone_index >= offset + CORE_IDX.payment;
+  const showMockupReview = effectiveMilestone === mockupDeliveredIdx && !!lead.mockup_url;
+  const showPayment = effectiveMilestone >= offset + CORE_IDX.payment;
 
   return (
     <div className="mt-6">
       <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Project Milestones</p>
       <div className="flex flex-col gap-0">
         {stages.map((label, idx) => {
-          const done = idx < lead.milestone_index;
-          const current = idx === lead.milestone_index;
+          const done = idx < effectiveMilestone;
+          const current = idx === effectiveMilestone;
           return (
             <div key={idx} className="flex items-start gap-3 relative">
               {/* connector line */}
@@ -552,11 +548,17 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                 {done ? (
                   <CheckCircle2 className="w-5 h-5" style={{ color: '#00F0FF' }} />
                 ) : current ? (
-                  <div
-                    className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                    style={{ borderColor: '#00F0FF', background: 'rgba(0,240,255,0.15)' }}
-                  >
-                    <div className="w-2 h-2 rounded-full" style={{ background: '#00F0FF' }} />
+                  <div className="relative flex items-center justify-center w-5 h-5">
+                    <div
+                      className="absolute inset-0 rounded-full animate-ping"
+                      style={{ background: 'rgba(0,240,255,0.35)' }}
+                    />
+                    <div
+                      className="w-5 h-5 rounded-full border-2 flex items-center justify-center relative"
+                      style={{ borderColor: '#00F0FF', background: 'rgba(0,240,255,0.15)' }}
+                    >
+                      <div className="w-2 h-2 rounded-full" style={{ background: '#00F0FF' }} />
+                    </div>
                   </div>
                 ) : (
                   <Circle className="w-5 h-5 text-white/20" />

@@ -283,18 +283,26 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
   const goNext = () => setStep(s => s + 1);
   const goBack = () => setStep(s => s - 1);
 
+  const normalizeUrl = (url: string) => {
+    const t = url.trim();
+    if (!t) return '';
+    return /^https?:\/\//i.test(t) ? t : `https://${t}`;
+  };
+
   const handleSubmit = async () => {
     setIsSubmitting(true);
     setError(null);
     try {
-      const urls = [form.inspirationUrl1, form.inspirationUrl2].filter(Boolean);
+      const urls = [form.inspirationUrl1, form.inspirationUrl2]
+        .map(normalizeUrl)
+        .filter(Boolean);
       await submitLead({
         name: form.businessName,
         email: user?.email ?? '',
         business: form.businessType,
         message: form.message.trim() || undefined,
         existing_website: form.hasExistingWebsite,
-        existing_website_url: form.hasExistingWebsite ? form.existingWebsiteUrl : undefined,
+        existing_website_url: form.hasExistingWebsite ? normalizeUrl(form.existingWebsiteUrl) || undefined : undefined,
         site_goal: form.siteGoal || undefined,
         pages_needed: form.pagesNeeded.length ? form.pagesNeeded : undefined,
         style_direction: form.styleDirection || undefined,
@@ -311,8 +319,8 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
         package: form.selectedPackage || undefined,
       });
       setSubmitted(true);
-    } catch {
-      setError('Something went wrong. Please try again.');
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
     } finally {
       setIsSubmitting(false);
     }

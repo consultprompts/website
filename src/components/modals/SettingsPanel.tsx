@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft, Search, X } from 'lucide-react';
+import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft, Search, X, Undo2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
@@ -13,7 +13,7 @@ export const SETTINGS_SECTIONS = ['account', 'my-projects', 'agency', 'products'
 export type Section = (typeof SETTINGS_SECTIONS)[number];
 /** Sections only rendered for admins — non-admins hitting these URLs get bounced to my-projects. */
 export const ADMIN_SECTIONS: readonly Section[] = ['agency', 'products', 'academy'];
-type Filter = 'all' | 'pending' | 'accepted' | 'completed' | 'launched';
+type Filter = 'pending' | 'accepted' | 'revision' | 'launched';
 type NavItem = { key: Section; label: string; icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }> };
 /** Below `md`, Settings navigates as a menu → sub-page → lead-detail hierarchy. */
 type MobileScreen = 'menu' | 'detail' | 'lead-detail';
@@ -39,6 +39,7 @@ function formatDate(iso: string) {
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   pending:   { bg: 'rgba(245,197,66,0.18)',  fg: '#F5C542', label: 'pending' },
   accepted:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'in progress' },
+  revision:  { bg: 'rgba(245,197,66,0.18)',  fg: '#F5C542', label: 'revision' },
   completed: { bg: 'rgba(112,0,255,0.22)',   fg: '#B98CFF', label: 'completed' },
   launched:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'launched' },
 };
@@ -53,26 +54,31 @@ const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = 
 // client requests changes, so the admin can submit a revised URL.
 function stageRowState(idx: number, lead: Lead) {
   const offset = milestoneOffset(lead.wants_call);
-  const current = idx === lead.milestone_index && lead.status !== 'launched';
+  // When client pays, advance the effective milestone past payment so both
+  // "Website Ready" and "Payment" show as done even if the backend hasn't
+  // advanced milestone_index yet.
+  const effectiveMilestone = lead.is_paid && lead.milestone_index === offset + CORE_IDX.payment
+    ? offset + CORE_IDX.waitingForLaunch
+    : lead.milestone_index;
+  const current = idx === effectiveMilestone && lead.status !== 'launched';
   const launchLocked = idx === offset + CORE_IDX.launched && !lead.is_paid;
   const mockupDeliveredCurrent = idx === offset + CORE_IDX.mockupDelivered && current;
   const revisionRequested = mockupDeliveredCurrent && !!lead.revision_feedback;
-  const awaitingReview = mockupDeliveredCurrent && !revisionRequested;
+  const awaitingReview = mockupDeliveredCurrent && !revisionRequested && !!lead.mockup_url;
   const lockReason =
-    launchLocked ? 'Client must complete payment first'
-    : idx === offset + CORE_IDX.designingMockup ? 'Automatically checked when you send the mockup below'
+    (idx > effectiveMilestone && lead.status !== 'launched' && idx !== offset + CORE_IDX.mockupDelivered) ? 'Complete previous milestones first'
+    : launchLocked ? 'Client must complete payment first'
     : idx === offset + CORE_IDX.revisionsSignedOff ? 'Automatically checked when the client accepts their mockup'
     : idx === offset + CORE_IDX.payment ? 'Automatically checked when the client pays'
-    : idx === offset + CORE_IDX.waitingForLaunch ? 'Automatically checked once you launch the site below'
     : awaitingReview ? 'Waiting for the client to review the mockup'
     : undefined;
   const sentWebsiteReady =
     idx === offset + CORE_IDX.siteCompleted &&
-    lead.milestone_index === offset + CORE_IDX.payment &&
+    effectiveMilestone === offset + CORE_IDX.payment &&
     !lead.is_paid;
   const sent = sentWebsiteReady || awaitingReview;
-  const done = idx < lead.milestone_index && !sentWebsiteReady;
-  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, revisionRequested, done };
+  const done = idx < effectiveMilestone && !sentWebsiteReady;
+  return { current, launchLocked, locked: lockReason !== undefined, lockReason, sent, revisionRequested, done, effectiveMilestone };
 }
 
 function normalizeText(s: string) {
@@ -114,9 +120,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  // Landing on /settings/<section> shows that section directly; "Back" steps out to the menu.
-  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('detail');
-  const [filter, setFilter] = useState<Filter>('all');
+  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('menu');
+  const [filter, setFilter] = useState<Filter | null>(null);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [accepting, setAccepting] = useState<string | null>(null);
@@ -142,8 +147,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   useEffect(() => {
     if (!isOpen) {
       setSelectedId(null);
-      setMobileScreen('detail');
-      setFilter('all');
+      setMobileScreen('menu');
+      setFilter(null);
       setSearch('');
       setActionError(null);
       setMockupInputId(null);
@@ -271,10 +276,29 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
     }
   }, []);
 
+  const handleUndo = useCallback(async (leadId: string, targetIndex: number) => {
+    setActionError(null);
+    try {
+      await updateLeadMilestone(leadId, targetIndex);
+      setLeads((prev) =>
+        prev.map((l) => {
+          if (l.id !== leadId) return l;
+          const offset = milestoneOffset(l.wants_call);
+          const cleared = targetIndex <= offset + CORE_IDX.mockupDelivered
+            ? { mockup_url: undefined as string | undefined, revision_feedback: undefined as string | undefined }
+            : {};
+          return { ...l, ...cleared, milestone_index: targetIndex, status: 'accepted' as const };
+        }),
+      );
+    } catch (err) {
+      setActionError(err instanceof Error ? err.message : 'Failed to undo milestone');
+    }
+  }, []);
+
   const filtered = useMemo(
     () => leads.filter((l) => {
       if (!leadMatchesSearch(l, search)) return false;
-      if (filter === 'all') return true;
+      if (filter === null) return true;
       if (filter === 'launched') return l.status === 'launched' || l.status === 'completed';
       return l.status === filter;
     }),
@@ -289,6 +313,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
     { label: 'Total Leads', value: leads.length, color: '#FFFFFF' },
     { label: 'Pending', value: leads.filter((l) => l.status === 'pending').length, color: '#F5C542' },
     { label: 'In Progress', value: leads.filter((l) => l.status === 'accepted').length, color: '#00F0FF' },
+    { label: 'Revision', value: leads.filter((l) => l.status === 'revision').length, color: '#F5C542' },
     { label: 'Launched', value: leads.filter((l) => l.status === 'launched' || l.status === 'completed').length, color: '#B98CFF' },
   ];
 
@@ -323,6 +348,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
           onMobileLeadSelect={() => setMobileScreen('lead-detail')}
           onAccept={handleAccept}
           onMilestone={handleMilestone}
+          onUndo={handleUndo}
           onMockupSave={handleMockupSave}
           mockupInputId={mockupInputId}
           mockupURL={mockupURL}
@@ -509,8 +535,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
 interface AgencySectionProps {
   leads: Lead[];
   filtered: Lead[];
-  filter: Filter;
-  setFilter: (f: Filter) => void;
+  filter: Filter | null;
+  setFilter: (f: Filter | null) => void;
   search: string;
   setSearch: (v: string) => void;
   stats: { label: string; value: number; color: string }[];
@@ -520,6 +546,7 @@ interface AgencySectionProps {
   onMobileLeadSelect: () => void;
   onAccept: (lead: Lead) => Promise<void>;
   onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
+  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
   onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
   mockupInputId: string | null;
   mockupURL: string;
@@ -538,13 +565,13 @@ interface AgencySectionProps {
 
 function AgencySection({
   filtered, filter, setFilter, search, setSearch, stats, selected, selectedId, setSelectedId,
-  onMobileLeadSelect, onAccept, onMilestone, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
+  onMobileLeadSelect, onAccept, onMilestone, onUndo, onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
   onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
   onClose, error, actionError, accepting,
 }: AgencySectionProps) {
   const detailProps = {
     selected: selected!,
-    onAccept, onMilestone,
+    onAccept, onMilestone, onUndo,
     onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
     onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
     actionError, accepting,
@@ -559,7 +586,7 @@ function AgencySection({
         {/* Left column: stats + leads */}
         <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 flex-shrink-0">
             {stats.map((s) => (
               <div
                 key={s.label}
@@ -605,19 +632,22 @@ function AgencySection({
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
                 className="flex p-1 rounded-sm"
               >
-                {(['all', 'pending', 'accepted', 'launched'] as Filter[]).map((f) => (
-                  <button
-                    key={f}
-                    onClick={() => setFilter(f)}
-                    style={{
-                      background: filter === f ? '#00F0FF' : 'transparent',
-                      color: filter === f ? '#050505' : '#A1A1A1',
-                    }}
-                    className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
-                  >
-                    {f}
-                  </button>
-                ))}
+                {(['pending', 'accepted', 'revision', 'launched'] as Filter[]).map((f) => {
+                  const active = filter === f;
+                  return (
+                    <button
+                      key={f}
+                      onClick={() => setFilter(active ? null : f)}
+                      style={{
+                        background: active ? '#00F0FF' : 'transparent',
+                        color: active ? '#050505' : '#A1A1A1',
+                      }}
+                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
+                    >
+                      {f}
+                    </button>
+                  );
+                })}
               </div>
               <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
             </div>
@@ -691,6 +721,7 @@ interface LeadDetailPanelProps {
   selected: Lead;
   onAccept: (lead: Lead) => Promise<void>;
   onMilestone: (id: string, idx: number, lead: Lead) => Promise<void>;
+  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
   onMockupSave: (leadId: string, url: string, lead: Lead) => Promise<void>;
   mockupInputId: string | null;
   mockupURL: string;
@@ -706,7 +737,7 @@ interface LeadDetailPanelProps {
 }
 
 function LeadDetailPanel({
-  selected, onAccept, onMilestone,
+  selected, onAccept, onMilestone, onUndo,
   onMockupSave, mockupInputId, mockupURL, setMockupURL, onCancelMockup,
   onLaunchSave, launchInputId, launchURL, setLaunchURL, onCancelLaunch,
   actionError, accepting,
@@ -741,45 +772,65 @@ function LeadDetailPanel({
         </p>
       )}
 
-      {selected.status === 'accepted' && (
+      {(selected.status === 'accepted' || selected.status === 'revision') && (
         <div>
           <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
             Project Milestones
           </p>
           <div className="flex flex-col gap-0.5">
-            {stages.map((label, idx) => {
+            {(() => {
+              // Compute effectiveMilestone once so every row agrees on which is "last done".
+              const effectiveMilestone = selected.is_paid && selected.milestone_index === offset + CORE_IDX.payment
+                ? offset + CORE_IDX.waitingForLaunch
+                : selected.milestone_index;
+              const autoSet = new Set([
+                offset + CORE_IDX.revisionsSignedOff,
+                offset + CORE_IDX.payment,
+              ]);
+              return stages.map((label, idx) => {
               const { current, launchLocked, locked, lockReason, sent, revisionRequested, done } = stageRowState(idx, selected);
               const showingMockupInput = idx === offset + CORE_IDX.mockupDelivered && mockupInputId === selected.id;
               const showingLaunchInput = idx === offset + CORE_IDX.launched && launchInputId === selected.id;
               return (
                 <div key={idx}>
-                  <button
-                    onClick={() => onMilestone(selected.id, idx, selected)}
-                    disabled={locked}
-                    title={lockReason}
-                    className="flex items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left w-full rounded-sm hover:bg-white/[0.03] transition-colors"
-                    style={{ cursor: locked ? 'not-allowed' : 'pointer', opacity: locked ? 0.45 : 1 }}
-                  >
-                    <div
-                      style={{
-                        background: done ? '#00F0FF' : 'transparent',
-                        color: done ? '#050505' : '#A1A1A1',
-                        border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
-                      }}
-                      className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
+                  <div className="flex items-center gap-1">
+                    <button
+                      onClick={() => onMilestone(selected.id, idx, selected)}
+                      disabled={locked || done}
+                      title={lockReason}
+                      className="flex flex-1 items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left rounded-sm hover:bg-white/[0.03] transition-colors"
+                      style={{ cursor: (locked || done) ? 'default' : 'pointer', opacity: locked ? 0.45 : 1 }}
                     >
-                      {done ? '✓' : idx + 1}
-                    </div>
-                    <span
-                      style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: current ? 700 : 500 }}
-                      className="text-[13px]"
-                    >
-                      {label}
-                      {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
-                      {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
-                      {revisionRequested && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>Requested Changes</span>}
-                    </span>
-                  </button>
+                      <div
+                        style={{
+                          background: done ? '#00F0FF' : 'transparent',
+                          color: done ? '#050505' : '#A1A1A1',
+                          border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
+                        }}
+                        className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
+                      >
+                        {done ? '✓' : idx + 1}
+                      </div>
+                      <span
+                        style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: current ? 700 : 500 }}
+                        className="text-[13px]"
+                      >
+                        {label}
+                        {launchLocked && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>awaiting payment</span>}
+                        {sent && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#00F0FF' }}>Sent</span>}
+                        {revisionRequested && <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: '#F5C542' }}>Requested Changes</span>}
+                      </span>
+                    </button>
+                    {done && !sent && idx === effectiveMilestone - 1 && !autoSet.has(idx) && (
+                      <button
+                        onClick={() => onUndo(selected.id, idx)}
+                        title="Undo this milestone"
+                        className="p-1.5 rounded-sm bg-transparent border-none cursor-pointer text-ink-muted hover:text-white transition-colors flex-shrink-0"
+                      >
+                        <Undo2 className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
 
                   {showingMockupInput && (
                     <div
@@ -856,7 +907,8 @@ function LeadDetailPanel({
                   )}
                 </div>
               );
-            })}
+            });
+            })()}
           </div>
         </div>
       )}

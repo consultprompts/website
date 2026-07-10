@@ -253,7 +253,7 @@ export interface Lead {
   timeline?: string;
   package?: string;
   wants_call: boolean;
-  status: 'pending' | 'accepted' | 'completed' | 'launched';
+  status: 'pending' | 'accepted' | 'completed' | 'launched' | 'revision';
   milestone_index: number;
   mockup_url?: string;
   revision_feedback?: string;
