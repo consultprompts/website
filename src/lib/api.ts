@@ -313,6 +313,26 @@ export async function submitLead(lead: LeadInput) {
   });
 }
 
+export async function updateLeadSubmit(id: string, lead: LeadInput) {
+  const { logo_file, pages_needed, inspiration_urls, ...scalar } = lead;
+
+  if (logo_file) {
+    const fd = new FormData();
+    for (const [k, v] of Object.entries(scalar)) {
+      if (v !== undefined && v !== null) fd.append(k, String(v));
+    }
+    pages_needed?.forEach(p => fd.append('pages_needed[]', p));
+    inspiration_urls?.forEach(u => fd.append('inspiration_urls[]', u));
+    fd.append('logo_file', logo_file);
+    return request<{ ok: boolean }>(`/agency/leads/${id}`, { method: 'PATCH', body: fd });
+  }
+
+  return request<{ ok: boolean }>(`/agency/leads/${id}`, {
+    method: 'PATCH',
+    body: JSON.stringify({ ...scalar, pages_needed, inspiration_urls }),
+  });
+}
+
 export interface Pagination {
   page: number;
   limit: number;

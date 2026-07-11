@@ -476,13 +476,23 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
 // ---------------------------------------------------------------------------
 
 function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
+  const navigate = useNavigate();
+
   if (lead.status === 'pending') {
     return (
-      <div className="mt-6 p-4 rounded-xl bg-white/5 border border-white/10">
-        <p className="text-xs font-bold uppercase tracking-widest text-ink-muted">Status</p>
-        <p className="mt-1 text-sm text-white/70 font-light">
-          Your application is in the queue — we'll review it and reach out soon.
-        </p>
+      <div className="mt-6 flex flex-col gap-3">
+        <div className="p-4 rounded-xl bg-white/5 border border-white/10">
+          <p className="text-xs font-bold uppercase tracking-widest text-ink-muted">Status</p>
+          <p className="mt-1 text-sm text-white/70 font-light">
+            Your application is in the queue — we'll review it and reach out soon.
+          </p>
+        </div>
+        <button
+          onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
+          className="w-full py-3 border border-white/15 text-ink-muted font-bold text-xs uppercase tracking-widest rounded-xl hover:border-white/30 hover:text-white transition-colors bg-transparent cursor-pointer"
+        >
+          Edit Submission
+        </button>
       </div>
     );
   }
@@ -533,6 +543,12 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
             <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Billing Summary</p>
           </div>
           <div className="grid grid-cols-2 gap-3 px-4 py-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+            {lead.payment_amount != null && (
+              <div>
+                <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Total Paid</p>
+                <p className="text-[13px] font-bold text-white">${lead.payment_amount.toFixed(2)}</p>
+              </div>
+            )}
             {paidDate && (
               <div>
                 <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Paid On</p>
@@ -565,7 +581,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
   // always the first unchecked one. The mockup review lives on the "Mockup
   // Completed" row while it's current and a mockup URL has been delivered —
   // the box itself only checks when the client approves.
-  const showMockupReview = lead.milestone_index === MILESTONE.meeting && !!lead.mockup_url;
+  const showMockupReview = lead.milestone_index === MILESTONE.mockup && !!lead.mockup_url;
   const showPayment = lead.milestone_index >= MILESTONE.website;
 
   const pct = Math.round((lead.milestone_index / MILESTONES.length) * 100);
@@ -596,19 +612,22 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
           const done = lead.milestone_index >= i + 1;
           const current = lead.milestone_index === i;
           const isSkippedMeeting = i + 1 === MILESTONE.meeting && lead.meeting_skipped;
-          // Pending rows show the in-progress name; it flips to the
-          // completed name once the milestone is checked off. The meeting
-          // row shows "Meeting Skipped" instead when it was auto-completed
-          // because the client opted out of the 15-minute call.
-          const label = isSkippedMeeting && done ? 'Meeting Skipped' : done ? doneLabel : MILESTONES_PENDING[i];
+          const isRedesigning = i + 1 === MILESTONE.mockup && current && !!lead.revision_feedback;
+          const label = isSkippedMeeting && done
+            ? 'Meeting Skipped'
+            : done
+            ? doneLabel
+            : isRedesigning
+            ? 'Redesigning Mockup'
+            : MILESTONES_PENDING[i];
           return (
             <div key={doneLabel} className="flex items-start gap-3 relative">
-              {/* connector line */}
+              {/* connector line — stretches from icon bottom to row bottom */}
               {i < MILESTONES.length - 1 && (
                 <div
                   className="absolute left-[10px] top-[22px] w-px"
                   style={{
-                    height: 28,
+                    height: 'calc(100% - 22px)',
                     background: done ? '#00F0FF' : 'rgba(255,255,255,0.1)',
                   }}
                 />
@@ -651,7 +670,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                   </p>
                 )}
                 {/* Mockup review — prominent link + Approve Design / Request Changes */}
-                {i + 1 === MILESTONE.mockup && current && showMockupReview && (
+                {i + 1 === MILESTONE.approved && current && showMockupReview && (
                   <MockupReviewPanel lead={lead} onUpdate={onUpdate} />
                 )}
               </div>
@@ -732,10 +751,13 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
     setLeads((prev) => prev.map((l) => (l.id === updated.id ? updated : l)));
   };
 
-  const active = leads.filter((l) => l.status !== 'completed' && l.status !== 'launched');
-  const past   = leads.filter((l) => l.status === 'completed' || l.status === 'launched');
+  const active    = leads.filter((l) => l.status !== 'completed' && l.status !== 'launched' && l.status !== 'suspended');
+  const suspended = leads.filter((l) => l.status === 'suspended');
+  const past      = leads.filter((l) => l.status === 'completed' || l.status === 'launched');
 
   const showNewProjectForm = location.pathname.endsWith('/new-project');
+  const editMatch = !loading && location.pathname.match(/\/settings\/my-projects\/([^/]+)\/edit$/);
+  const editLead = editMatch ? leads.find((l) => l.id === editMatch[1] && l.status === 'pending') ?? null : null;
   const backToList = () => navigate('/settings/my-projects', { replace: true });
 
   // Only one project in flight at a time — mirrors the same rule the public
@@ -745,6 +767,16 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
     if (showNewProjectForm && !loading && active.length > 0) backToList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [showNewProjectForm, loading, active.length]);
+
+  if (editLead) {
+    return (
+      <NewProjectForm
+        initialLead={editLead}
+        onBack={() => { refresh(); backToList(); }}
+        onClose={onClose}
+      />
+    );
+  }
 
   if (showNewProjectForm) {
     return (
@@ -803,6 +835,15 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Active</p>
               <div className="flex flex-col gap-4">
                 {active.map((l) => <ProjectCard key={l.id} lead={l} active onUpdate={updateLead} />)}
+              </div>
+            </section>
+          )}
+
+          {suspended.length > 0 && (
+            <section className="mb-10">
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Suspended</p>
+              <div className="flex flex-col gap-4">
+                {suspended.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
               </div>
             </section>
           )}

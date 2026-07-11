@@ -44,7 +44,7 @@ export function isMilestoneDone(lead: Lead, milestone: number): boolean {
 /** A mockup has been sent and is waiting on the client's approve/request-changes. */
 export function isAwaitingDesignReview(lead: Lead): boolean {
   return (
-    lead.milestone_index === MILESTONE.meeting &&
+    lead.milestone_index === MILESTONE.mockup &&
     !!lead.mockup_url &&
     !lead.revision_feedback
   );
@@ -61,7 +61,9 @@ export function projectStatusText(lead: Lead): string {
   if (isMilestoneDone(lead, MILESTONE.website)) return 'Awaiting Final Payment';
   if (isMilestoneDone(lead, MILESTONE.approved)) return 'Website Building';
   if (isMilestoneDone(lead, MILESTONE.meeting)) {
-    return isAwaitingDesignReview(lead) ? 'Awaiting Design Review' : 'Mockup Designing';
+    if (isAwaitingDesignReview(lead)) return 'Awaiting Design Review';
+    if (lead.revision_feedback) return 'Redesigning Mockup';
+    return 'Mockup Designing';
   }
   return 'Waiting for Meeting';
 }

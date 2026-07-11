@@ -44,7 +44,7 @@ export default function Home() {
   const checkActiveLead = async (): Promise<boolean> => {
     try {
       const leads = await getMyLeads();
-      return leads.some(l => l.status !== 'launched');
+      return leads.some(l => l.status !== 'launched' && l.status !== 'completed' && l.status !== 'suspended');
     } catch {
       return false;
     }
@@ -113,7 +113,7 @@ export default function Home() {
         <Link
           to="/settings/my-projects"
           onClick={() => setIsAlreadyActiveOpen(false)}
-          className="w-full py-4 border border-white/10 text-ink-muted font-bold uppercase tracking-widest text-xs rounded-xl hover:border-white/30 hover:text-white transition-colors"
+          className="w-full py-4 border border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
         >
           Track My Project
         </Link>

@@ -64,13 +64,19 @@ function rowState(k: number, lead: Lead): RowState {
   if (done && k === MILESTONE.meeting && lead.meeting_skipped) {
     return { done, clickable: false, badge: { label: 'Skipped', color: '#A1A1A1' } };
   }
+  if (done && k === MILESTONE.mockup) {
+    // milestone_index === MILESTONE.mockup means URL sent, awaiting client review.
+    if (lead.milestone_index === MILESTONE.mockup) {
+      return { done, clickable: false, badge: { label: 'Sent', color: '#00F0FF' } };
+    }
+    return { done, clickable: false };
+  }
   if (done || lead.status === 'launched') return { done, clickable: false };
   const current = lead.milestone_index === k - 1;
 
   const state = rowStateActive(k, lead, current);
   // Frozen while suspended — visible for reference, but reactivate the
-  // project before touching anything. Badges (Sent, Changes Requested, etc.)
-  // still show for context.
+  // project before touching anything. Badges still show for context.
   if (lead.status === 'suspended' && state.clickable) {
     return { ...state, clickable: false, lockReason: 'Reactivate the project to make changes' };
   }
@@ -86,13 +92,6 @@ function rowStateActive(k: number, lead: Lead, current: boolean): RowState {
       if (!current) return { done, clickable: false, lockReason: 'Complete previous milestones first' };
       if (lead.revision_feedback) {
         return { done, clickable: true, badge: { label: 'Changes Requested', color: '#F5C542' } };
-      }
-      if (lead.mockup_url) {
-        return {
-          done, clickable: false,
-          lockReason: 'Waiting for the client to review the mockup',
-          badge: { label: 'Sent', color: '#00F0FF' },
-        };
       }
       return { done, clickable: true };
     case MILESTONE.approved:
@@ -174,8 +173,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   }, []);
 
   useEffect(() => {
-    if (isAdmin && isOpen) refreshLeads();
-  }, [isAdmin, isOpen, refreshLeads]);
+    if (isAdmin && isOpen && section === 'agency') refreshLeads();
+  }, [isAdmin, isOpen, section, refreshLeads]);
 
   useEffect(() => {
     if (!isOpen) {
@@ -201,7 +200,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
     try {
       await updateLeadMilestone(leadId, 0);
       setLeads((prev) =>
-        prev.map((l) => (l.id === leadId ? { ...l, status: 'accepted', milestone_index: 0 } : l)),
+        prev.map((l) =>
+          l.id === leadId
+            ? { ...l, status: 'accepted', milestone_index: l.meeting_skipped ? MILESTONE.meeting : 0 }
+            : l,
+        ),
       );
     } catch (err) {
       setActionError(err instanceof Error ? err.message : 'Failed to accept lead');
@@ -245,7 +248,15 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
       await apiSetMockupURL(leadId, url);
       setLeads((prev) =>
         prev.map((l) =>
-          l.id === leadId ? { ...l, mockup_url: url, revision_feedback: undefined, status: 'accepted' } : l,
+          l.id === leadId
+            ? {
+                ...l,
+                mockup_url: url,
+                revision_feedback: undefined,
+                status: 'accepted',
+                milestone_index: Math.max(l.milestone_index, MILESTONE.mockup),
+              }
+            : l,
         ),
       );
       return true;
@@ -771,12 +782,12 @@ function LeadDetailPanel({
             Project Suspended
           </p>
           <p className="mt-1 mb-0 text-[12px] text-ink-muted font-light">
-            Milestones are frozen below — reactivate to resume work.
+            Reactivate to resume work.
           </p>
         </div>
       )}
 
-      {(selected.status === 'accepted' || selected.status === 'revision' || selected.status === 'suspended') && (
+      {(selected.status === 'accepted' || selected.status === 'revision') && (
         <div>
           <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
             Project Milestones
@@ -1079,6 +1090,11 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
 
 function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   const rows: { label: string; value: React.ReactNode }[] = [];
+  rows.push({ label: 'Business Name', value: lead.name });
+  rows.push({ label: 'Business Type', value: lead.business });
+  rows.push({ label: 'Email', value: <a href={`mailto:${lead.email}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.email}</a> });
+  if (lead.phone_number) rows.push({ label: 'Phone', value: <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.phone_number}</a> });
+  if (lead.contact_method) rows.push({ label: 'Preferred Contact', value: lead.contact_method });
   if (lead.package) {
     const pkg = PACKAGES.find((p) => p.id === lead.package);
     rows.push({
@@ -1092,6 +1108,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
     });
   }
   rows.push({ label: 'Wants a Call', value: lead.wants_call ? 'Yes' : 'No' });
+  if (lead.timeline) rows.push({ label: 'Timeline', value: lead.timeline });
   if (lead.location) rows.push({ label: 'Location', value: lead.location });
   if (lead.site_goal) rows.push({ label: 'Site Goal', value: lead.site_goal });
   if (lead.existing_website !== undefined) {
@@ -1104,9 +1121,6 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   }
   if (lead.style_direction) rows.push({ label: 'Style', value: lead.style_direction });
   if (lead.message) rows.push({ label: 'About the Business', value: <span className="whitespace-pre-wrap">{lead.message}</span> });
-  if (lead.phone_number) rows.push({ label: 'Phone', value: <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.phone_number}</a> });
-  if (lead.contact_method) rows.push({ label: 'Preferred Contact', value: lead.contact_method });
-  if (lead.timeline) rows.push({ label: 'Timeline', value: lead.timeline });
 
   const colors = lead.has_brand_colors
     ? [lead.primary_color, lead.secondary_color].filter((c): c is string => !!c)
@@ -1133,7 +1147,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
               Submitted Brief
             </p>
             <h3 className="m-0 font-display font-bold italic" style={{ fontSize: 20 }}>
-              {lead.business}
+              {lead.name}
             </h3>
           </div>
           <button

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { Loader2, CheckCircle, MessageCircle, Phone, Mail, Upload } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { submitLead } from '../../lib/api';
+import { submitLead, updateLeadSubmit, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import SettingsHeader from './SettingsHeader';
 import Notification from '../ui/Notification';
@@ -254,9 +254,11 @@ interface NewProjectFormProps {
   onBack: () => void;
   /** Fully exits Settings (the header's ✕, same as every other section). */
   onClose: () => void;
+  /** When provided the form pre-fills and submits a PATCH instead of POST. */
+  initialLead?: Lead;
 }
 
-export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps) {
+export default function NewProjectForm({ onBack, onClose, initialLead }: NewProjectFormProps) {
   const { user } = useAuth();
   const location = useLocation();
 
@@ -264,28 +266,56 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
 
   const [step, setStep] = useState(1);
 
-  const [form, setForm] = useState<FormState>({
-    businessName: user?.displayName ?? '',
-    businessType: '',
-    message: '',
-    hasExistingWebsite: false,
-    existingWebsiteUrl: '',
-    location: '',
-    siteGoal: '',
-    pagesNeeded: [],
-    styleDirection: '',
-    hasLogo: false,
-    logoFile: null,
-    hasBrandColors: false,
-    primaryColor: '#00F0FF',
-    secondaryColor: '#7000FF',
-    inspirationUrl1: '',
-    inspirationUrl2: '',
-    phoneNumber: '',
-    contactMethod: '',
-    timeline: '',
-    wantsCall: false,
-    selectedPackage: initialPackage,
+  const [form, setForm] = useState<FormState>(() => {
+    if (initialLead) {
+      const urls = initialLead.inspiration_urls ?? [];
+      return {
+        businessName: initialLead.name,
+        businessType: initialLead.business,
+        message: initialLead.message ?? '',
+        hasExistingWebsite: initialLead.existing_website ?? false,
+        existingWebsiteUrl: initialLead.existing_website_url ?? '',
+        location: initialLead.location ?? '',
+        siteGoal: initialLead.site_goal ?? '',
+        pagesNeeded: initialLead.pages_needed ?? [],
+        styleDirection: initialLead.style_direction ?? '',
+        hasLogo: initialLead.has_logo ?? false,
+        logoFile: null,
+        hasBrandColors: initialLead.has_brand_colors ?? false,
+        primaryColor: initialLead.primary_color ?? '#00F0FF',
+        secondaryColor: initialLead.secondary_color ?? '#7000FF',
+        inspirationUrl1: urls[0] ?? '',
+        inspirationUrl2: urls[1] ?? '',
+        phoneNumber: initialLead.phone_number ?? '',
+        contactMethod: initialLead.contact_method ?? '',
+        timeline: initialLead.timeline ?? '',
+        wantsCall: initialLead.wants_call,
+        selectedPackage: initialLead.package ?? initialPackage,
+      };
+    }
+    return {
+      businessName: user?.displayName ?? '',
+      businessType: '',
+      message: '',
+      hasExistingWebsite: false,
+      existingWebsiteUrl: '',
+      location: '',
+      siteGoal: '',
+      pagesNeeded: [],
+      styleDirection: '',
+      hasLogo: false,
+      logoFile: null,
+      hasBrandColors: false,
+      primaryColor: '#00F0FF',
+      secondaryColor: '#7000FF',
+      inspirationUrl1: '',
+      inspirationUrl2: '',
+      phoneNumber: '',
+      contactMethod: '',
+      timeline: '',
+      wantsCall: false,
+      selectedPackage: initialPackage,
+    };
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -310,7 +340,7 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
       const urls = [form.inspirationUrl1, form.inspirationUrl2]
         .map(normalizeUrl)
         .filter(Boolean);
-      await submitLead({
+      const payload = {
         name: form.businessName,
         email: user?.email ?? '',
         business: form.businessType,
@@ -332,7 +362,12 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
         timeline: form.timeline || undefined,
         wants_call: form.wantsCall,
         package: form.selectedPackage || undefined,
-      });
+      };
+      if (initialLead) {
+        await updateLeadSubmit(initialLead.id, payload);
+      } else {
+        await submitLead(payload);
+      }
       setSubmitted(true);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
@@ -641,14 +676,14 @@ export default function NewProjectForm({ onBack, onClose }: NewProjectFormProps)
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SettingsHeader title="My Projects / New Project" onClose={onClose} onBack={onBack} />
+      <SettingsHeader title={initialLead ? 'My Projects / Edit Submission' : 'My Projects / New Project'} onClose={onClose} onBack={onBack} />
 
       <Notification
         isOpen={submitted}
         onClose={onBack}
         icon={<CheckCircle className="w-10 h-10 text-brand-primary" />}
-        title="Transmission Received"
-        description="We're already analyzing your business DNA. Expect your mockup within 24–48 hours."
+        title={initialLead ? 'Submission Updated' : 'Transmission Received'}
+        description={initialLead ? 'Your project details have been updated.' : "We're already analyzing your business DNA. Expect your mockup within 24–48 hours."}
       >
         {(() => {
           const cta = CONTACT_CTA[form.contactMethod] ?? CONTACT_CTA.WhatsApp;
