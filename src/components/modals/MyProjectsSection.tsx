@@ -797,9 +797,9 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
             onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
             disabled={active.length > 0}
             title={active.length > 0 ? 'You already have an active project in progress' : undefined}
-            className="w-full mb-6 flex items-center justify-center gap-2 py-3 rounded-xl font-bold text-xs uppercase tracking-widest border-none cursor-pointer bg-brand-primary text-bg-base hover:bg-brand-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-primary"
+            className="mb-6 flex items-center gap-1.5 px-4 py-2 rounded-lg font-bold text-[10px] uppercase tracking-widest border-none cursor-pointer bg-brand-primary text-bg-base hover:bg-brand-primary/90 transition-colors disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-brand-primary"
           >
-            <Plus className="w-4 h-4" /> New Project
+            <Plus className="w-3 h-3" /> New Project
           </button>
 
           {loading && (
@@ -839,20 +839,20 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
             </section>
           )}
 
-          {suspended.length > 0 && (
+          {past.length > 0 && (
             <section className="mb-10">
-              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Suspended</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Past Projects</p>
               <div className="flex flex-col gap-4">
-                {suspended.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
+                {past.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
               </div>
             </section>
           )}
 
-          {past.length > 0 && (
+          {suspended.length > 0 && (
             <section>
-              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Past Projects</p>
+              <p className="text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-4">Suspended</p>
               <div className="flex flex-col gap-4">
-                {past.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
+                {suspended.map((l) => <ProjectCard key={l.id} lead={l} active={false} onUpdate={updateLead} />)}
               </div>
             </section>
           )}

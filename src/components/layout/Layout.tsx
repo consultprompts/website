@@ -5,14 +5,12 @@ import { LayoutContext, type LayoutContextValue } from '../../context/LayoutCont
 import Navbar from './Navbar';
 import Footer from './Footer';
 import AuthModal, { type AuthMode } from '../modals/AuthModal';
-import ProfileMenu from '../modals/ProfileMenu';
 
 
 export default function Layout() {
   const navigate = useNavigate();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
-  const [isProfileOpen, setIsProfileOpen] = useState(false);
 
   const startProjectHandler = useRef<(() => void) | null>(null);
   const authSuccessHandler = useRef<(() => void) | null>(null);
@@ -34,11 +32,9 @@ export default function Layout() {
 
   const contextValue = useMemo<LayoutContextValue>(() => ({
     openAuthModal,
-    isProfileOpen,
-    toggleProfileMenu: () => setIsProfileOpen(v => !v),
     setStartProjectHandler: (fn) => { startProjectHandler.current = fn; },
     setAuthSuccessHandler: (fn) => { authSuccessHandler.current = fn; },
-  }), [openAuthModal, isProfileOpen]);
+  }), [openAuthModal]);
 
   return (
     <LayoutContext.Provider value={contextValue}>
@@ -50,14 +46,10 @@ export default function Layout() {
           onClose={() => setIsAuthOpen(false)}
           onSuccess={() => authSuccessHandler.current?.()}
         />
-        <ProfileMenu isOpen={isProfileOpen} onClose={() => setIsProfileOpen(false)} />
 
         <Navbar
           onStartProject={handleStartProject}
           onOpenAuth={() => openAuthModal('login')}
-          onToggleProfile={() => setIsProfileOpen(v => !v)}
-          onOpenMobileMenu={() => {}}
-          isProfileOpen={isProfileOpen}
         />
 
         <main className="flex-1">

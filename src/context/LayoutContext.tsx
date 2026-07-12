@@ -4,8 +4,6 @@ import type { AuthMode } from '../components/modals/AuthModal';
 export interface LayoutContextValue {
   /** Opens the shared auth modal (owned by Layout) in the given mode. */
   openAuthModal: (mode?: AuthMode) => void;
-  isProfileOpen: boolean;
-  toggleProfileMenu: () => void;
   /** Overrides what the navbar's "Start a project" button does; pass null to restore the default (navigate to /settings/my-projects/new-project). */
   setStartProjectHandler: (fn: (() => void) | null) => void;
   /** Runs after a successful login/signup via the shared auth modal; pass null to clear. */

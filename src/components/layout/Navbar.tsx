@@ -8,9 +8,6 @@ import { useBodyScrollLock } from '../../hooks';
 interface NavbarProps {
   onStartProject: () => void;
   onOpenAuth: () => void;
-  onToggleProfile: () => void;
-  onOpenMobileMenu: () => void;
-  isProfileOpen: boolean;
 }
 
 const NAV_LINKS = [
@@ -21,25 +18,16 @@ const NAV_LINKS = [
   { href: '/academy',  label: 'Academy' },
 ];
 
-export default function Navbar({
-  onStartProject,
-  onOpenAuth,
-  onToggleProfile,
-  isProfileOpen,
-}: NavbarProps) {
+export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  // Lock the page behind the full-screen menu so its scrollbar isn't visible
-  // and touch scrolling can't move the background.
   useBodyScrollLock(mobileOpen);
 
   const closeMobile = () => setMobileOpen(false);
 
-  // Close the hamburger after navigating to /settings so it disappears
-  // behind the already-visible SettingsPanel instead of before it.
   useEffect(() => {
     if (location.pathname.startsWith('/settings')) closeMobile();
   }, [location.pathname]);
@@ -79,13 +67,12 @@ export default function Navbar({
               </button>
             ) : (
               <button
-                onClick={onToggleProfile}
-                className="p-1 rounded-full border-2 border-white/10 hover:border-brand-primary transition-all cursor-pointer relative"
+                onClick={() => navigate('/settings/my-projects')}
+                className="p-1 rounded-full border-2 border-white/10 hover:border-brand-primary transition-all cursor-pointer"
               >
                 <div className="w-9 h-9 rounded-full bg-bg-surface flex items-center justify-center">
                   <UserIcon className="w-4 h-4" />
                 </div>
-                {isProfileOpen && <div className="absolute inset-0 bg-brand-primary/10 rounded-full" />}
               </button>
             )}
           </div>

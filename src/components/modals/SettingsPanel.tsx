@@ -148,7 +148,7 @@ function leadMatchesSearch(lead: Lead, query: string) {
 }
 
 export default function SettingsPanel({ isOpen, onClose, fullScreen = false, section, onSectionChange }: SettingsPanelProps) {
-  const { user, isAdmin } = useAuth();
+  const { user, isAdmin, logout } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -326,8 +326,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   const stats = [
     { label: 'Total Leads', value: leads.length, color: '#FFFFFF' },
     { label: 'Pending', value: leads.filter((l) => l.status === 'pending').length, color: '#F5C542' },
-    { label: 'In Progress', value: leads.filter((l) => l.status === 'accepted').length, color: '#00F0FF' },
-    { label: 'Revision', value: leads.filter((l) => l.status === 'revision').length, color: '#F5C542' },
+    { label: 'In Progress', value: leads.filter((l) => l.status === 'accepted' || l.status === 'revision').length, color: '#00F0FF' },
     { label: 'Launched', value: leads.filter((l) => l.status === 'launched' || l.status === 'completed').length, color: '#B98CFF' },
   ];
 
@@ -393,7 +392,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                 <img src={logo} alt="ConsultPrompts" className="w-7 h-7 object-contain" />
                 <span className="font-display font-bold italic text-[15px]">Settings</span>
               </div>
-              <div className="flex flex-col">
+              <div className="flex flex-col flex-1">
                 {NAV.map((n) => {
                   const active = section === n.key;
                   return (
@@ -417,6 +416,15 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                     </button>
                   );
                 })}
+                <div className="mt-auto px-4 py-5 border-t border-white/[0.06]">
+                  <button
+                    onClick={() => { logout(); onClose(); }}
+                    className="flex items-center gap-3 px-3 py-2.5 w-full text-left rounded-lg border-none cursor-pointer transition-colors text-red-400 hover:bg-red-500/10 hover:text-red-300"
+                  >
+                    <span className="w-2 h-2 rounded-full flex-shrink-0 bg-red-500/60" />
+                    <span className="text-[11px] font-bold uppercase tracking-[0.1em]">Log Out</span>
+                  </button>
+                </div>
               </div>
             </div>
 
@@ -580,7 +588,7 @@ function AgencySection({
         {/* Left column: stats + leads */}
         <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
           {/* Stats */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 flex-shrink-0">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
             {stats.map((s) => (
               <div
                 key={s.label}

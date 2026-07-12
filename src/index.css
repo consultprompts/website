@@ -96,8 +96,10 @@
   will-change: transform;
 }
 
+
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track {
+  .marquee-track,
+  .aurora-band {
     animation: none;
   }
 }
