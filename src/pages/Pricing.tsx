@@ -5,24 +5,6 @@ import { PACKAGES, COMPARISON_ROWS } from '../data/content';
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
 
-const PRICING_FAQS = [
-  {
-    question: 'Why is it so cheap?',
-    answer:
-      "Traditional agencies are slow and bloated. We use AI-assisted design workflows and specialized engineering to strip out the waste. You get high-end results without paying for an agency's fancy office.",
-  },
-  {
-    question: 'What if I need more than 5 pages?',
-    answer:
-      'Our core offer is optimized for efficiency. If you need a more complex site, we can discuss a custom quote, but 99% of local businesses shine with our 3-5 page high-performance setup.',
-  },
-  {
-    question: 'Do you offer maintenance?',
-    answer:
-      'Yes. For a small monthly fee, we handle all updates, security, and hosting, so you can focus on running your business.',
-  },
-];
-
 export default function Pricing() {
   const navigate = useNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);

@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, FolderOpen, ExternalLink, ChevronLeft } from 'lucide-react';
-import { getMyLeads, submitReview, setWantsMaintenance, markPaid, requestMeeting, type Lead } from '../../lib/api';
+import { Loader2, FolderOpen, ExternalLink, ChevronLeft, X } from 'lucide-react';
+import { getMyLeads, submitReview, setWantsMaintenance, markPaid, requestMeeting, getLeadActivity, type Lead, type LeadActivity } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONES_PENDING, MILESTONE, projectStatusText } from '../../lib/milestones';
+import { useBodyScrollLock } from '../../hooks';
 import NewProjectForm from './NewProjectForm';
 
 // Monthly maintenance price — update this constant when pricing changes.
@@ -183,6 +184,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
   const [savingMaintenance, setSavingMaintenance] = useState(false);
   const [paying, setPaying] = useState(false);
   const [payError, setPayError] = useState('');
+  const [showPayModal, setShowPayModal] = useState(false);
 
   const toggleMaintenance = async (checked: boolean) => {
     setSavingMaintenance(true);
@@ -262,169 +264,212 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     );
   }
 
+  const pkgPrice = lead.package ? (PACKAGE_PRICE[lead.package] ?? 0) : 0;
+  const pkgName  = lead.package ? (PACKAGE_NAME[lead.package] ?? lead.package) : null;
+  const total = pkgPrice + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0);
+
   return (
-    <div
-      className="rounded-xl p-5 flex flex-col gap-6"
-      style={{ background: 'rgba(112,0,255,0.07)', border: '1px solid rgba(112,0,255,0.25)' }}
-    >
-      <div>
-        <p className="text-[10px] uppercase tracking-widest font-bold mb-1" style={{ color: '#B98CFF' }}>
-          Complete Payment to Launch
-        </p>
-        <p className="text-xs text-ink-muted font-light">Enter your card details below to finalise and launch your site.</p>
-      </div>
+    <>
+      <div className="w-full liquid-glass rounded-xl p-5 flex flex-col gap-6">
+        {/* Fee summary */}
+        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
+          <div className="px-4 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
+            <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Order Summary</p>
+          </div>
 
-      {/* Fee summary */}
-      {(() => {
-        const pkgPrice = lead.package ? (PACKAGE_PRICE[lead.package] ?? 0) : 0;
-        const pkgName  = lead.package ? (PACKAGE_NAME[lead.package] ?? lead.package) : null;
-        const total = pkgPrice + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0);
-        return (
-          <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="px-4 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
-              <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Order Summary</p>
-            </div>
-
-            {pkgName && (
-              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className="text-[13px] text-ink-muted">{pkgName}</span>
-                <span className="text-[13px] font-bold text-white">${pkgPrice}</span>
-              </div>
-            )}
-
+          {pkgName && (
             <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-              <span className="text-[13px] text-ink-muted">Domain registration</span>
-              <span className="text-[13px] font-bold text-white">${DOMAIN_FEE} / year</span>
+              <span className="text-[13px] text-ink-muted">{pkgName}</span>
+              <span className="text-[13px] font-bold text-white">${pkgPrice}</span>
             </div>
+          )}
 
-            {maintenance && (
-              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
-                <span className="text-[13px] text-ink-muted">Site maintenance</span>
-                <span className="text-[13px] font-bold text-white">${MAINTENANCE_MONTHLY_PRICE} / month</span>
-              </div>
-            )}
+          <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <span className="text-[13px] text-ink-muted">Domain registration</span>
+            <span className="text-[13px] font-bold text-white">${DOMAIN_FEE} / year</span>
+          </div>
 
-            {/* Total row */}
-            <div
-              className="flex justify-between items-center px-4 py-3"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.12)', background: 'rgba(185,140,255,0.06)' }}
-            >
-              <div>
-                <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: '#B98CFF' }}>
-                  Due Today
-                </span>
-                {maintenance && (
-                  <span className="ml-2 text-[10px] text-ink-muted font-light">
-                    (then ${MAINTENANCE_MONTHLY_PRICE}/mo)
-                  </span>
-                )}
-              </div>
-              <span className="text-[20px] font-black" style={{ color: '#B98CFF' }}>
-                ${total}
+          {maintenance && (
+            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <span className="text-[13px] text-ink-muted">Site maintenance</span>
+              <span className="text-[13px] font-bold text-white">${MAINTENANCE_MONTHLY_PRICE} / month</span>
+            </div>
+          )}
+
+          {/* Total row */}
+          <div
+            className="flex justify-between items-center px-4 py-3"
+            style={{ borderTop: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,240,255,0.06)' }}
+          >
+            <div>
+              <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: '#00F0FF' }}>
+                Due Today
               </span>
+              {maintenance && (
+                <span className="ml-2 text-[10px] text-ink-muted font-light">
+                  (then ${MAINTENANCE_MONTHLY_PRICE}/mo)
+                </span>
+              )}
             </div>
-
-            <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
-              <p className="text-[10px] text-ink-muted font-light">
-                Domain renews annually. You'll be reminded before the renewal date.
-              </p>
-            </div>
+            <span className="text-[20px] font-black" style={{ color: '#00F0FF' }}>
+              ${total}
+            </span>
           </div>
-        );
-      })()}
 
-      {/* Payment form — UI only. TODO: wire to real payment provider (Stripe/PayPal) once Order & Payment service exists */}
-      <div className="flex flex-col gap-3">
-        <div>
-          <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Card Number</label>
-          <input
-            type="text"
-            placeholder="1234 5678 9012 3456"
-            maxLength={19}
-            className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-          />
-        </div>
-        <div className="flex gap-3">
-          <div className="flex-1">
-            <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Expiry</label>
-            <input
-              type="text"
-              placeholder="MM / YY"
-              maxLength={7}
-              className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-            />
-          </div>
-          <div className="flex-1">
-            <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">CVV</label>
-            <input
-              type="text"
-              placeholder="123"
-              maxLength={4}
-              className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-            />
+          <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+            <p className="text-[10px] text-ink-muted font-light">
+              Domain renews annually. You'll be reminded before the renewal date.
+            </p>
           </div>
         </div>
-        <div>
-          <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Name on Card</label>
-          <input
-            type="text"
-            placeholder="Jane Smith"
-            className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-          />
-        </div>
-        <div>
-          <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Billing Address</label>
-          <input
-            type="text"
-            placeholder="123 Main St, City, State, ZIP"
-            className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
-          />
-        </div>
-      </div>
 
-      {/* Maintenance toggle */}
-      <div
-        className="rounded-lg p-4 flex items-center justify-between gap-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-      >
-        <div>
-          <p className="text-sm font-bold text-white">Add monthly site maintenance?</p>
-          <p className="text-xs text-ink-muted font-light mt-0.5">
-            ${MAINTENANCE_MONTHLY_PRICE}/month — updates, backups, and uptime monitoring.
-          </p>
-        </div>
-        <button
-          role="switch"
-          aria-checked={maintenance}
-          onClick={() => !savingMaintenance && toggleMaintenance(!maintenance)}
-          disabled={savingMaintenance}
-          className="flex-shrink-0 w-12 h-6 rounded-full relative transition-colors focus:outline-none disabled:opacity-60 cursor-pointer border-none p-0"
-          style={{ background: maintenance ? '#00F0FF' : 'rgba(255,255,255,0.15)' }}
+        {/* Maintenance toggle */}
+        <div
+          className="rounded-lg p-4 flex items-center justify-between gap-4"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
         >
-          <span
-            className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
-            style={{ left: maintenance ? '26px' : '2px' }}
-          />
+          <div>
+            <p className="text-sm font-bold text-white">Add monthly site maintenance?</p>
+            <p className="text-xs text-ink-muted font-light mt-0.5">
+              ${MAINTENANCE_MONTHLY_PRICE}/month — updates, backups, and uptime monitoring.
+            </p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={maintenance}
+            onClick={() => !savingMaintenance && toggleMaintenance(!maintenance)}
+            disabled={savingMaintenance}
+            className="flex-shrink-0 w-12 h-6 rounded-full relative transition-colors focus:outline-none disabled:opacity-60 cursor-pointer border-none p-0"
+            style={{ background: maintenance ? '#00F0FF' : 'rgba(255,255,255,0.15)' }}
+          >
+            <span
+              className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
+              style={{ left: maintenance ? '26px' : '2px' }}
+            />
+          </button>
+        </div>
+
+        <button
+          onClick={() => setShowPayModal(true)}
+          className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer"
+          style={{ background: '#00F0FF', color: '#050505' }}
+        >
+          Pay Now
         </button>
       </div>
 
-      {payError && (
-        <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#FF6B6B' }}>{payError}</p>
+      {showPayModal && (
+        <PayModal
+          total={total}
+          paying={paying}
+          payError={payError}
+          onConfirm={handlePay}
+          onClose={() => setShowPayModal(false)}
+        />
       )}
+    </>
+  );
+}
 
-      <button
-        onClick={handlePay}
-        disabled={paying}
-        className="w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-        style={{ background: '#B98CFF', color: '#050505' }}
-      >
-        {paying ? 'Processing…' : `Pay $${(lead.package ? (PACKAGE_PRICE[lead.package] ?? 0) : 0) + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0)} & Launch`}
-      </button>
+// ---------------------------------------------------------------------------
+// PayModal
+// ---------------------------------------------------------------------------
+
+// Payment form — UI only. TODO: wire to real payment provider (Stripe/PayPal) once Order & Payment service exists.
+function PayModal({
+  total, paying, payError, onConfirm, onClose,
+}: {
+  total: number;
+  paying: boolean;
+  payError: string;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  useBodyScrollLock(true);
+
+  return (
+    <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
+      <div onClick={onClose} className="fixed inset-0 bg-bg-base/90 backdrop-blur-sm cursor-pointer" />
+      <div className="relative w-full max-w-md liquid-glass rounded-xl p-6 md:p-8 z-10">
+        <button
+          onClick={onClose}
+          aria-label="Close"
+          className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+        >
+          <X className="w-5 h-5" />
+        </button>
+
+        <p className="text-[12px] uppercase tracking-widest font-bold mb-1" style={{ color: '#00F0FF' }}>
+          Payment Details
+        </p>
+        <p className="text-xs text-ink-muted font-light mb-6">Enter your card details to pay ${total} and launch your site.</p>
+
+        <div className="flex flex-col gap-3">
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Card Number</label>
+            <input
+              type="text"
+              placeholder="1234 5678 9012 3456"
+              maxLength={19}
+              className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            />
+          </div>
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Expiry</label>
+              <input
+                type="text"
+                placeholder="MM / YY"
+                maxLength={7}
+                className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">CVV</label>
+              <input
+                type="text"
+                placeholder="123"
+                maxLength={4}
+                className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
+                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Name on Card</label>
+            <input
+              type="text"
+              placeholder="Jane Smith"
+              className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            />
+          </div>
+          <div>
+            <label className="block text-[10px] uppercase tracking-widest font-bold text-ink-muted mb-1.5">Billing Address</label>
+            <input
+              type="text"
+              placeholder="123 Main St, City, State, ZIP"
+              className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
+              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            />
+          </div>
+        </div>
+
+        {payError && (
+          <p className="mt-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: '#FF6B6B' }}>{payError}</p>
+        )}
+
+        <button
+          onClick={onConfirm}
+          disabled={paying}
+          className="w-full mt-6 text-[13px] font-bold px-[18px] py-3 rounded-[9px] border-none cursor-pointer disabled:opacity-60"
+          style={{ background: '#00F0FF', color: '#050505' }}
+        >
+          {paying ? 'Processing…' : `Pay $${total} & Launch`}
+        </button>
+      </div>
     </div>
   );
 }
@@ -483,7 +528,7 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
             {done ? (
               <div
                 className="rounded-full flex items-center justify-center w-7 h-7 relative z-10"
-                style={{ background: '#00F0FF', border: '2px solid #0B0D10' }}
+                style={{ background: '#00F0FF', border: '2px solid #00F0FF' }}
               >
                 <span className="text-xs font-black" style={{ color: '#050505' }}>✓</span>
               </div>
@@ -535,10 +580,7 @@ function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
   });
 
   return (
-    <div
-      className="rounded-2xl p-8 mb-0"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
-    >
+    <div className="liquid-glass-tracker rounded-2xl p-8 mb-0">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h3 className="font-display font-bold italic text-2xl">
@@ -555,6 +597,45 @@ function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
       </div>
 
       <HorizontalMilestoneTracker lead={lead} />
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LastLaunchedCard — shown on the main view when there's nothing active in
+// flight but the client has a previously launched site.
+// ---------------------------------------------------------------------------
+
+function LastLaunchedCard({ lead }: { lead: Lead }) {
+  const pkgName = lead.package ? (PACKAGE_NAME[lead.package] ?? lead.package) : null;
+  const launchedDate = lead.paid_at
+    ? new Date(lead.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
+    : null;
+  const siteUrl = safeUrl(lead.site_url);
+
+  return (
+    <div className="liquid-glass rounded-2xl flex justify-between p-8">
+      <div>
+        <h3 className="font-display font-bold italic text-2xl mb-1">{lead.business} is LIVE! 🎉</h3>
+        <p className="text-ink-muted text-sm">
+          {pkgName ?? lead.package}
+          {launchedDate ? ` · Launched ${launchedDate}` : ''}
+        </p>
+      </div>
+      {siteUrl && (
+        <div>
+          <a
+            href={safeUrl(siteUrl)!}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 px-4 py-3 rounded-lg font-bold text-sm"
+            style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.3)' }}
+          >
+            <ExternalLink className="w-4 h-4" />
+            Visit site
+          </a>
+        </div>
+      )}
     </div>
   );
 }
@@ -591,7 +672,7 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
         </span>
       </div>
 
-      <div className="rounded-xl p-4 mt-5 bg-white/[0.03] border border-white/10">
+      <div className="rounded-xl p-4 mt-5" style={{ background: 'rgba(245,197,66,0.08)', border: '1px solid rgba(245,197,66,0.2)' }}>
         <p className="text-xs font-bold uppercase tracking-widest text-ink-muted">Status</p>
         <p className="text-sm text-white/70 font-light mt-1">
           Your application is in the queue — we'll review it and reach out soon.
@@ -600,10 +681,51 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
 
       <button
         onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
-        className="mt-3 w-full py-3 border border-white/15 text-ink-muted font-bold text-xs uppercase tracking-widest rounded-xl hover:border-white/30 hover:text-white transition-colors bg-transparent cursor-pointer"
+        className="mt-3 text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
+        style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
+        onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
+        onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)')}
       >
         Edit Submission
       </button>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// CyclingLoader — terminal-style "Thinking… / Cooking…" busy indicator
+// ---------------------------------------------------------------------------
+
+function CyclingLoader({ words }: { words: string[] }) {
+  const [i, setI] = useState(0);
+  const [dots, setDots] = useState(1);
+
+  // Word changes on a random 4–8 minute cadence rather than a fixed tick.
+  useEffect(() => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const scheduleNext = () => {
+      const delay = (4 + Math.random() * 4) * 60_000;
+      timeoutId = setTimeout(() => {
+        setI((n) => (n + 1) % words.length);
+        scheduleNext();
+      }, delay);
+    };
+    scheduleNext();
+    return () => clearTimeout(timeoutId);
+  }, [words.length]);
+
+  useEffect(() => {
+    const id = setInterval(() => setDots((d) => (d % 3) + 1), 450);
+    return () => clearInterval(id);
+  }, []);
+
+  return (
+    <div className="flex items-center gap-2.5">
+      <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" style={{ color: '#00F0FF' }} />
+      <span className="text-[13px] font-bold" style={{ color: '#00F0FF' }}>
+        {words[i]}
+        <span className="inline-block w-[3ch] text-left">{'.'.repeat(dots)}</span>
+      </span>
     </div>
   );
 }
@@ -653,6 +775,31 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
+  // Nothing done yet — waiting on the kickoff meeting to happen.
+  if (lead.milestone_index === 0) {
+    return (
+      <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+        <p className="font-display font-bold text-[15px] mb-1">Awaiting your meeting</p>
+        <p className="text-[13px] text-ink-muted">
+          We'll be in touch to schedule your kickoff call — you'll be notified as soon as it's done and we start on your mockup.
+        </p>
+      </div>
+    );
+  }
+
+  // Meeting done, mockup not sent yet — admin is designing it.
+  if (lead.milestone_index === MILESTONE.meeting && !lead.revision_feedback) {
+    return (
+      <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+        <p className="font-display font-bold text-[15px] mb-1">Designing your mockup</p>
+        <p className="text-[13px] text-ink-muted mb-5">
+          We're putting your mockup together — you'll be notified as soon as it's ready to review.
+        </p>
+        <CyclingLoader words={['Designing', 'Sketching layouts', 'Choosing colors', 'Polishing pixels', 'Cooking']} />
+      </div>
+    );
+  }
+
   // Mockup review panel — also visible during revision (milestone resets to
   // MilestoneMeeting while admin redesigns, but the feedback notice must persist).
   if (lead.milestone_index === MILESTONE.mockup || (lead.milestone_index === MILESTONE.meeting && !!lead.revision_feedback)) {
@@ -667,16 +814,117 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
+  // Design approved, site not built yet — admin is building it.
+  if (lead.milestone_index === MILESTONE.approved) {
+    return (
+      <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+        <p className="font-display font-bold text-[15px] mb-1">Building your website</p>
+        <p className="text-[13px] text-ink-muted mb-5">
+          Your design is approved and we're building the site — you'll be notified as soon as it's ready.
+        </p>
+        <CyclingLoader words={['Building', 'Assembling pages', 'Wiring things up', 'Testing', 'Cooking']} />
+      </div>
+    );
+  }
+
   // Payment panel
   if (lead.milestone_index >= MILESTONE.website) {
     return (
-      <div className="rounded-[14px] border border-white/8 bg-bg-surface overflow-hidden">
+      <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+        <p className="font-display font-bold text-[15px] mb-1">
+          {lead.is_paid ? 'Preparing for Launch' : 'Complete Payment to Launch'}
+        </p>
+        <p className="text-[13px] text-ink-muted mb-5">
+          {lead.is_paid
+            ? "Payment's confirmed — we're getting your site ready to go live."
+            : 'Review your order, then pay to finalise and launch your site.'}
+        </p>
+        {lead.is_paid && (
+          <div className="mb-5">
+            <CyclingLoader words={['Preparing', 'Setting up hosting', 'Configuring domain', 'Final checks', 'Cooking']} />
+          </div>
+        )}
         <PaymentPanel lead={lead} onUpdate={onUpdate} />
       </div>
     );
   }
 
   return null;
+}
+
+// ---------------------------------------------------------------------------
+// ActivityPanel — running log of everything that's happened on the project
+// so far. Shown once anything's happened; disappears once the site launches
+// (inProgress no longer includes the lead once status flips to 'launched').
+// ---------------------------------------------------------------------------
+
+// Human labels for each event_type the backend logs (agency-service/internal/service/lead_service.go).
+const ACTIVITY_LABEL: Record<string, string> = {
+  project_submitted: 'Project submitted',
+  lead_accepted: 'Project accepted',
+  meeting_requested: 'Meeting requested',
+  meeting_completed: 'Meeting completed',
+  mockup_sent: 'Mockup sent for review',
+  changes_requested: 'Changes requested',
+  design_approved: 'Design approved',
+  website_completed: 'Website completed',
+  payment_completed: 'Payment completed',
+  website_launched: 'Website is live',
+};
+
+function formatActivityTimestamp(iso: string) {
+  const d = new Date(iso);
+  return (
+    d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) +
+    ' · ' +
+    d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })
+  );
+}
+
+function ActivityPanel({ lead }: { lead: Lead }) {
+  const [events, setEvents] = useState<LeadActivity[] | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getLeadActivity(lead.id)
+      .then((data) => {
+        if (cancelled) return;
+        // Newest first, regardless of what order the server returned.
+        const sorted = [...data].sort(
+          (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
+        );
+        setEvents(sorted);
+      })
+      .catch(() => { if (!cancelled) setEvents([]); });
+    return () => { cancelled = true; };
+    // Refetch whenever anything actionable on the lead changes — onUpdate()
+    // replaces the lead object on every action, but lead.id alone never
+    // changes, so those mutable fields have to be explicit dependencies.
+  }, [lead.id, lead.milestone_index, lead.status, lead.is_paid, lead.mockup_url, lead.revision_feedback, lead.wants_call]);
+
+  if (!events || events.length === 0) return null;
+
+  return (
+    <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+      <p className="font-display font-bold text-[15px] mb-4">Activity</p>
+      <div className="flex flex-col gap-3">
+        {events.map((e) => (
+          <div key={e.id} className="flex items-start gap-3">
+            <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0" style={{ background: '#00F0FF' }} />
+            <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+              <p className="text-[13px] text-white/80 font-light m-0">
+                {ACTIVITY_LABEL[e.event_type] ?? e.event_type}
+                {e.detail && e.event_type === 'changes_requested' ? `: ${e.detail}` : ''}
+              </p>
+              <p className="text-[11px] text-ink-muted m-0 flex-shrink-0 whitespace-nowrap">
+                {formatActivityTimestamp(e.created_at)}
+              </p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -731,7 +979,13 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
           );
         })}
         {past.length === 0 && (
-          <p className="text-sm text-ink-muted font-light text-center py-8">No past projects yet.</p>
+          <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
+          <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
+          <h3 className="font-display font-bold italic text-xl mb-2">No past projects yet.</h3>
+          <p className="text-ink-muted text-sm font-light">
+            Start a project and your mockup request will appear here.
+          </p>
+        </div>
         )}
       </div>
     </div>
@@ -742,7 +996,7 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
   const paidLeads = leads.filter((l) => l.is_paid);
 
   return (
-    <div>
+    <div className="w-full">
       <button
         onClick={onBack}
         className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
@@ -753,16 +1007,16 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
       <h2 className="font-display font-bold text-2xl mt-4 mb-1">Payments</h2>
       <p className="text-[13px] text-ink-muted mb-6">Your billing history with Consult Prompts.</p>
 
-      <div className="rounded-[14px] border overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+      <div className="w-full rounded-[14px] border overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
         {/* Header row */}
         <div
           className="px-5 py-4 grid"
           style={{
             background: 'rgba(255,255,255,0.03)',
-            gridTemplateColumns: '1fr 1.4fr 0.8fr 0.8fr',
+            gridTemplateColumns: '0.8fr 2.2fr 0.8fr 0.8fr',
           }}
         >
-          {['DATE', 'DESCRIPTION', 'AMOUNT', 'STATUS'].map((col) => (
+          {['DATE', 'NAME', 'AMOUNT', 'STATUS'].map((col) => (
             <span key={col} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{col}</span>
           ))}
         </div>
@@ -783,7 +1037,7 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
                 className="px-5 py-[14px] grid"
                 style={{
                   borderTop: '1px solid rgba(255,255,255,0.06)',
-                  gridTemplateColumns: '1fr 1.4fr 0.8fr 0.8fr',
+                  gridTemplateColumns: '0.8fr 2.2fr 0.8fr 0.8fr',
                 }}
               >
                 <span className="text-[13px] text-ink-muted">{dateStr}</span>
@@ -834,6 +1088,15 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   const past = leads.filter((l) => l.status === 'completed' || l.status === 'launched' || l.status === 'suspended');
   const hasActive = inProgress.length > 0 || pendingLeads.length > 0;
 
+  // Most recently launched project — surfaced on the main view when there's
+  // nothing currently in flight, instead of the plain "No projects yet" state.
+  const lastLaunched = leads
+    .filter((l) => l.status === 'launched' || l.status === 'completed')
+    .sort((a, b) => {
+      const dateOf = (l: Lead) => new Date(l.paid_at ?? l.created_at).getTime();
+      return dateOf(b) - dateOf(a);
+    })[0] ?? null;
+
   const showNewProjectForm = location.pathname.endsWith('/new-project');
   const editMatch = !loading && location.pathname.match(/\/settings\/my-projects\/([^/]+)\/edit$/);
   const editLead = editMatch ? leads.find((l) => l.id === editMatch[1] && l.status === 'pending') ?? null : null;
@@ -869,7 +1132,7 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto py-4 md:py-6">
-        <div className="w-full px-4 md:px-8">
+        <div className="w-full max-w-[1200px] mx-auto px-4 md:px-8">
 
           {/* Desktop-only header row — hidden when in a sub-view */}
           <div className={`${subView === 'main' ? 'hidden md:flex' : 'hidden'} items-start justify-between mb-7`}>
@@ -935,6 +1198,7 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
                 <div key={l.id} className="flex flex-col gap-5 mb-5">
                   <ProjectSummaryCard lead={l} onUpdate={updateLead} />
                   <StageActionPanel lead={l} onUpdate={updateLead} />
+                  <ActivityPanel lead={l} />
                 </div>
               ))}
 
@@ -945,13 +1209,17 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               ))}
 
               {!loading && !error && !hasActive && (
-                <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
-                  <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
-                  <h3 className="font-display font-bold italic text-xl mb-2">No projects yet</h3>
-                  <p className="text-ink-muted text-sm font-light">
-                    Start a project and your mockup request will appear here.
-                  </p>
-                </div>
+                lastLaunched ? (
+                  <LastLaunchedCard lead={lastLaunched} />
+                ) : (
+                  <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
+                    <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
+                    <h3 className="font-display font-bold italic text-xl mb-2">No projects yet</h3>
+                    <p className="text-ink-muted text-sm font-light">
+                      Start a project and your mockup request will appear here.
+                    </p>
+                  </div>
+                )
               )}
             </>
           )}

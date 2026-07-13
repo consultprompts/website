@@ -269,6 +269,14 @@ export interface Lead {
   created_at: string;
 }
 
+export interface LeadActivity {
+  id: string;
+  lead_id: string;
+  event_type: string;
+  detail?: string;
+  created_at: string;
+}
+
 export interface LeadInput {
   name: string;
   email: string;
@@ -401,6 +409,11 @@ export async function launchSite(leadId: string, siteUrl: string) {
 
 export async function requestMeeting(leadId: string) {
   return request<{ message: string }>(`/agency/leads/${leadId}/request-meeting`, { method: 'POST' });
+}
+
+export async function getLeadActivity(leadId: string): Promise<LeadActivity[]> {
+  const data = await request<LeadActivity[]>(`/agency/leads/${leadId}/activity`);
+  return data ?? [];
 }
 
 export async function setLeadSuspended(leadId: string, suspended: boolean) {

@@ -8,6 +8,7 @@ import { PACKAGES } from '../../data/content';
 import logo from '../../logo.png';
 import AccountSection from './AccountSection';
 import MyProjectsSection from './MyProjectsSection';
+import AuroraBackground from '../ui/AuroraBackground';
 
 export const SETTINGS_SECTIONS = ['account', 'my-projects', 'agency', 'products', 'academy'] as const;
 export type Section = (typeof SETTINGS_SECTIONS)[number];
@@ -389,6 +390,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
             style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
             className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white"
           >
+            <AuroraBackground/>
+
             {/* Unified top bar — desktop only */}
             <div
               className="hidden md:flex items-center justify-between px-5 flex-shrink-0"

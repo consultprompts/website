@@ -3,8 +3,7 @@ import { KeyRound, MailWarning, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestPasswordReset, resendVerification } from '../../lib/api';
 
-const card = 'bg-bg-surface rounded-sm';
-const cardBorder = { border: '1px solid rgba(255,255,255,0.05)' };
+const card = 'liquid-glass rounded-xl';
 const label = 'text-[10px] uppercase tracking-widest font-bold text-ink-muted m-0 mb-1';
 
 export default function AccountSection({ onClose }: { onClose: () => void }) {
@@ -48,13 +47,13 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
-        <div className="max-w-xl flex flex-col gap-6">
+        <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-6">
           <div className="mb-1">
             <h2 className="font-display font-bold text-2xl">Account</h2>
             <p className="text-[13px] text-ink-muted mt-1">Profile / Security</p>
           </div>
           {/* Identity card */}
-          <div style={cardBorder} className={`${card} p-4 sm:p-6 flex items-center gap-4`}>
+          <div className={`${card} p-4 sm:p-6 flex items-center gap-4`}>
             <div className="w-14 h-14 rounded-full bg-brand-primary flex items-center justify-center text-bg-base font-black text-2xl flex-shrink-0">
               {(user.displayName || user.email).charAt(0).toUpperCase()}
             </div>
@@ -68,7 +67,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
           </div>
 
           {/* Details grid */}
-          <div style={cardBorder} className={`${card} p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 gap-5`}>
+          <div className={`${card} p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-5 gap-5`}>
             <div>
               <p className={label}>Email</p>
               <p className="text-[13px] m-0 truncate">{user.email}</p>
@@ -119,7 +118,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
           )}
 
           {/* Security */}
-          <div style={cardBorder} className={`${card} p-4 sm:p-6 flex items-center justify-between gap-4 flex-wrap`}>
+          <div className={`${card} p-4 sm:p-6 flex items-center gap-10 flex-wrap`}>
             <div>
               <p className="text-[13px] font-bold m-0">Password</p>
               <p className="text-ink-muted text-[12px] mt-1 m-0">

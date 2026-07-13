@@ -34,6 +34,10 @@
   @apply bg-linear-to-br from-white/10 via-white/5 to-white/[0.02] backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden;
 }
 
+.liquid-glass-tracker {
+  @apply bg-linear-to-br from-white/10 via-white/5 to-white/[0.02] backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden;
+}
+
 .brutalist-border {
   @apply border border-white/20 hover:border-brand-primary transition-colors duration-300;
 }
