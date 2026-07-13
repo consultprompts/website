@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Loader2, CheckCircle, MessageCircle, Phone, Mail, Upload } from 'lucide-react';
+import { Loader2, CheckCircle, MessageCircle, Phone, Mail, Upload, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { submitLead, updateLeadSubmit, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
-import SettingsHeader from './SettingsHeader';
 import Notification from '../ui/Notification';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -676,8 +675,6 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SettingsHeader title={initialLead ? 'My Projects / Edit Submission' : 'My Projects / New Project'} onClose={onClose} onBack={onBack} />
-
       <Notification
         isOpen={submitted}
         onClose={onBack}
@@ -708,6 +705,13 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
 
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-2xl mx-auto w-full text-white">
+          <button
+            onClick={onBack}
+            className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-6"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back
+          </button>
           <div>
             {/* Progress indicator */}
               <div className="mb-8">

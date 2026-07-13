@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { KeyRound, MailWarning, CheckCircle2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestPasswordReset, resendVerification } from '../../lib/api';
-import SettingsHeader from './SettingsHeader';
 
 const card = 'bg-bg-surface rounded-sm';
 const cardBorder = { border: '1px solid rgba(255,255,255,0.05)' };
@@ -48,10 +47,12 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SettingsHeader title="Account" subtitle="Profile / Security" onClose={onClose} />
-
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-xl flex flex-col gap-6">
+          <div className="mb-1">
+            <h2 className="font-display font-bold text-2xl">Account</h2>
+            <p className="text-[13px] text-ink-muted mt-1">Profile / Security</p>
+          </div>
           {/* Identity card */}
           <div style={cardBorder} className={`${card} p-4 sm:p-6 flex items-center gap-4`}>
             <div className="w-14 h-14 rounded-full bg-brand-primary flex items-center justify-center text-bg-base font-black text-2xl flex-shrink-0">

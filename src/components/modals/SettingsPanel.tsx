@@ -8,7 +8,6 @@ import { PACKAGES } from '../../data/content';
 import logo from '../../logo.png';
 import AccountSection from './AccountSection';
 import MyProjectsSection from './MyProjectsSection';
-import SettingsHeader from './SettingsHeader';
 
 export const SETTINGS_SECTIONS = ['account', 'my-projects', 'agency', 'products', 'academy'] as const;
 export type Section = (typeof SETTINGS_SECTIONS)[number];
@@ -173,7 +172,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   }, []);
 
   useEffect(() => {
-    if (isAdmin && isOpen && section === 'agency') refreshLeads();
+    if (isAdmin && isOpen && section === 'agency') {
+      refreshLeads();
+      const id = setInterval(refreshLeads, 15_000);
+      return () => clearInterval(id);
+    }
   }, [isAdmin, isOpen, section, refreshLeads]);
 
   useEffect(() => {
@@ -384,15 +387,31 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
           <div className="absolute inset-0 bg-bg-base" />
           <div
             style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
-            className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex text-white"
+            className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white"
           >
-            {/* Sidebar — desktop only; mobile uses the menu/detail hierarchy below */}
-            <div className="hidden md:flex flex-shrink-0 bg-bg-base flex-col w-[220px] border-r border-white/[0.06]">
-              <div className="flex items-center gap-2.5 px-5 pb-6 pt-6 flex-shrink-0">
-                <img src={logo} alt="ConsultPrompts" className="w-7 h-7 object-contain" />
-                <span className="font-display font-bold italic text-[15px]">Settings</span>
+            {/* Unified top bar — desktop only */}
+            <div
+              className="hidden md:flex items-center justify-between px-5 flex-shrink-0"
+              style={{ height: 56, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              <div className="flex items-center gap-2.5">
+                <img src={logo} alt="ConsultPrompts" className="w-6 h-6 object-contain" />
+                <span className="font-display font-bold italic text-[14px]">Settings</span>
               </div>
-              <div className="flex flex-col flex-1">
+              <button
+                onClick={onClose}
+                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                className="w-7 h-7 rounded-full bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
+              >
+                ✕
+              </button>
+            </div>
+
+            {/* Body row: sidebar + content — desktop only */}
+            <div className="hidden md:flex flex-row flex-1 min-h-0 overflow-hidden">
+              {/* Sidebar */}
+              <div className="flex flex-shrink-0 bg-bg-base flex-col w-[220px] border-r border-white/[0.06]">
+                <div className="flex flex-col flex-1 pt-2">
                 {NAV.map((n) => {
                   const active = section === n.key;
                   return (
@@ -428,9 +447,10 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               </div>
             </div>
 
-            {/* Content — desktop only */}
-            <div className="hidden md:flex flex-1 flex-col min-w-0 min-h-0">
-              {sectionContent}
+              {/* Content */}
+              <div className="flex flex-1 flex-col min-w-0 min-h-0">
+                {sectionContent}
+              </div>
             </div>
 
             {/* Mobile — menu → section → lead-detail hierarchy */}
@@ -581,12 +601,14 @@ function AgencySection({
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SettingsHeader title="Admin Command" subtitle="Mockup Requests / Pipeline" onClose={onClose} />
-
       {/* Main */}
       <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 md:px-8 py-4 md:py-6 min-h-0 overflow-y-auto lg:overflow-visible">
         {/* Left column: stats + leads */}
         <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
+          <div className="mb-1">
+            <h2 className="font-display font-bold text-2xl">Admin</h2>
+            <p className="text-[13px] text-ink-muted mt-1">Mockup Requests / Pipeline</p>
+          </div>
           {/* Stats */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
             {stats.map((s) => (
@@ -1083,7 +1105,7 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
     <>
       <button
         onClick={() => setOpen(true)}
-        className="w-full flex justify-between items-center px-4 py-3 cursor-pointer rounded-sm"
+        className="w-full flex justify-between items-center px-4 py-3.5 cursor-pointer rounded-sm"
         style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
       >
         <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
@@ -1373,10 +1395,13 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
   );
 }
 
-function StubSection({ title, subtitle, onClose, placeholder }: { title: string; subtitle: string; onClose: () => void; placeholder: string }) {
+function StubSection({ title, subtitle, placeholder }: { title: string; subtitle: string; onClose: () => void; placeholder: string }) {
   return (
     <div className="flex flex-col h-full min-h-0">
-      <SettingsHeader title={title} subtitle={subtitle} onClose={onClose} />
+      <div className="px-4 md:px-8 pt-4 md:pt-6 pb-2 flex-shrink-0">
+        <h2 className="font-display font-bold text-2xl">{title}</h2>
+        <p className="text-[13px] text-ink-muted mt-1">{subtitle}</p>
+      </div>
       <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div
           style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
