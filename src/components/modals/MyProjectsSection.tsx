@@ -478,6 +478,58 @@ function PayModal({
 // HorizontalMilestoneTracker
 // ---------------------------------------------------------------------------
 
+// Fixed per-step slot width on the mobile slider — must match the width
+// applied to each step below so the centering math (translateX) lines up.
+const MOBILE_STEP_WIDTH = 64;
+
+// Shared per-step derivation used by both the desktop row and the mobile
+// coverflow layout.
+function milestoneStepInfo(lead: Lead, i: number, meetingReRequested: boolean) {
+  const k = i + 1;
+  const rawDone = lead.milestone_index >= k;
+  const done = rawDone && !(meetingReRequested && k === MILESTONE.meeting);
+  const current = meetingReRequested ? k === MILESTONE.meeting : lead.milestone_index === i;
+  // Show "Meeting Skipped" only when skipped and the user never re-requested.
+  const isSkippedMeeting = k === MILESTONE.meeting && lead.meeting_skipped && !lead.wants_call && rawDone;
+
+  let label: string;
+  if (done) {
+    label = isSkippedMeeting ? 'Meeting Skipped' : MILESTONES[i];
+  } else if (!done && current && lead.revision_feedback && k === MILESTONE.mockup) {
+    label = 'Redesigning Mockup';
+  } else {
+    label = MILESTONES_PENDING[i];
+  }
+
+  const labelColor = done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.3)';
+  return { k, done, current, label, labelColor };
+}
+
+function MilestoneDot({ done, current, k, size = 'w-7 h-7' }: { done: boolean; current: boolean; k: number; size?: string }) {
+  if (done) {
+    return (
+      <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ background: '#00F0FF', border: '2px solid #00F0FF' }}>
+        <span className="text-xs font-black" style={{ color: '#050505' }}>✓</span>
+      </div>
+    );
+  }
+  if (current) {
+    return (
+      <div className={`relative ${size} z-10`}>
+        <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'rgba(0,240,255,0.35)', animationDuration: '1.6s' }} />
+        <div className={`relative ${size} rounded-full flex items-center justify-center`} style={{ background: 'transparent', border: '2px solid #00F0FF' }}>
+          <span className="text-xs font-black" style={{ color: '#00F0FF' }}>{k}</span>
+        </div>
+      </div>
+    );
+  }
+  return (
+    <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ border: '2px solid rgba(255,255,255,0.2)' }}>
+      <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{k}</span>
+    </div>
+  );
+}
+
 function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
   // When a skipped meeting is re-requested, treat the meeting step as the
   // current in-progress step rather than done. This shifts "current" back
@@ -485,86 +537,86 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
   // Requesting a meeting resets milestone_index to 0, so "pending meeting"
   // is identified by milestone_index===0 (not ===1, which means completed).
   const meetingReRequested = lead.wants_call && lead.meeting_skipped && lead.milestone_index === 0;
+  const currentIndex = Math.min(
+    meetingReRequested ? MILESTONE.meeting - 1 : lead.milestone_index,
+    MILESTONES.length - 1,
+  );
 
   return (
-    <div className="flex items-start mt-5 pb-1 pt-4">
-      {MILESTONES.map((doneLabel, i) => {
-        const k = i + 1;
-        const rawDone = lead.milestone_index >= k;
-        const done = rawDone && !(meetingReRequested && k === MILESTONE.meeting);
-        const current = meetingReRequested ? k === MILESTONE.meeting : lead.milestone_index === i;
-        // Show "Meeting Skipped" only when skipped and the user never re-requested.
-        const isSkippedMeeting = k === MILESTONE.meeting && lead.meeting_skipped && !lead.wants_call && rawDone;
-
-        let label: string;
-        if (done) {
-          label = isSkippedMeeting ? 'Meeting Skipped' : doneLabel;
-        } else if (!done && current && lead.revision_feedback && k === MILESTONE.mockup) {
-          label = 'Redesigning Mockup';
-        } else {
-          label = MILESTONES_PENDING[i];
-        }
-
-        const labelColor = done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.3)';
-
-        return (
-          <div key={doneLabel} className="flex-1 flex flex-col items-center relative min-w-[64px]">
-            {/* Left half connector: right edge of prev step → this dot */}
-            {i !== 0 && (
-              <div
-                className="absolute h-0.5"
-                style={{ top: 14, left: 0, right: '50%', background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }}
-              />
-            )}
-            {/* Right half connector: this dot → left edge of next step */}
-            {i < MILESTONES.length - 1 && (
-              <div
-                className="absolute h-0.5"
-                style={{ top: 14, left: '50%', right: 0, background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }}
-              />
-            )}
-
-            {/* Dot */}
-            {done ? (
-              <div
-                className="rounded-full flex items-center justify-center w-7 h-7 relative z-10"
-                style={{ background: '#00F0FF', border: '2px solid #00F0FF' }}
-              >
-                <span className="text-xs font-black" style={{ color: '#050505' }}>✓</span>
-              </div>
-            ) : current ? (
-              <div className="relative w-7 h-7 z-10">
+    <>
+      {/* Desktop / tablet — full row, every label shown */}
+      <div className="hidden sm:flex items-start mt-5 pb-1 pt-4">
+        {MILESTONES.map((doneLabel, i) => {
+          const { k, done, current, label, labelColor } = milestoneStepInfo(lead, i, meetingReRequested);
+          return (
+            <div key={doneLabel} className="flex-1 flex flex-col items-center relative min-w-[64px]">
+              {/* One continuous connector per gap — from this dot's center,
+                  extending a full step further right to land exactly on the
+                  next dot's center. Two abutting half-divs left a visible
+                  seam at the midpoint from sub-pixel rounding even when both
+                  halves were the same color, so this is a single div instead. */}
+              {i < MILESTONES.length - 1 && (
                 <div
-                  className="absolute inset-0 rounded-full animate-ping"
-                  style={{ background: 'rgba(0,240,255,0.35)', animationDuration: '1.6s' }}
+                  className="absolute h-0.5"
+                  style={{ top: 14, left: '50%', width: '100%', background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }}
                 />
-                <div
-                  className="relative w-7 h-7 rounded-full flex items-center justify-center"
-                  style={{ background: 'transparent', border: '2px solid #00F0FF' }}
-                >
-                  <span className="text-xs font-black" style={{ color: '#00F0FF' }}>{k}</span>
-                </div>
-              </div>
-            ) : (
-              <div
-                className="rounded-full flex items-center justify-center w-7 h-7 relative z-10"
-                style={{ border: '2px solid rgba(255,255,255,0.2)' }}
-              >
-                <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{k}</span>
-              </div>
-            )}
+              )}
 
-            {/* Label */}
-            <p
-              className="mt-2 text-[10px] font-semibold text-center leading-tight px-1"
-              style={{ color: labelColor }}
-            >
-              {label}
-            </p>
-          </div>
-        );
-      })}
-    </div>
+              <MilestoneDot done={done} current={current} k={k} />
+
+              <p className="mt-2 text-[10px] font-semibold text-center leading-tight px-1" style={{ color: labelColor }}>
+                {label}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Mobile — slider: the current step is pinned to the center of the
+          viewport and the whole track slides under it as milestone_index
+          advances, with four size/opacity tiers falling off by distance
+          from center so it reads as a row of circles bulging around
+          "where you are" rather than six equal-weight steps. */}
+      <div className="sm:hidden overflow-x-hidden mt-5 pt-6 pb-3">
+        <div
+          className="flex items-start transition-transform duration-500 ease-out"
+          style={{ transform: `translateX(calc(50% - ${(currentIndex + 0.5) * MOBILE_STEP_WIDTH}px))` }}
+        >
+          {MILESTONES.map((doneLabel, i) => {
+            const { k, done, current, label, labelColor } = milestoneStepInfo(lead, i, meetingReRequested);
+            const distance = Math.abs(i - currentIndex);
+            // Four dimensions: center, adjacent, next-out, everything beyond that.
+            const scale = distance === 0 ? 1.4 : distance === 1 ? 1 : distance === 2 ? 0.75 : 0.55;
+            const opacity = distance === 0 ? 1 : distance === 1 ? 0.65 : distance === 2 ? 0.35 : 0.18;
+            return (
+              <div
+                key={doneLabel}
+                className="relative flex-shrink-0 flex flex-col items-center transition-opacity duration-500 ease-out"
+                style={{ width: MOBILE_STEP_WIDTH, opacity }}
+              >
+                {/* One continuous connector per gap (see desktop row above for
+                    why: two abutting halves left a visible seam even when both
+                    were the same color) — unscaled and pinned to the dot's own
+                    center (12px = half of the base w-6 h-6) so it stays
+                    straight regardless of how much the dot itself is scaled. */}
+                {i < MILESTONES.length - 1 && (
+                  <div className="absolute h-0.5" style={{ top: 12, left: '50%', width: MOBILE_STEP_WIDTH, background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }} />
+                )}
+
+                <div className="transition-transform duration-500 ease-out" style={{ transform: `scale(${scale})` }}>
+                  <MilestoneDot done={done} current={current} k={k} size="w-6 h-6" />
+                </div>
+                {distance === 0 && (
+                  <p className="mt-3 text-xs font-semibold text-center leading-tight px-1 whitespace-nowrap" style={{ color: labelColor }}>
+                    {label}
+                  </p>
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </>
   );
 }
 
@@ -581,7 +633,7 @@ function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
 
   return (
     <div className="liquid-glass-tracker rounded-2xl p-8 mb-0">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
         <div>
           <h3 className="font-display font-bold italic text-2xl">
             {lead.business}{pkgName ? ` — ${pkgName}` : ''}
@@ -589,7 +641,7 @@ function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
           <p className="text-xs text-ink-muted mt-1">Started {date}</p>
         </div>
         <span
-          className="text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full flex-shrink-0"
+          className="self-start text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full flex-shrink-0"
           style={{ background: cfg.bg, color: cfg.color }}
         >
           {projectStatusText(lead)}
@@ -616,7 +668,7 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
   return (
     <div className="liquid-glass rounded-2xl flex justify-between p-8">
       <div>
-        <h3 className="font-display font-bold italic text-2xl mb-1">{lead.business} is LIVE! 🎉</h3>
+        <h3 className="font-display font-bold italic text-lg mb-1">{lead.business} is LIVE! 🎉</h3>
         <p className="text-ink-muted text-sm">
           {pkgName ?? lead.package}
           {launchedDate ? ` · Launched ${launchedDate}` : ''}
@@ -936,7 +988,7 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
     <div>
       <button
         onClick={onBack}
-        className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        className="flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
@@ -999,7 +1051,7 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
     <div className="w-full">
       <button
         onClick={onBack}
-        className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        className="flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
@@ -1076,7 +1128,18 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   useEffect(() => {
     refresh();
     const id = setInterval(() => refresh(false), 15_000);
-    return () => clearInterval(id);
+    // Background tabs get their setInterval throttled by the browser (often
+    // to once a minute or less), so an admin's change made while this tab was
+    // unfocused could sit stale well past 15s. Refetch immediately whenever
+    // the tab regains focus/visibility instead of waiting on the timer.
+    const onVisible = () => { if (document.visibilityState === 'visible') refresh(false); };
+    window.addEventListener('focus', onVisible);
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', onVisible);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
   }, [refresh]);
 
   const updateLead = (updated: Lead) => {
@@ -1167,6 +1230,32 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
                 + New project
               </button>
             </div>
+          </div>
+
+          {/* Mobile header row — same actions, wraps instead of sitting beside the title
+              (the section title itself already comes from SettingsPanel's mobile top bar) */}
+          <div className={`${subView === 'main' ? 'flex' : 'hidden'} md:hidden flex-wrap gap-2 mb-5`}>
+            <button
+              onClick={() => setSubView('old-projects')}
+              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
+              style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
+            >
+              Old Projects
+            </button>
+            <button
+              onClick={() => setSubView('payments')}
+              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
+              style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
+            >
+              Payments
+            </button>
+            <button
+              onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
+              disabled={hasActive}
+              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-brand-primary text-bg-base hover:bg-brand-primary/90"
+            >
+              + New project
+            </button>
           </div>
 
           {/* Sub-view: old projects */}

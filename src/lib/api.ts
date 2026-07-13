@@ -117,7 +117,22 @@ async function request<T>(
   return body.data as T;
 }
 
-async function tryRefresh(): Promise<boolean> {
+// Refresh tokens are single-use/rotated server-side, so concurrent 401s must
+// share one in-flight refresh instead of each firing their own — otherwise
+// every caller but the first presents an already-rotated token, which trips
+// the backend's reuse detection and revokes the whole session (see the
+// "logged out every 15 minutes" incident: several parallel requests expiring
+// together each triggered their own /auth/refresh call).
+let refreshPromise: Promise<boolean> | null = null;
+
+function tryRefresh(): Promise<boolean> {
+  if (!refreshPromise) {
+    refreshPromise = doRefresh().finally(() => { refreshPromise = null; });
+  }
+  return refreshPromise;
+}
+
+async function doRefresh(): Promise<boolean> {
   try {
     const res = await fetch(`${API_URL}/auth/refresh`, {
       method: 'POST',
