@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import StatusBadge from '../ui/StatusBadge';
 import { Search, X, Undo2 } from 'lucide-react';
 import { type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
@@ -552,12 +553,7 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
         <div className="min-w-0">
           <div className="flex items-center gap-2.5 mb-1 flex-wrap">
             <h4 className="m-0 text-base font-bold text-white">{lead.name}</h4>
-            <span
-              style={{ background: ss.bg, color: ss.fg }}
-              className="text-[9px] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full"
-            >
-              {ss.label}
-            </span>
+            <StatusBadge label={ss.label} color={ss.fg} />
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <p className="m-0 text-brand-primary text-[13px] font-medium">{lead.business}</p>

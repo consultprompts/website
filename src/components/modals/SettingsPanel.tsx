@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { User, FolderOpen, Building2, Package, GraduationCap, ChevronRight, ChevronLeft, Search, X, Undo2 } from 'lucide-react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, setLeadSuspended, type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
@@ -148,6 +149,11 @@ function leadMatchesSearch(lead: Lead, query: string) {
 
 export default function SettingsPanel({ isOpen, onClose, fullScreen = false, section, onSectionChange }: SettingsPanelProps) {
   const { user, isAdmin, logout } = useAuth();
+  const location = useLocation();
+  const navigate = useNavigate();
+  const inMyProjectsSubView =
+    section === 'my-projects' &&
+    (location.pathname.endsWith('/payments') || location.pathname.endsWith('/old-projects'));
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -389,9 +395,9 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
             style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
             className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white"
           >
-            {/* Unified top bar — desktop only */}
+            {/* Unified top bar — desktop only (≥1250px) */}
             <div
-              className="hidden md:flex items-center justify-between px-5 flex-shrink-0"
+              className="hidden settings:flex items-center justify-between px-5 flex-shrink-0"
               style={{ height: 56, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
             >
               <div className="flex items-center gap-2.5">
@@ -407,8 +413,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               </button>
             </div>
 
-            {/* Body row: sidebar + content — desktop only */}
-            <div className="hidden md:flex flex-row flex-1 min-h-0 overflow-hidden">
+            {/* Body row: sidebar + content — desktop only (≥1250px) */}
+            <div className="hidden settings:flex flex-row flex-1 min-h-0 overflow-hidden">
               {/* Sidebar */}
               <div className="flex flex-shrink-0 bg-bg-base flex-col w-[220px] border-r border-white/[0.06]">
                 <div className="flex flex-col flex-1 pt-2">
@@ -453,8 +459,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               </div>
             </div>
 
-            {/* Mobile — menu → section → lead-detail hierarchy */}
-            <div className="flex md:hidden flex-1 flex-col min-h-0">
+            {/* Mobile — menu → section → lead-detail hierarchy (<1250px) */}
+            <div className="flex settings:hidden flex-1 flex-col min-h-0">
               {mobileScreen === 'menu' ? (
                 <div className="flex flex-col h-full min-h-0">
                   <div
@@ -507,7 +513,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                     className="px-2 py-3 flex items-center gap-2 flex-shrink-0"
                   >
                     <button
-                      onClick={() => setMobileScreen(mobileScreen === 'lead-detail' ? 'detail' : 'menu')}
+                      onClick={() => {
+                        if (mobileScreen === 'lead-detail') { setMobileScreen('detail'); return; }
+                        if (inMyProjectsSubView) { navigate('/settings/my-projects', { replace: true }); return; }
+                        setMobileScreen('menu');
+                      }}
                       className="flex items-center gap-0.5 pl-2 pr-3 py-2 rounded-lg bg-transparent border-none cursor-pointer text-white flex-shrink-0"
                     >
                       <ChevronLeft className="w-5 h-5" />

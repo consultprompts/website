@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import StatusBadge from '../components/ui/StatusBadge';
 import { Link, useNavigate } from 'react-router-dom';
 import { ArrowLeft, CheckCircle2, Circle, Loader2, FolderOpen, ExternalLink } from 'lucide-react';
 import logoSrc from '../logo.png';
@@ -605,12 +606,7 @@ function ProjectCard({ lead, active, onUpdate }: { lead: Lead; active: boolean; 
             {pkg && <> · <span className="text-white/60 uppercase tracking-widest">{pkg}</span></>}
           </p>
         </div>
-        <span
-          className="text-[10px] font-black uppercase tracking-widest px-3 py-1.5 rounded-full flex-shrink-0"
-          style={{ background: cfg.bg, color: cfg.color }}
-        >
-          {cfg.label}
-        </span>
+        <StatusBadge label={cfg.label} color={cfg.color} />
       </div>
 
       <MilestoneTracker lead={lead} onUpdate={onUpdate} />

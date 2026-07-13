@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, FolderOpen, ExternalLink, ChevronLeft, X } from 'lucide-react';
+import { Loader2, FolderOpen, ExternalLink, ChevronLeft, ChevronDown, X } from 'lucide-react';
+import StatusBadge from '../ui/StatusBadge';
 import { getMyLeads, submitReview, setWantsMaintenance, markPaid, requestMeeting, getLeadActivity, type Lead, type LeadActivity } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
@@ -270,7 +271,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
 
   return (
     <>
-      <div className="w-full liquid-glass rounded-xl p-5 flex flex-col gap-6">
+      <div className="w-fullrounded-xl flex flex-col gap-6">
         {/* Fee summary */}
         <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
           <div className="px-4 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
@@ -325,11 +326,10 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
 
         {/* Maintenance toggle */}
         <div
-          className="rounded-lg p-4 flex items-center justify-between gap-4"
+          className="rounded-lg py-2 px-4 flex items-center justify-between gap-4"
           style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
         >
           <div>
-            <p className="text-sm font-bold text-white">Add monthly site maintenance?</p>
             <p className="text-xs text-ink-muted font-light mt-0.5">
               ${MAINTENANCE_MONTHLY_PRICE}/month — updates, backups, and uptime monitoring.
             </p>
@@ -544,8 +544,8 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
 
   return (
     <>
-      {/* Desktop / tablet — full row, every label shown */}
-      <div className="hidden sm:flex items-start mt-5 pb-1 pt-4">
+      {/* Desktop — full row, every label shown (≥1250px) */}
+      <div className="hidden settings:flex items-start mt-5 pb-1 pt-4">
         {MILESTONES.map((doneLabel, i) => {
           const { k, done, current, label, labelColor } = milestoneStepInfo(lead, i, meetingReRequested);
           return (
@@ -572,12 +572,8 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
         })}
       </div>
 
-      {/* Mobile — slider: the current step is pinned to the center of the
-          viewport and the whole track slides under it as milestone_index
-          advances, with four size/opacity tiers falling off by distance
-          from center so it reads as a row of circles bulging around
-          "where you are" rather than six equal-weight steps. */}
-      <div className="sm:hidden overflow-x-hidden mt-5 pt-6 pb-3">
+      {/* Mobile slider (<1250px): current step centred, coverflow tiers */}
+      <div className="settings:hidden overflow-x-hidden mt-5 pt-6 pb-3">
         <div
           className="flex items-start transition-transform duration-500 ease-out"
           style={{ transform: `translateX(calc(50% - ${(currentIndex + 0.5) * MOBILE_STEP_WIDTH}px))` }}
@@ -594,17 +590,13 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
                 className="relative flex-shrink-0 flex flex-col items-center transition-opacity duration-500 ease-out"
                 style={{ width: MOBILE_STEP_WIDTH, opacity }}
               >
-                {/* One continuous connector per gap (see desktop row above for
-                    why: two abutting halves left a visible seam even when both
-                    were the same color) — unscaled and pinned to the dot's own
-                    center (12px = half of the base w-6 h-6) so it stays
-                    straight regardless of how much the dot itself is scaled. */}
+                {/* Connector pinned to dot centre (18px = half of w-9 h-9) */}
                 {i < MILESTONES.length - 1 && (
-                  <div className="absolute h-0.5" style={{ top: 12, left: '50%', width: MOBILE_STEP_WIDTH, background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }} />
+                  <div className="absolute h-0.5" style={{ top: 18, left: '50%', width: MOBILE_STEP_WIDTH, background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }} />
                 )}
 
                 <div className="transition-transform duration-500 ease-out" style={{ transform: `scale(${scale})` }}>
-                  <MilestoneDot done={done} current={current} k={k} size="w-6 h-6" />
+                  <MilestoneDot done={done} current={current} k={k} size="w-9 h-9" />
                 </div>
                 {distance === 0 && (
                   <p className="mt-3 text-xs font-semibold text-center leading-tight px-1 whitespace-nowrap" style={{ color: labelColor }}>
@@ -626,26 +618,20 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
 
 function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
   const cfg = STATUS_CONFIG[lead.status] ?? STATUS_CONFIG['accepted'];
-  const pkgName = lead.package ? (PACKAGE_NAME[lead.package] ?? null) : null;
   const date = new Date(lead.created_at).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
   });
 
   return (
     <div className="liquid-glass-tracker rounded-2xl p-8 mb-0">
-      <div className="flex flex-col-reverse sm:flex-row sm:items-start sm:justify-between gap-2 sm:gap-4">
-        <div>
-          <h3 className="font-display font-bold italic text-2xl">
-            {lead.business}{pkgName ? ` — ${pkgName}` : ''}
+      <div className="flex flex-col settings:flex-row settings:items-start settings:justify-between gap-2 settings:gap-4">
+        <div className="flex flex-col items-center settings:items-start">
+          <h3 className="font-display font-bold italic text-[32px] text-center settings:text-left">
+            {lead.business}
           </h3>
-          <p className="text-xs text-ink-muted mt-1">Started {date}</p>
+          <p className="text-xs text-ink-muted mt-1 text-center settings:text-left">Started {date}</p>
         </div>
-        <span
-          className="self-start text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full flex-shrink-0"
-          style={{ background: cfg.bg, color: cfg.color }}
-        >
-          {projectStatusText(lead)}
-        </span>
+        <StatusBadge label={projectStatusText(lead)} color={cfg.color} className="self-center settings:self-start" />
       </div>
 
       <HorizontalMilestoneTracker lead={lead} />
@@ -666,12 +652,11 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
   const siteUrl = safeUrl(lead.site_url);
 
   return (
-    <div className="liquid-glass rounded-2xl flex justify-between p-8">
+    <div className="liquid-glass rounded-2xl flex justify-between items-center p-6">
       <div>
         <h3 className="font-display font-bold italic text-lg mb-1">{lead.business} is LIVE! 🎉</h3>
         <p className="text-ink-muted text-sm">
-          {pkgName ?? lead.package}
-          {launchedDate ? ` · Launched ${launchedDate}` : ''}
+          Launched ${launchedDate}
         </p>
       </div>
       {siteUrl && (
@@ -680,7 +665,7 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
             href={safeUrl(siteUrl)!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-3 rounded-lg font-bold text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm"
             style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.3)' }}
           >
             <ExternalLink className="w-4 h-4" />
@@ -698,7 +683,6 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
 
 function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
   const navigate = useNavigate();
-  const cfg = STATUS_CONFIG['pending'];
   const pkgName = lead.package ? (PACKAGE_NAME[lead.package] ?? null) : null;
   const date = new Date(lead.created_at).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
@@ -706,40 +690,42 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
 
   return (
     <div
-      className="rounded-2xl p-8 mb-0"
-      style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+      className="liquid-glass rounded-2xl flex items-center gap-0 overflow-hidden"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <h3 className="font-display font-bold italic text-2xl">
-            {lead.business}{pkgName ? ` — ${pkgName}` : ''}
-          </h3>
-          <p className="text-xs text-ink-muted mt-1">Started {date}</p>
+      {/* Left — status + name + date */}
+      <div className="px-6 py-5 flex-shrink-0 min-w-[180px]">
+        <StatusBadge label="Under Review" color="#F5C542" className="mb-2" />
+        <h3 className="font-display font-bold italic text-2xl leading-tight">
+          {lead.business}
+        </h3>
+        <p className="text-xs text-ink-muted mt-1">Started {date}</p>
+      </div>
+
+      {/* Vertical divider */}
+      <div className="self-stretch w-px flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+
+      {/* Center — description */}
+      <div className="px-6 py-5 flex items-start gap-3 flex-1 min-w-0">
+        <div className="min-w-0">
+          <p className="font-bold text-[14px] leading-tight mb-1">In the review queue</p>
+          <p className="text-[13px] text-ink-muted leading-snug">
+            Your application is in the queue — we'll review it and reach out soon.
+          </p>
         </div>
-        <span
-          className="text-[9px] font-bold uppercase tracking-widest px-3 py-1 rounded-full flex-shrink-0"
-          style={{ background: cfg.bg, color: cfg.color }}
+      </div>
+
+      {/* Right — actions */}
+      <div className="px-6 py-5 flex items-center gap-3 flex-shrink-0">
+        <button
+          onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
+          className="text-[13px] font-bold px-4 py-2 rounded-[9px] cursor-pointer whitespace-nowrap"
+          style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#ffffff' }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)')}
         >
-          Under Review
-        </span>
+          Edit submission
+        </button>
       </div>
-
-      <div className="rounded-xl p-4 mt-5" style={{ background: 'rgba(245,197,66,0.08)', border: '1px solid rgba(245,197,66,0.2)' }}>
-        <p className="text-xs font-bold uppercase tracking-widest text-ink-muted">Status</p>
-        <p className="text-sm text-white/70 font-light mt-1">
-          Your application is in the queue — we'll review it and reach out soon.
-        </p>
-      </div>
-
-      <button
-        onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
-        className="mt-3 text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
-        style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
-        onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
-        onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)')}
-      >
-        Edit Submission
-      </button>
     </div>
   );
 }
@@ -935,13 +921,13 @@ function formatActivityTimestamp(iso: string) {
 
 function ActivityPanel({ lead }: { lead: Lead }) {
   const [events, setEvents] = useState<LeadActivity[] | null>(null);
+  const [open, setOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
     getLeadActivity(lead.id)
       .then((data) => {
         if (cancelled) return;
-        // Newest first, regardless of what order the server returned.
         const sorted = [...data].sort(
           (a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime(),
         );
@@ -949,31 +935,42 @@ function ActivityPanel({ lead }: { lead: Lead }) {
       })
       .catch(() => { if (!cancelled) setEvents([]); });
     return () => { cancelled = true; };
-    // Refetch whenever anything actionable on the lead changes — onUpdate()
-    // replaces the lead object on every action, but lead.id alone never
-    // changes, so those mutable fields have to be explicit dependencies.
   }, [lead.id, lead.milestone_index, lead.status, lead.is_paid, lead.mockup_url, lead.revision_feedback, lead.wants_call]);
 
   if (!events || events.length === 0) return null;
 
   return (
-    <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
-      <p className="font-display font-bold text-[15px] mb-4">Activity</p>
-      <div className="flex flex-col gap-3">
-        {events.map((e) => (
-          <div key={e.id} className="flex items-start gap-3">
-            <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0" style={{ background: '#00F0FF' }} />
-            <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
-              <p className="text-[13px] text-white/80 font-light m-0">
-                {ACTIVITY_LABEL[e.event_type] ?? e.event_type}
-                {e.detail && e.event_type === 'changes_requested' ? `: ${e.detail}` : ''}
-              </p>
-              <p className="text-[11px] text-ink-muted m-0 flex-shrink-0 whitespace-nowrap">
-                {formatActivityTimestamp(e.created_at)}
-              </p>
+    <div className="rounded-[14px] border border-white/8 bg-bg-surface overflow-hidden">
+      <button
+        onClick={() => setOpen((o) => !o)}
+        className="w-full flex items-center justify-between px-6 py-4 bg-transparent border-none cursor-pointer text-left"
+      >
+        <p className="font-display font-bold text-[15px] m-0">Activity</p>
+        <ChevronDown
+          className="w-4 h-4 text-ink-muted transition-transform duration-300"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
+        />
+      </button>
+      <div
+        className="overflow-hidden transition-all duration-300 ease-in-out"
+        style={{ maxHeight: open ? `${events.length * 52 + 32}px` : '0px' }}
+      >
+        <div className="px-6 pb-6 flex flex-col gap-3">
+          {events.map((e) => (
+            <div key={e.id} className="flex items-start gap-3">
+              <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0" style={{ background: '#00F0FF' }} />
+              <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
+                <p className="text-[13px] text-white/80 font-light m-0">
+                  {ACTIVITY_LABEL[e.event_type] ?? e.event_type}
+                  {e.detail && e.event_type === 'changes_requested' ? `: ${e.detail}` : ''}
+                </p>
+                <p className="text-[11px] text-ink-muted m-0 flex-shrink-0 whitespace-nowrap">
+                  {formatActivityTimestamp(e.created_at)}
+                </p>
+              </div>
             </div>
-          </div>
-        ))}
+          ))}
+        </div>
       </div>
     </div>
   );
@@ -988,7 +985,7 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
     <div>
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
@@ -1051,7 +1048,7 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
     <div className="w-full">
       <button
         onClick={onBack}
-        className="flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
@@ -1060,16 +1057,13 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
       <p className="text-[13px] text-ink-muted mb-6">Your billing history with Consult Prompts.</p>
 
       <div className="w-full rounded-[14px] border overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
-        {/* Header row */}
+        {/* Header row: NAME | AMOUNT | DATE */}
         <div
           className="px-5 py-4 grid"
-          style={{
-            background: 'rgba(255,255,255,0.03)',
-            gridTemplateColumns: '0.8fr 2.2fr 0.8fr 0.8fr',
-          }}
+          style={{ background: 'rgba(255,255,255,0.03)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
         >
-          {['DATE', 'NAME', 'AMOUNT', 'STATUS'].map((col) => (
-            <span key={col} className="text-[11px] font-bold uppercase tracking-widest text-ink-muted">{col}</span>
+          {['NAME', 'AMOUNT', 'DATE'].map((col, i) => (
+            <span key={col} className={`text-[11px] font-bold uppercase tracking-widest text-ink-muted${i === 2 ? ' text-right' : ''}`}>{col}</span>
           ))}
         </div>
 
@@ -1087,15 +1081,11 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
               <div
                 key={lead.id}
                 className="px-5 py-[14px] grid"
-                style={{
-                  borderTop: '1px solid rgba(255,255,255,0.06)',
-                  gridTemplateColumns: '0.8fr 2.2fr 0.8fr 0.8fr',
-                }}
+                style={{ borderTop: '1px solid rgba(255,255,255,0.06)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
               >
-                <span className="text-[13px] text-ink-muted">{dateStr}</span>
                 <span className="text-[13px] text-white">{description}</span>
                 <span className="text-[13px] font-bold text-white">{amount}</span>
-                <span className="text-[13px] font-bold" style={{ color: '#22c55e' }}>Paid</span>
+                <span className="text-[13px] text-ink-muted text-right">{dateStr}</span>
               </div>
             );
           })
@@ -1115,7 +1105,12 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [subView, setSubView] = useState<'main' | 'old-projects' | 'payments'>('main');
+  const subView: 'main' | 'old-projects' | 'payments' =
+    location.pathname.endsWith('/old-projects') ? 'old-projects' :
+    location.pathname.endsWith('/payments') ? 'payments' :
+    'main';
+  const toSubView = (v: 'main' | 'old-projects' | 'payments') =>
+    navigate(v === 'main' ? '/settings/my-projects' : `/settings/my-projects/${v}`, { replace: true });
 
   const refresh = useCallback((showLoader = true) => {
     if (showLoader) setLoading(true);
@@ -1194,18 +1189,18 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 overflow-y-auto py-4 md:py-6">
-        <div className="w-full max-w-[1200px] mx-auto px-4 md:px-8">
+      <div className="flex-1 overflow-y-auto py-4 settings:py-6">
+        <div className="w-full max-w-[1200px] mx-auto px-4 settings:px-8">
 
-          {/* Desktop-only header row — hidden when in a sub-view */}
-          <div className={`${subView === 'main' ? 'hidden md:flex' : 'hidden'} items-start justify-between mb-7`}>
+          {/* Header — hidden when in a sub-view; column on mobile, row ≥760px */}
+          <div className={`${subView !== 'main' ? 'hidden' : 'flex'} flex-col mobile:flex-row mobile:items-start mobile:justify-between gap-4 mb-7`}>
             <div>
               <h2 className="font-display font-bold text-2xl">My projects</h2>
               <p className="text-[13px] text-ink-muted mt-1">Track your build from meeting to launch.</p>
             </div>
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-2.5 flex-wrap">
               <button
-                onClick={() => setSubView('old-projects')}
+                onClick={() => toSubView('old-projects')}
                 className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
                 style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
@@ -1214,7 +1209,7 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
                 Old Projects
               </button>
               <button
-                onClick={() => setSubView('payments')}
+                onClick={() => toSubView('payments')}
                 className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
                 style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
@@ -1232,40 +1227,14 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
             </div>
           </div>
 
-          {/* Mobile header row — same actions, wraps instead of sitting beside the title
-              (the section title itself already comes from SettingsPanel's mobile top bar) */}
-          <div className={`${subView === 'main' ? 'flex' : 'hidden'} md:hidden flex-wrap gap-2 mb-5`}>
-            <button
-              onClick={() => setSubView('old-projects')}
-              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
-              style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
-            >
-              Old Projects
-            </button>
-            <button
-              onClick={() => setSubView('payments')}
-              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
-              style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
-            >
-              Payments
-            </button>
-            <button
-              onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
-              disabled={hasActive}
-              className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-brand-primary text-bg-base hover:bg-brand-primary/90"
-            >
-              + New project
-            </button>
-          </div>
-
           {/* Sub-view: old projects */}
           {subView === 'old-projects' && (
-            <OldProjectsView past={past} onBack={() => setSubView('main')} />
+            <OldProjectsView past={past} onBack={() => toSubView('main')} />
           )}
 
           {/* Sub-view: payments */}
           {subView === 'payments' && (
-            <PaymentsView leads={leads} onBack={() => setSubView('main')} />
+            <PaymentsView leads={leads} onBack={() => toSubView('main')} />
           )}
 
           {/* Main view */}
