@@ -2,6 +2,7 @@ import React from 'react';
 import { Settings as SettingsIcon, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import CustomButton from '../ui/CustomButton';
 
 interface ProfileMenuProps {
   isOpen: boolean;
@@ -35,25 +36,29 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
               </div>
 
               <div className="space-y-3">
-                <button
+                <CustomButton
                   onClick={() => {
                     navigate('/settings/my-projects');
                     onClose();
                   }}
-                  className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
+                  variant="ghost"
+                  size="none"
+                  className="w-full flex items-center gap-3 p-4 bg-white/5 hover:bg-white/10 transition-all font-bold text-xs uppercase tracking-widest rounded-xl"
                 >
                   <SettingsIcon className="w-4 h-4" /> Console
-                </button>
+                </CustomButton>
 
-                <button
+                <CustomButton
                   onClick={() => {
                     logout();
                     onClose();
                   }}
-                  className="w-full flex items-center gap-3 p-4 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white transition-all font-bold text-xs uppercase tracking-widest cursor-pointer rounded-xl"
+                  destructive
+                  size="none"
+                  className="w-full flex items-center gap-3 p-4 transition-all font-bold text-xs uppercase tracking-widest rounded-xl"
                 >
                   <LogOut className="w-4 h-4" /> Log Out Signal
-                </button>
+                </CustomButton>
               </div>
             </div>
           </div>

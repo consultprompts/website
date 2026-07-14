@@ -8,6 +8,7 @@ import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONES_PENDING, MILESTONE, projectStatusText } from '../../lib/milestones';
 import { useBodyScrollLock } from '../../hooks';
 import NewProjectForm from './NewProjectForm';
+import CustomButton from '../ui/CustomButton';
 
 // Monthly maintenance price — update this constant when pricing changes.
 const MAINTENANCE_MONTHLY_PRICE = 29;
@@ -116,22 +117,25 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
         )}
         {!showFeedback && !lead.revision_feedback && (
           <div className="flex gap-3 flex-wrap">
-            <button
+            <CustomButton
               onClick={handleApprove}
               disabled={submitting}
-              className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:opacity-60"
+              size="none"
+              className="px-[18px] py-2 rounded-[9px] text-[13px] border-none"
               style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
             >
               {submitting ? 'Saving…' : 'Approve Design'}
-            </button>
-            <button
+            </CustomButton>
+            <CustomButton
               onClick={() => setShowFeedback(true)}
               disabled={submitting}
-              className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] cursor-pointer disabled:opacity-60"
+              variant="outline"
+              size="none"
+              className="px-[18px] py-2 rounded-[9px] text-[13px]"
               style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 20%, transparent)', color: 'var(--color-ink-base)' }}
             >
               Request Changes
-            </button>
+            </CustomButton>
           </div>
         )}
 
@@ -146,22 +150,25 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
               style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
             <div className="flex gap-3">
-              <button
+              <CustomButton
                 onClick={handleRequestChanges}
                 disabled={submitting}
-                className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:opacity-60"
+                size="none"
+                className="px-[18px] py-2 rounded-[9px] text-[13px] border-none"
                 style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
               >
                 {submitting ? 'Submitting…' : 'Submit Feedback'}
-              </button>
-              <button
+              </CustomButton>
+              <CustomButton
                 onClick={() => { setShowFeedback(false); setFeedback(''); setError(''); }}
                 disabled={submitting}
-                className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] cursor-pointer disabled:opacity-60"
+                variant="outline"
+                size="none"
+                className="px-[18px] py-2 rounded-[9px] text-[13px]"
                 style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
               >
                 Cancel
-              </button>
+              </CustomButton>
             </div>
           </div>
         )}
@@ -349,13 +356,14 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
           </button>
         </div>
 
-        <button
+        <CustomButton
           onClick={() => setShowPayModal(true)}
-          className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer"
+          size="none"
+          className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
           style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           Pay Now
-        </button>
+        </CustomButton>
       </div>
 
       {showPayModal && (
@@ -391,13 +399,15 @@ function PayModal({
     <div className="fixed inset-0 z-[170] flex items-center justify-center p-4">
       <div onClick={onClose} className="fixed inset-0 bg-bg-base/90 backdrop-blur-sm cursor-pointer" />
       <div className="relative w-full max-w-md liquid-glass rounded-xl p-6 md:p-8 z-10">
-        <button
+        <CustomButton
           onClick={onClose}
           aria-label="Close"
-          className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+          variant="icon"
+          size="none"
+          className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors border-none"
         >
           <X className="w-5 h-5" />
-        </button>
+        </CustomButton>
 
         <p className="text-[12px] uppercase tracking-widest font-bold mb-1" style={{ color: 'var(--color-brand-primary)' }}>
           Payment Details
@@ -461,14 +471,15 @@ function PayModal({
           <p className="mt-4 text-[11px] font-bold uppercase tracking-widest" style={{ color: '#FF6B6B' }}>{payError}</p>
         )}
 
-        <button
+        <CustomButton
           onClick={onConfirm}
           disabled={paying}
-          className="w-full mt-6 text-[13px] font-bold px-[18px] py-3 rounded-[9px] border-none cursor-pointer disabled:opacity-60"
+          size="none"
+          className="w-full mt-6 text-[13px] px-[18px] py-3 rounded-[9px] border-none"
           style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           {paying ? 'Processing…' : `Pay $${total} & Launch`}
-        </button>
+        </CustomButton>
       </div>
     </div>
   );
@@ -716,15 +727,17 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
 
       {/* Right — actions */}
       <div className="px-6 py-5 flex items-center gap-3 flex-shrink-0">
-        <button
+        <CustomButton
           onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
-          className="text-[13px] font-bold px-4 py-2 rounded-[9px] cursor-pointer whitespace-nowrap"
+          variant="outline"
+          size="none"
+          className="text-[13px] px-4 py-2 rounded-[9px] whitespace-nowrap"
           style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 18%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
           onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
           onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 18%, transparent)')}
         >
           Edit submission
-        </button>
+        </CustomButton>
       </div>
     </div>
   );
@@ -799,16 +812,17 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
         <p className="text-[13px] text-ink-muted mb-5">
           Let's talk through your goals before we start on your mockup.
         </p>
-        <button
+        <CustomButton
           onClick={meetingRequested ? undefined : handleRequestMeeting}
           disabled={meetingState === 'sending' || meetingRequested}
-          className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:cursor-default transition-colors"
+          size="none"
+          className="px-[18px] py-2 rounded-[9px] text-[13px] border-none disabled:cursor-default"
           style={meetingRequested
             ? { background: 'transparent', border: '2px solid var(--color-brand-primary)', color: 'var(--color-brand-primary)' }
             : { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           {meetingState === 'sending' ? 'Sending…' : meetingRequested ? '✓ Meeting Requested' : meetingState === 'error' ? 'Try Again' : 'Request a Meeting'}
-        </button>
+        </CustomButton>
       </div>
     );
   }
@@ -941,16 +955,18 @@ function ActivityPanel({ lead }: { lead: Lead }) {
 
   return (
     <div className="rounded-[14px] border border-white/8 bg-bg-surface overflow-hidden">
-      <button
+      <CustomButton
         onClick={() => setOpen((o) => !o)}
-        className="w-full flex items-center justify-between px-6 py-4 bg-transparent border-none cursor-pointer text-left"
+        variant="ghost"
+        size="none"
+        className="w-full flex items-center justify-between px-6 py-4 border-none text-left"
       >
         <p className="font-display font-bold text-[15px] m-0">Activity</p>
         <ChevronDown
           className="w-4 h-4 text-ink-muted transition-transform duration-300"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }}
         />
-      </button>
+      </CustomButton>
       <div
         className="overflow-hidden transition-all duration-300 ease-in-out"
         style={{ maxHeight: open ? `${events.length * 52 + 32}px` : '0px' }}
@@ -983,13 +999,15 @@ function ActivityPanel({ lead }: { lead: Lead }) {
 function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void }) {
   return (
     <div>
-      <button
+      <CustomButton
         onClick={onBack}
-        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        variant="ghost"
+        size="none"
+        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
-      </button>
+      </CustomButton>
       <h2 className="font-display font-bold text-2xl mt-4 mb-1">Old projects</h2>
       <p className="text-[13px] text-ink-muted mb-6">Past sites you've launched with us.</p>
       <div className="flex flex-col gap-3">
@@ -1046,13 +1064,15 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
 
   return (
     <div className="w-full">
-      <button
+      <CustomButton
         onClick={onBack}
-        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-2"
+        variant="ghost"
+        size="none"
+        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] border-none hover:text-white transition-colors mb-2"
       >
         <ChevronLeft className="w-5 h-5" />
         Back
-      </button>
+      </CustomButton>
       <h2 className="font-display font-bold text-2xl mt-4 mb-1">Payments</h2>
       <p className="text-[13px] text-ink-muted mb-6">Your billing history with Consult Prompts.</p>
 
@@ -1199,31 +1219,36 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               <p className="text-[13px] text-ink-muted mt-1">Track your build from meeting to launch.</p>
             </div>
             <div className="flex items-center gap-2.5 flex-wrap">
-              <button
+              <CustomButton
                 onClick={() => toSubView('old-projects')}
-                className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
+                variant="outline"
+                size="none"
+                className="text-[13px] px-[18px] py-2 rounded-[9px]"
                 style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)')}
               >
                 Old Projects
-              </button>
-              <button
+              </CustomButton>
+              <CustomButton
                 onClick={() => toSubView('payments')}
-                className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
+                variant="outline"
+                size="none"
+                className="text-[13px] px-[18px] py-2 rounded-[9px]"
                 style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
                 onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
                 onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)')}
               >
                 Payments
-              </button>
-              <button
+              </CustomButton>
+              <CustomButton
                 onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
                 disabled={hasActive}
-                className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed bg-brand-primary text-bg-base hover:bg-brand-primary/90"
+                size="none"
+                className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
               >
                 + New project
-              </button>
+              </CustomButton>
             </div>
           </div>
 

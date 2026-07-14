@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import StatusBadge from '../ui/StatusBadge';
+import CustomButton from '../ui/CustomButton';
 import { Search, X, Undo2 } from 'lucide-react';
 import { type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
@@ -170,20 +171,24 @@ function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCance
         </p>
         <p className="m-0 text-[13px] font-light text-ink-muted">{message}</p>
         <div className="flex gap-2">
-          <button
+          <CustomButton
             onClick={onConfirm}
-            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer"
+            variant="ghost"
+            size="none"
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em]"
             style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {confirmLabel}
-          </button>
-          <button
+          </CustomButton>
+          <CustomButton
             onClick={onCancel}
-            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+            variant="ghost"
+            size="none"
+            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em]"
             style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
           >
             Cancel
-          </button>
+          </CustomButton>
         </div>
       </div>
     </div>
@@ -240,21 +245,25 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
           </p>
         )}
         <div className="flex gap-2">
-          <button
+          <CustomButton
             onClick={submit}
             disabled={!url.trim() || saving}
-            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
+            variant="ghost"
+            size="none"
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] disabled:opacity-50"
             style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {saving ? 'Sending…' : cta}
-          </button>
-          <button
+          </CustomButton>
+          <CustomButton
             onClick={onClose}
-            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
+            variant="ghost"
+            size="none"
+            className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em]"
             style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
           >
             Cancel
-          </button>
+          </CustomButton>
         </div>
       </div>
     </div>
@@ -286,10 +295,12 @@ function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: st
 
   return (
     <>
-      <button
+      <CustomButton
         onClick={handleClick}
         disabled={loading}
-        className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+        variant="ghost"
+        size="none"
+        className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
         style={
           suspended
             ? { background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)', color: 'var(--color-brand-primary)' }
@@ -297,7 +308,7 @@ function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: st
         }
       >
         {loading ? (suspended ? 'Reactivating…' : 'Suspending…') : suspended ? 'Reactivate Project' : 'Suspend Project'}
-      </button>
+      </CustomButton>
 
       {confirming && (
         <ConfirmModal
@@ -370,13 +381,15 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
               {lead.name}
             </h3>
           </div>
-          <button
+          <CustomButton
             onClick={onClose}
-            className="bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
+            variant="icon"
+            size="sm"
+            className="text-sm leading-none flex-shrink-0"
             style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           >
             ✕
-          </button>
+          </CustomButton>
         </div>
 
         <div className="overflow-y-auto flex flex-col" style={{ padding: '22px 26px 26px', gap: 20 }}>
@@ -455,14 +468,16 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
   const [open, setOpen] = useState(false);
   return (
     <>
-      <button
+      <CustomButton
         onClick={() => setOpen(true)}
-        className="w-full flex justify-between items-center px-4 py-3.5 cursor-pointer rounded-sm"
+        variant="ghost"
+        size="none"
+        className="w-full flex justify-between items-center px-4 py-3.5 rounded-sm"
         style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
       >
         <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
         <span className="text-[10px] text-ink-muted">▸</span>
-      </button>
+      </CustomButton>
       {open && <BriefModal lead={lead} onClose={() => setOpen(false)} />}
     </>
   );
@@ -642,13 +657,14 @@ export function LeadDetailPanel({
       <SubmittedBriefButton lead={selected} />
 
       {selected.status === 'pending' && (
-        <button
+        <CustomButton
           onClick={() => onAccept(selected)}
           disabled={accepting === selected.id}
-          className="w-full py-3.5 bg-brand-primary text-bg-base border-none rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+          size="none"
+          className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
         >
           {accepting === selected.id ? 'Accepting...' : 'Accept & Start Milestones'}
-        </button>
+        </CustomButton>
       )}
 
       {actionError && !urlModal && (
@@ -680,11 +696,13 @@ export function LeadDetailPanel({
               const undoTo = selected.status !== 'suspended' && done ? undoTarget(k) : null;
               return (
                 <div key={label} className="flex items-center gap-1">
-                  <button
+                  <CustomButton
                     onClick={() => handleRowClick(k)}
                     disabled={!clickable}
                     title={lockReason}
-                    className="flex flex-1 items-center gap-3.5 px-2 py-2.5 bg-transparent border-none text-left rounded-sm hover:bg-white/[0.03] transition-colors"
+                    variant="ghost"
+                    size="none"
+                    className="flex flex-1 items-center gap-3.5 px-2 py-2.5 text-left rounded-sm hover:bg-white/[0.03] transition-colors"
                     style={{ cursor: clickable ? 'pointer' : 'default', opacity: !done && !clickable && !badge ? 0.45 : 1 }}
                   >
                     <div
@@ -708,15 +726,17 @@ export function LeadDetailPanel({
                         </span>
                       )}
                     </span>
-                  </button>
+                  </CustomButton>
                   {undoTo !== null && (
-                    <button
+                    <CustomButton
                       onClick={() => onUndo(selected.id, undoTo)}
                       title="Undo this milestone"
-                      className="p-1.5 rounded-sm bg-transparent border-none cursor-pointer text-ink-muted hover:text-white transition-colors flex-shrink-0"
+                      variant="icon"
+                      size="none"
+                      className="p-1.5 rounded-sm text-ink-muted hover:text-white transition-colors flex-shrink-0"
                     >
                       <Undo2 className="w-3.5 h-3.5" />
-                    </button>
+                    </CustomButton>
                   )}
                 </div>
               );
@@ -834,17 +854,19 @@ export default function AgencySection({
                 {(['pending', 'accepted', 'revision', 'launched'] as Filter[]).map((f) => {
                   const active = filter === f;
                   return (
-                    <button
+                    <CustomButton
                       key={f}
                       onClick={() => setFilter(active ? null : f)}
+                      variant="ghost"
+                      size="none"
                       style={{
                         background: active ? 'var(--color-brand-primary)' : 'transparent',
                         color: active ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
                       }}
-                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
+                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] rounded-[3px] transition-all"
                     >
                       {f}
-                    </button>
+                    </CustomButton>
                   );
                 })}
               </div>
@@ -864,13 +886,15 @@ export default function AgencySection({
                 className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
               />
               {search && (
-                <button
+                <CustomButton
                   onClick={() => setSearch('')}
                   aria-label="Clear search"
-                  className="bg-transparent border-none cursor-pointer p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
+                  variant="icon"
+                  size="none"
+                  className="p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
                 >
                   <X className="w-3.5 h-3.5" />
-                </button>
+                </CustomButton>
               )}
             </div>
 
@@ -910,13 +934,15 @@ export default function AgencySection({
                   <h3 className="font-display font-bold italic text-[22px] m-0 mb-1">{selected.name}</h3>
                   <p className="text-brand-primary text-[13px] font-medium m-0">{selected.business}</p>
                 </div>
-                <button
+                <CustomButton
                   onClick={() => setSelectedId(null)}
+                  variant="icon"
+                  size="sm"
                   style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-                  className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
+                  className="text-base leading-none flex-shrink-0"
                 >
                   ✕
-                </button>
+                </CustomButton>
               </div>
               <LeadDetailPanel {...detailProps} />
             </div>

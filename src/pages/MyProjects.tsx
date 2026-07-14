@@ -7,6 +7,7 @@ import { getMyLeads, submitReview, setWantsMaintenance, markPaid, type Lead } fr
 import { PACKAGES } from '../data/content';
 import { safeUrl } from '../lib/urls';
 import { useAuth } from '../context/AuthContext';
+import CustomButton from '../components/ui/CustomButton';
 
 const MILESTONES = [
   'Designing Mockup',
@@ -118,22 +119,26 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             </p>
             {!showFeedback && (
               <div className="flex gap-3 flex-wrap">
-                <button
+                <CustomButton
                   onClick={handleAccept}
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
+                  variant="filled"
+                  size="none"
+                  className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest"
                   style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
                 >
                   {submitting ? 'Saving…' : 'Accept'}
-                </button>
-                <button
+                </CustomButton>
+                <CustomButton
                   onClick={() => setShowFeedback(true)}
                   disabled={submitting}
-                  className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest cursor-pointer disabled:opacity-60"
+                  variant="outline"
+                  size="none"
+                  className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest"
                   style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 20%, transparent)', color: 'var(--color-ink-base)' }}
                 >
                   Request Changes
-                </button>
+                </CustomButton>
               </div>
             )}
 
@@ -148,22 +153,26 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                   style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
                 />
                 <div className="flex gap-3">
-                  <button
+                  <CustomButton
                     onClick={handleRequestChanges}
                     disabled={submitting}
-                    className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
+                    variant="filled"
+                    size="none"
+                    className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest"
                     style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
                   >
                     {submitting ? 'Submitting…' : 'Submit Feedback'}
-                  </button>
-                  <button
+                  </CustomButton>
+                  <CustomButton
                     onClick={() => { setShowFeedback(false); setFeedback(''); setError(''); }}
                     disabled={submitting}
-                    className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest cursor-pointer disabled:opacity-60"
+                    variant="outline"
+                    size="none"
+                    className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest"
                     style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
                   >
                     Cancel
-                  </button>
+                  </CustomButton>
                 </div>
               </div>
             )}
@@ -422,14 +431,16 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
         <p className="text-[11px] font-bold uppercase tracking-widest" style={{ color: '#FF6B6B' }}>{payError}</p>
       )}
 
-      <button
+      <CustomButton
         onClick={handlePay}
         disabled={paying}
-        className="w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
+        variant="filled"
+        size="none"
+        className="w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-widest"
         style={{ background: '#B98CFF', color: 'var(--color-bg-base)' }}
       >
         {paying ? 'Processing…' : `Pay $${(lead.package ? (PACKAGE_PRICE[lead.package] ?? 0) : 0) + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0)} & Launch`}
-      </button>
+      </CustomButton>
     </div>
   );
 }

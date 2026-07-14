@@ -121,10 +121,10 @@ export default function Home() {
 
       <Hero />
       <ProcessSection />
-      <PricingSection onSelectPackage={handleStartProject} />
       <ReviewsSection />
+      <PricingSection onSelectPackage={handleStartProject} />
       <FaqSection />
-      <ContactSection />
+      {/* <ContactSection /> */}
       <FinalCTA onStartProject={() => handleStartProject()} />
     </div>
   );

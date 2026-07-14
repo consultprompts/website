@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Star, CheckCircle2, X, Loader2, Users } from 'lucide-react';
+import { Star, CheckCircle2, X, Users } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useBodyScrollLock } from '../hooks';
 import { joinWaitlist, checkWaitlistStatus, getEnrollmentCount } from '../lib/api';
 import AuthModal, { type AuthMode } from '../components/modals/AuthModal';
 import Logo from '../components/ui/Logo';
 import Footer from '../components/layout/Footer';
+import CustomButton from '../components/ui/CustomButton';
 
 export default function Ebooks() {
   const { user } = useAuth();
@@ -76,12 +77,14 @@ export default function Ebooks() {
             <div
               className="relative w-full max-w-md liquid-glass p-8 md:p-10 rounded-3xl border-brand-primary/20 z-10 shadow-2xl"
             >
-              <button
+              <CustomButton
                 onClick={() => setIsWaitlistModalOpen(false)}
+                variant="icon"
+                size="none"
                 className="absolute top-6 right-6 text-ink-muted hover:text-white transition-colors"
               >
                 <X className="w-6 h-6" />
-              </button>
+              </CustomButton>
 
               {!hasJoined && (
                 <div className="mb-8">
@@ -111,20 +114,16 @@ export default function Ebooks() {
                     </div>
                   </div>
 
-                  <button
+                  <CustomButton
                     onClick={handleJoinWaitlist}
-                    disabled={isJoining}
-                    className="liquid-glass w-full py-5 text-white font-black uppercase tracking-widest hover:border-brand-primary disabled:opacity-50 flex items-center justify-center gap-3 rounded-2xl border-white/10 transition-all cursor-pointer group"
+                    loading={isJoining}
+                    variant="ghost"
+                    size="none"
+                    arrow
+                    className="liquid-glass w-full py-5 font-black uppercase tracking-widest hover:border-brand-primary flex items-center justify-center gap-3 rounded-2xl border-white/10"
                   >
-                    {isJoining ? (
-                      <Loader2 className="w-6 h-6 animate-spin" />
-                    ) : (
-                      <>
-                        <span>Join the Waitlist</span>
-                        <span className="text-brand-primary group-hover:translate-x-1 transition-transform">→</span>
-                      </>
-                    )}
-                  </button>
+                    Join the Waitlist
+                  </CustomButton>
                 </div>
               ) : (
                 <div className="text-center py-6">
@@ -231,12 +230,14 @@ export default function Ebooks() {
                   ))}
                 </ul>
 
-                <button
+                <CustomButton
                   onClick={handleWaitlistClick}
-                  className="w-full liquid-glass group relative py-4 text-white font-black uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 cursor-pointer border-brand-primary/40 hover:border-brand-primary"
+                  variant="ghost"
+                  size="none"
+                  className="w-full liquid-glass group relative py-4 font-black uppercase tracking-widest rounded-xl overflow-hidden transition-all hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-3 border-brand-primary/40 hover:border-brand-primary"
                 >
                   <span>Join the Waitlist</span>
-                </button>
+                </CustomButton>
               </div>
             </div>
           </div>

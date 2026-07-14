@@ -1,5 +1,6 @@
 import React from 'react';
 import { ChevronLeft } from 'lucide-react';
+import CustomButton from '../ui/CustomButton';
 
 interface SettingsHeaderProps {
   title: string;
@@ -16,13 +17,15 @@ export default function SettingsHeader({ title, subtitle, onBack }: SettingsHead
       className={`${onBack ? 'flex' : 'hidden md:flex'} px-4 md:px-8 py-3 md:py-4 items-center gap-4 flex-shrink-0`}
     >
       {onBack && (
-        <button
+        <CustomButton
           onClick={onBack}
           aria-label="Back"
-          className="w-8 h-8 rounded-full bg-transparent border-none cursor-pointer text-white flex items-center justify-center flex-shrink-0 hover:bg-white/5"
+          variant="icon"
+          size="sm"
+          className="hover:bg-white/5 flex-shrink-0"
         >
           <ChevronLeft className="w-5 h-5" />
-        </button>
+        </CustomButton>
       )}
       <div className="min-w-0">
         <h2 className="font-display font-bold text-2xl m-0 truncate">{title}</h2>

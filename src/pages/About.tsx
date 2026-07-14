@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { VALUES, SITE_STATS } from '../data/content';
+import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
@@ -185,21 +186,9 @@ export default function About() {
         <p className="text-ink-muted font-light" style={{ fontSize: 15, margin: '0 0 32px' }}>
           Tell us about your business — the first draft is in your inbox within 24 hours.
         </p>
-        <button
-          onClick={() => navigate('/pricing')}
-          className="font-black transition-opacity hover:opacity-90 cursor-pointer"
-          style={{
-            background: 'var(--color-brand-primary)',
-            color: 'var(--color-bg-base)',
-            padding: '16px 34px',
-            borderRadius: 12,
-            border: 'none',
-            fontSize: 15,
-            display: 'inline-block',
-          }}
-        >
-          See pricing →
-        </button>
+        <CustomButton onClick={() => navigate('/pricing')} arrow>
+          See pricing
+        </CustomButton>
       </section>
     </div>
   );

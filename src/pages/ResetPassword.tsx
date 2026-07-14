@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { KeyRound, CheckCircle, Eye, EyeOff, Loader2 } from 'lucide-react';
+import { KeyRound, CheckCircle, Eye, EyeOff } from 'lucide-react';
 import { resetPassword } from '../lib/api';
+import CustomButton from '../components/ui/CustomButton';
 
 type State = 'idle' | 'submitting' | 'success';
 
@@ -84,13 +85,15 @@ export default function ResetPassword() {
                     className="w-full bg-white/5 border border-white/10 p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm pr-10 rounded-xl"
                     placeholder="••••••••"
                   />
-                  <button
+                  <CustomButton
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-white cursor-pointer"
+                    variant="icon"
+                    size="none"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-white"
                   >
                     {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                  </button>
+                  </CustomButton>
                 </div>
               </div>
 
@@ -110,12 +113,14 @@ export default function ResetPassword() {
                 <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{error}</p>
               )}
 
-              <button
-                disabled={state === 'submitting'}
-                className="liquid-glass w-full py-4 text-white font-black uppercase tracking-widest hover:border-brand-primary/50 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl border-white/10 cursor-pointer disabled:cursor-not-allowed"
+              <CustomButton
+                loading={state === 'submitting'}
+                variant="ghost"
+                size="none"
+                className="liquid-glass w-full py-4 font-black uppercase tracking-widest hover:border-brand-primary/50 flex items-center justify-center gap-2 rounded-xl border-white/10"
               >
-                {state === 'submitting' ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Set New Password'}
-              </button>
+                Set New Password
+              </CustomButton>
             </form>
           </>
         )}

@@ -1,4 +1,6 @@
 import React from 'react';
+import CustomButton from '../ui/CustomButton';
+import AuroraBackground from '../ui/AuroraBackground';
 
 interface FinalCTAProps {
   onStartProject: () => void;
@@ -6,38 +8,18 @@ interface FinalCTAProps {
 
 export default function FinalCTA({ onStartProject }: FinalCTAProps) {
   return (
-    <section className="relative py-24 md:py-36 px-6 text-center overflow-hidden bg-bg-base flex flex-col items-center justify-center">
-      <div className="absolute inset-0 pointer-events-none">
-        <div
-          className="absolute inset-0"
-          style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, color-mix(in srgb, var(--color-brand-primary) 18%, transparent) 0%, transparent 70%)' }}
-        />
-        <div className="hidden md:block absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-primary/25 rounded-full blur-[90px]" />
-      </div>
+    <section className="relative py-24 px-6 text-center overflow-hidden bg-bg-base flex flex-col items-center justify-center">
+      <AuroraBackground />
+
       <div className="relative max-w-3xl mx-auto w-full">
-        <p className="text-brand-primary text-xs font-bold uppercase tracking-[0.3em] mb-6">
-          Get Started
-        </p>
-        <h2
-          className="font-display font-black tracking-tight leading-[0.95] mb-6"
-        >
-          <span className="text-4xl sm:text-6xl md:text-8xl text-white block">Live in 72 hours.</span>
-          <span className="text-4xl sm:text-6xl md:text-8xl text-brand-primary italic block">Or it's free.</span>
+        <p className="section-badge mb-6">Get Started</p>
+        <h2 className="font-display font-black tracking-tight leading-[0.95] mb-6">
+          <span className="text-4xl sm:text-4xl md:text-6xl text-white block">Live in 72 hours.</span>
+          <span className="text-4xl sm:text-4xl md:text-6xl text-gradient italic block">Or it's free.</span>
         </h2>
-        <p
-          className="text-ink-muted text-base md:text-lg max-w-md mx-auto mb-10"
-        >
-          Tell us about your business in 5 minutes. We'll send back a mockup in 24 hours.
-        </p>
-        <div
-          className="flex flex-col sm:flex-row items-center justify-center gap-4"
-        >
-          <button
-            onClick={onStartProject}
-            className="bg-brand-primary text-bg-base font-black text-base md:text-lg px-8 py-4 rounded-xl hover:scale-105 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-brand-primary)_40%,transparent)] transition-all duration-200 cursor-pointer"
-          >
-            Start your project →
-          </button>
+        <p className="section-sub-title max-w-md mx-auto px-5 mb-10">Tell us about your business in 5 minutes. We'll send back a mockup in 24 hours.</p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+          <CustomButton onClick={onStartProject} arrow className="hover:scale-105">Start your project</CustomButton>
         </div>
       </div>
     </section>

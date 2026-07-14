@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Loader2, CheckCircle, MessageCircle, Phone, Mail, Upload, ChevronLeft } from 'lucide-react';
+import { CheckCircle, MessageCircle, Phone, Mail, Upload, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { submitLead, updateLeadSubmit, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import Notification from '../ui/Notification';
+import CustomButton from '../ui/CustomButton';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -167,24 +168,28 @@ function TextArea({
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
     <div className="flex rounded-xl overflow-hidden border border-white/10 w-fit">
-      <button
+      <CustomButton
         type="button"
         onClick={() => onChange(false)}
-        className={`px-6 py-3 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer ${
+        variant="ghost"
+        size="none"
+        className={`px-6 py-3 text-xs uppercase tracking-widest transition-colors ${
           !value ? 'bg-brand-primary text-bg-base' : 'text-ink-muted hover:text-white'
         }`}
       >
         No
-      </button>
-      <button
+      </CustomButton>
+      <CustomButton
         type="button"
         onClick={() => onChange(true)}
-        className={`px-6 py-3 text-xs font-bold uppercase tracking-widest transition-colors cursor-pointer ${
+        variant="ghost"
+        size="none"
+        className={`px-6 py-3 text-xs uppercase tracking-widest transition-colors ${
           value ? 'bg-brand-primary text-bg-base' : 'text-ink-muted hover:text-white'
         }`}
       >
         Yes
-      </button>
+      </CustomButton>
     </div>
   );
 }
@@ -199,17 +204,19 @@ function OptionBtn({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <CustomButton
       type="button"
       onClick={onClick}
-      className={`w-full py-4 px-5 rounded-xl border text-left text-sm font-medium transition-all cursor-pointer ${
+      variant="outline"
+      size="none"
+      className={`w-full py-4 px-5 rounded-xl text-left text-sm font-medium transition-all ${
         selected
           ? 'border-brand-primary bg-brand-primary/10 text-white'
           : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
       }`}
     >
       {children}
-    </button>
+    </CustomButton>
   );
 }
 
@@ -223,10 +230,12 @@ function CheckBtn({
   children: React.ReactNode;
 }) {
   return (
-    <button
+    <CustomButton
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-3 py-3 px-4 rounded-xl border text-sm font-medium transition-all cursor-pointer text-left ${
+      variant="outline"
+      size="none"
+      className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium transition-all text-left ${
         selected
           ? 'border-brand-primary bg-brand-primary/10 text-white'
           : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
@@ -242,7 +251,7 @@ function CheckBtn({
         )}
       </div>
       {children}
-    </button>
+    </CustomButton>
   );
 }
 
@@ -629,11 +638,13 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
         return (
           <div className="space-y-4">
             {PACKAGES.map(pkg => (
-              <button
+              <CustomButton
                 type="button"
                 key={pkg.id}
                 onClick={() => patch({ selectedPackage: pkg.id })}
-                className={`w-full rounded-xl border p-5 text-left transition-all cursor-pointer ${
+                variant="outline"
+                size="none"
+                className={`w-full rounded-xl p-5 text-left transition-all ${
                   form.selectedPackage === pkg.id
                     ? 'border-brand-primary bg-brand-primary/10'
                     : 'border-white/10 hover:border-white/30'
@@ -663,7 +674,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                     {pkg.price}
                   </p>
                 </div>
-              </button>
+              </CustomButton>
             ))}
           </div>
         );
@@ -695,23 +706,27 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
             </a>
           );
         })()}
-        <button
+        <CustomButton
           onClick={onBack}
-          className="w-full py-4 border border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer bg-transparent"
+          variant="outline"
+          size="none"
+          className="w-full py-4 border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl"
         >
           Back to My Projects
-        </button>
+        </CustomButton>
       </Notification>
 
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-2xl mx-auto w-full text-white">
-          <button
+          <CustomButton
             onClick={onBack}
-            className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] font-bold cursor-pointer bg-transparent border-none hover:text-white transition-colors mb-6"
+            variant="ghost"
+            size="none"
+            className="hidden md:flex items-center gap-1.5 text-ink-muted text-[15px] border-none hover:text-white transition-colors mb-6"
           >
             <ChevronLeft className="w-5 h-5" />
             Back
-          </button>
+          </CustomButton>
           <div>
             {/* Progress indicator */}
               <div className="mb-8">
@@ -748,44 +763,39 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                 {/* Navigation */}
                 <div className="flex gap-4 mt-8">
                   {step > 1 && (
-                    <button
+                    <CustomButton
                       type="button"
                       onClick={goBack}
-                      className="flex-1 py-4 border border-white/10 text-ink-muted font-bold uppercase tracking-widest text-sm rounded-xl hover:border-white/30 hover:text-white transition-colors cursor-pointer"
+                      variant="outline"
+                      size="none"
+                      className="flex-1 py-4 border-white/10 text-ink-muted uppercase tracking-widest text-sm rounded-xl hover:border-white/30 hover:text-white transition-colors"
                     >
                       Back
-                    </button>
+                    </CustomButton>
                   )}
                   {step < TOTAL_STEPS ? (
-                    <button
+                    <CustomButton
                       type="button"
                       onClick={goNext}
                       disabled={!isStepValid(step, form)}
-                      className={`flex-1 py-4 font-black uppercase tracking-widest text-sm rounded-xl transition-all ${
-                        isStepValid(step, form)
-                          ? 'bg-brand-primary text-bg-base hover:bg-brand-primary/90 cursor-pointer'
-                          : 'bg-white/5 text-ink-muted cursor-not-allowed'
-                      }`}
+                      arrow
+                      size="none"
+                      className="flex-1 py-4 uppercase tracking-widest text-sm rounded-xl flex items-center justify-center gap-2"
                     >
-                      Next →
-                    </button>
+                      Next
+                    </CustomButton>
                   ) : (
-                    <button
+                    <CustomButton
                       type="button"
                       onClick={handleSubmit}
-                      disabled={isSubmitting || !isStepValid(step, form)}
-                      className={`flex-1 py-4 font-black uppercase tracking-widest text-sm rounded-xl transition-all flex items-center justify-center gap-2 ${
-                        !isSubmitting && isStepValid(step, form)
-                          ? 'bg-brand-primary text-bg-base hover:bg-brand-primary/90 cursor-pointer'
-                          : 'bg-white/5 text-ink-muted cursor-not-allowed'
-                      }`}
+                      disabled={!isStepValid(step, form)}
+                      loading={isSubmitting}
+                      arrow
+                      size="none"
+                      className="flex-1 py-4 uppercase tracking-widest text-sm rounded-xl flex items-center justify-center gap-2"
                     >
-                      {isSubmitting ? (
-                        <Loader2 className="w-5 h-5 animate-spin" />
-                      ) : (
-                        'Submit →'
-                      )}
-                    </button>
+                      Submit
+                    </CustomButton>
                   )}
                 </div>
               </div>

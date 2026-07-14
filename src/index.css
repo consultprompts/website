@@ -60,6 +60,11 @@ html.light .neon-glow {
   box-shadow: 0 0 20px rgba(234, 88, 12, 0.2);
 }
 
+/* Logo mark is a white asset made for the dark theme; force it black in light mode. */
+html.light .navbar-logo {
+  filter: brightness(0);
+}
+
 html.light .text-white,
 html.light .hover\:text-white:hover {
   color: var(--color-ink-base);
@@ -122,22 +127,56 @@ html.light .shimmer-skeleton {
 }
 
 .text-gradient {
-  @apply bg-clip-text text-transparent bg-linear-to-r from-brand-primary to-brand-secondary;
-}
-
-/* Filled CTA buttons get a brand gradient (primary → blend toward secondary).
-   Scoped to button/a elements so small filled chips and dots stay solid. */
-button.bg-brand-primary,
-a.bg-brand-primary {
+  @apply bg-clip-text text-transparent;
   background-image: linear-gradient(
     135deg,
     var(--color-brand-primary),
     color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-brand-secondary))
   );
 }
+
+/* Filled CTA buttons get a brand gradient (primary → blend toward secondary).
+   Scoped to button/a elements so small filled chips and dots stay solid.
+   The border uses the same gradient via the classic two-background-clip trick:
+   the fill paints inside the border (padding-box), the border ring paints the
+   full box (border-box), and only the ring shows through the transparent border. */
+button.bg-brand-primary,
+a.bg-brand-primary {
+  border-color: transparent;
+  background-image:
+    linear-gradient(
+      135deg,
+      var(--color-brand-primary),
+      color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-brand-secondary))
+    ),
+    linear-gradient(
+      135deg,
+      var(--color-brand-primary),
+      color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-brand-secondary))
+    );
+  background-origin: border-box;
+  background-clip: padding-box, border-box;
+}
 button.bg-brand-primary:hover,
 a.bg-brand-primary:hover {
   filter: brightness(1.08);
+}
+
+.section-title {
+  @apply font-display text-3xl md:text-4xl font-bold mb-6 italic;
+}
+
+.section-sub-title {
+  @apply text-ink-muted text-base md:text-lg leading-relaxed max-w-lg
+}
+
+.section-badge {
+  @apply bg-clip-text text-transparent text-xs font-bold uppercase tracking-widest block mb-4;
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-primary),
+    color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-brand-secondary))
+  );
 }
 
 .glass {

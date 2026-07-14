@@ -1,5 +1,6 @@
 import React from 'react';
 import AuroraBackground from '../ui/AuroraBackground';
+import CustomButton from '../ui/CustomButton';
 
 const STATS = [
   { value: '40%', label: 'Avg. Sales Lift' },
@@ -14,38 +15,16 @@ export default function Hero() {
   };
 
   return (
-    <header id="hero" className="relative px-6 overflow-hidden">
+    <header id="hero" className="relative overflow-hidden">
       <AuroraBackground />
-
-      {/* Centred content */}
-      <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pt-32 pb-20">
-        <p className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-6">
-          Local Web Design — Live in 72 Hours
-        </p>
-
-        <h1 className="font-display font-black leading-[0.95] tracking-[-0.03em] mb-6 text-white text-5xl sm:text-6xl md:text-7xl xl:text-[5.5rem]">
-          A website your neighbors{' '}
-          <em className="text-brand-primary italic">actually</em> use.
-        </h1>
-
-        <p className="text-ink-muted text-base md:text-lg leading-relaxed mb-10 max-w-lg">
-          We build fast, no-nonsense sites for local businesses. Three days, three prices, no
-          agency overhead. Starting at $299.
-        </p>
-
+      
+      <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pt-40 pb-20 px-7">
+        <p className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-6">Local Web Design — Live in 72 Hours</p>
+        <h1 className="font-display font-black leading-[0.95] tracking-[-0.03em] mb-6 text-white text-5xl sm:text-6xl md:text-7xl xl:text-[5.5rem]">A website your neighbors{' '} <span className="text-gradient">actually</span> use.</h1>
+        <p className="text-ink-muted text-base md:text-lg leading-relaxed mb-10 max-w-lg">We build fast, no-nonsense sites for local businesses. Three days, three prices, no agency overhead.</p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
-          <button
-            onClick={() => scrollTo('pricing')}
-            className="bg-brand-primary text-bg-base font-bold px-8 py-4 rounded-xl hover:bg-brand-primary/90 transition-colors cursor-pointer"
-          >
-            See pricing →
-          </button>
-          <button
-            onClick={() => scrollTo('reviews')}
-            className="border border-white/20 text-white font-bold px-8 py-4 rounded-xl hover:border-white/50 transition-colors cursor-pointer"
-          >
-            View recent work
-          </button>
+          <CustomButton onClick={() => scrollTo('pricing')} arrow>See pricing</CustomButton>
+          <CustomButton onClick={() => scrollTo('reviews')} variant="outline">View recent work</CustomButton>
         </div>
       </div>
 

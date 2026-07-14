@@ -1,6 +1,7 @@
 import React from 'react';
 import { X } from 'lucide-react';
 import { useBodyScrollLock } from '../../hooks';
+import CustomButton from './CustomButton';
 
 interface NotificationProps {
   isOpen: boolean;
@@ -30,13 +31,15 @@ export default function Notification({ isOpen, onClose, icon, title, description
         className="fixed inset-0 bg-bg-base/90 backdrop-blur-sm cursor-pointer"
       />
       <div className="relative w-full max-w-md liquid-glass rounded-xl p-8 md:p-10 text-center z-10">
-        <button
+        <CustomButton
           onClick={onClose}
           aria-label="Dismiss"
-          className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors cursor-pointer bg-transparent border-none"
+          variant="icon"
+          size="none"
+          className="absolute top-5 right-5 text-ink-muted hover:text-white transition-colors"
         >
           <X className="w-5 h-5" />
-        </button>
+        </CustomButton>
 
         {icon && (
           <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-5">

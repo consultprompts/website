@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { REVIEWS } from '../data/content';
+import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
@@ -274,22 +275,13 @@ export default function Work() {
         >
           Want to be the next one here?
         </h2>
-        <button
+        <CustomButton
           onClick={() => navigate('/settings/my-projects/new-project')}
-          className="font-black transition-opacity hover:opacity-90 cursor-pointer"
-          style={{
-            background: 'var(--color-brand-primary)',
-            color: 'var(--color-bg-base)',
-            padding: '16px 34px',
-            borderRadius: 12,
-            border: 'none',
-            fontSize: 15,
-            display: 'inline-block',
-            marginTop: 12,
-          }}
+          arrow
+          style={{ marginTop: 12 }}
         >
-          Start your project →
-        </button>
+          Start your project
+        </CustomButton>
       </section>
     </div>
   );

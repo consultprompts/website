@@ -1,53 +1,29 @@
-import React from 'react';
-import { Star, User as UserIcon } from 'lucide-react';
+import React, { useState } from 'react';
 import { REVIEWS } from '../../data/content';
 
-const STATS = [
-  { value: '40%', label: 'Avg. Sales Lift' },
-  { value: '4.9', label: 'Client Rating' },
-  { value: '34', label: 'Shops Shipped' },
-];
-
 export default function ReviewsSection() {
+  const [openReview, setOpenReview] = useState<string | null>(null);
+
   return (
-    <section id="reviews" aria-label="Client Results and Success Stories" className="py-16 md:py-24 px-6 relative overflow-x-hidden">
-      <div className="max-w-7xl mx-auto">
-        <div
-          className="mb-12 md:mb-16 flex flex-col lg:flex-row lg:items-start lg:justify-between gap-8"
-        >
-          <div>
-            <span className="text-brand-primary text-xs font-bold uppercase tracking-widest block mb-4">The Receipts</span>
-            <h2 className="font-display text-4xl md:text-6xl font-bold italic leading-tight">
-              Built for the block.
-              <br />
-              <span className="text-brand-primary">Loved</span> by it.
-            </h2>
-          </div>
-          <div className="flex gap-10 lg:gap-14 items-start lg:pt-2">
-            {STATS.map((stat) => (
-              <div key={stat.label}>
-                <div className="font-display text-4xl md:text-5xl font-black text-brand-primary leading-none">{stat.value}</div>
-                <div className="text-[10px] uppercase tracking-widest text-ink-muted mt-2">{stat.label}</div>
-              </div>
-            ))}
-          </div>
+    <section id="reviews" aria-label="Client Results and Success Stories" className="py-16 md:py-24 px-6 relative">
+      <div className="max-w-4xl mx-auto">
+        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+          <span className="section-badge">The Receipts</span>
+          <h2 className="section-title">Built for the <span className="text-gradient">block.</span><br /><span className="text-gradient">Loved</span> by it.</h2>
+          <p className="section-sub-title">We've automated the fluff out of local business web design. Here's how we get your new site live in record time.</p>
         </div>
 
-        <div className="flex md:flex-row overflow-x-auto lg:overflow-visible lg:grid lg:grid-cols-3 gap-6 pt-4 pb-6 lg:pb-4 px-1 snap-x snap-mandatory brutalist-scrollbar scroll-smooth">
+        <div className="grid grid-cols-1 min-[1250px]:grid-cols-2 gap-8 pt-4 pb-4 px-1">
           {REVIEWS.map((review, i) => (
             <div
               key={review.client}
-              className="liquid-glass group flex flex-col gap-5 p-6 rounded-2xl flex-shrink-0 w-[calc(100vw-3rem)] md:w-[calc(50vw-3rem)] lg:w-auto snap-start transition-[border-color,box-shadow,ring] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_color-mix(in srgb, var(--color-brand-primary) 12%, transparent)]"
+              className="group rounded-xl border border-white/[0.08] flex flex-col relative overflow-hidden cursor-pointer lg:cursor-default"
+              onClick={() => {
+                if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+                setOpenReview(prev => prev === review.client ? null : review.client);
+              }}
             >
-              <div className="flex gap-1">
-                {[...Array(5)].map((_, j) => (
-                  <Star key={j} className="w-4 h-4 text-brand-primary fill-current" />
-                ))}
-              </div>
-
-              <p className="text-white text-sm leading-relaxed flex-1">"{review.quote}"</p>
-
-              <div className="rounded-xl overflow-hidden aspect-[16/9] bg-[#0d0d0d] relative">
+              <div className="rounded-t-xl overflow-hidden aspect-[16/9] bg-[#0d0d0d] relative">
                 <div className="shimmer-skeleton absolute inset-0" />
                 <img
                   src={review.image}
@@ -61,15 +37,24 @@ export default function ReviewsSection() {
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
+                <div
+                  className={`absolute inset-x-0 bottom-0 z-10 bg-white/80 backdrop-blur-sm p-6 pointer-events-none transition-all duration-300 ease-out lg:group-hover:opacity-100 lg:group-hover:translate-y-0 lg:group-hover:pointer-events-auto ${
+                    openReview === review.client ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-full'
+                  }`}
+                >
+                  <p className="italic text-base leading-relaxed text-black">"{review.quote}"</p>
+                </div>
               </div>
 
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-white/10 border border-white/10 flex items-center justify-center shrink-0">
-                  <UserIcon className="w-5 h-5 text-white/30" />
-                </div>
-                <div>
-                  <div className="font-bold text-white text-sm leading-tight">{review.author}</div>
-                  <div className="text-xs text-ink-muted mt-0.5">{review.role}</div>
+              <div className="p-6 flex flex-col flex-1">
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <div className="font-bold text-sm leading-tight">{review.author}</div>
+                    <div className="text-sm text-ink-muted mt-0.5">{review.client}</div>
+                  </div>
+                  {review.metrics[0] && (
+                    <div className="text-2xl font-display font-black text-brand-primary leading-none whitespace-nowrap">{review.metrics[0].value}</div>
+                  )}
                 </div>
               </div>
             </div>

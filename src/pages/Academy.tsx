@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
@@ -31,23 +32,22 @@ export default function Academy() {
             This page is still in the oven — bring the curriculum and we'll build the full course
             catalog next.
           </p>
-          <button
+          <CustomButton
             onClick={() => navigate('/')}
+            variant="ghost"
+            size="none"
             style={{
               color: 'var(--color-ink-base)',
-              background: 'none',
-              border: 'none',
               borderBottom: '1px solid #7000FF',
               paddingBottom: 2,
               fontSize: 13,
               fontWeight: 700,
               textTransform: 'uppercase',
               letterSpacing: '0.08em',
-              cursor: 'pointer',
             }}
           >
             ← Back home
-          </button>
+          </CustomButton>
         </div>
       </section>
     </div>

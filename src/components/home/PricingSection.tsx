@@ -1,5 +1,7 @@
 import React from 'react';
+import AuroraBackground from '../ui/AuroraBackground';
 import { PACKAGES } from '../../data/content';
+import CustomButton from '../ui/CustomButton';
 
 interface PricingSectionProps {
   onSelectPackage: (packageId: string) => void;
@@ -7,39 +9,29 @@ interface PricingSectionProps {
 
 export default function PricingSection({ onSelectPackage }: PricingSectionProps) {
   return (
-    <section id="pricing" aria-label="Pricing and Web Design Services" className="py-16 md:py-24 px-6 bg-white/[0.02]">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-16 text-center lg:text-left">
-          <span className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-4 block">Scalable Growth Tiers</span>
-          <h2 className="font-display text-4xl md:text-3xl font-bold mb-8 italic leading-tight">Pick Your Fuel.</h2>
+    <section id="pricing" aria-label="Pricing and Web Design Services" className="py-16 md:py-24 px-6 relative">
+      <div className="max-w-5xl mx-auto">
+        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+          <span className="section-badge">Scalable Growth Tiers</span>
+          <h2 className="section-title">Pick Your Fuel.</h2>
+          <p className="section-sub-title">We build fast, no-nonsense sites for local businesses. Three days, three prices, no agency overhead.</p>
         </div>
 
-        <div
-          className="grid lg:grid-cols-3 gap-8 pt-4"
-        >
+        <div className="grid grid-cols-1 min-[1250px]:grid-cols-3 gap-8 md:gap-12 px-1 pt-4 pb-4">
           {PACKAGES.map((pkg) => (
-            <div
-              key={pkg.id}
-              className={
-                pkg.featured
-                  ? 'liquid-glass p-8 rounded-xl border border-brand-primary/40 relative flex flex-col bg-linear-to-br from-white/10 to-white/5 overflow-hidden transition-[border-color,box-shadow] duration-300 hover:border-brand-primary hover:ring-[3px] hover:ring-brand-primary/40 hover:shadow-[0_0_48px_color-mix(in srgb, var(--color-brand-primary) 18%, transparent)]'
-                  : 'liquid-glass p-8 rounded-xl border border-white/[0.08] flex flex-col relative transition-[border-color,box-shadow] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_color-mix(in srgb, var(--color-brand-primary) 12%, transparent)]'
-              }
-            >
+            <div key={pkg.id} className={'p-8 rounded-xl border border-white/[0.08] flex flex-col relative'}>
               {pkg.featured && (
-                <div className="absolute top-0 right-0 bg-brand-primary text-bg-base text-[10px] font-black px-4 py-1 uppercase tracking-widest">
-                  Best Value
-                </div>
+                <div className="absolute top-0 right-0 bg-brand-primary text-bg-base text-[10px] font-black px-4 py-1 uppercase tracking-widest rounded-tr-xl rounded-bl-lg">Best Value</div>
               )}
 
               <div className="mb-8">
-                <h3 className="font-display text-2xl font-bold italic mb-2">{pkg.name}</h3>
+                <h3 className="font-display text-xl font-bold italic mb-2">{pkg.name}</h3>
                 <p className="text-ink-muted text-sm font-light">{pkg.tagline}</p>
               </div>
 
               <div className="mb-8">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-5xl font-display font-black leading-none">{pkg.price}</span>
+                  <span className="text-4xl font-display font-black leading-none">{pkg.price}</span>
                   <span className="text-xs text-ink-muted font-bold tracking-widest uppercase">/ {pkg.tier}</span>
                 </div>
               </div>
@@ -49,21 +41,11 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
                   <li className="font-bold text-xs uppercase tracking-widest text-brand-primary mb-2 italic">{pkg.featuresIntro}</li>
                 )}
                 {pkg.features.map((feature, i) => (
-                  <li key={i} className="flex gap-3 text-sm">
-                    {feature.icon}
-                    <span>{feature.label}</span>
-                  </li>
+                  <li key={i} className="flex gap-3 text-sm">{feature.icon}<span>{feature.label}</span></li>
                 ))}
               </ul>
 
-              <button
-                onClick={() => onSelectPackage(pkg.id)}
-                className={`liquid-glass w-full py-4 text-white font-bold uppercase tracking-widest transition-all rounded-xl cursor-pointer ${
-                  pkg.featured ? 'hover:border-brand-primary' : 'hover:border-brand-primary/50'
-                }`}
-              >
-                {pkg.cta}
-              </button>
+              <CustomButton onClick={() => onSelectPackage(pkg.id)} variant="filled">{pkg.cta}</CustomButton>
             </div>
           ))}
         </div>

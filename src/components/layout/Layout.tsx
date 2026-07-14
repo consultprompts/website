@@ -46,11 +46,8 @@ export default function Layout() {
           onClose={() => setIsAuthOpen(false)}
           onSuccess={() => authSuccessHandler.current?.()}
         />
-
-        <Navbar
-          onStartProject={handleStartProject}
-          onOpenAuth={() => openAuthModal('login')}
-        />
+        
+        <Navbar onStartProject={handleStartProject} onOpenAuth={() => openAuthModal('login')}/>
 
         <main className="flex-1">
           <Outlet />

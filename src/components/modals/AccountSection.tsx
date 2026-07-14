@@ -1,13 +1,16 @@
 import React, { useState } from 'react';
-import { KeyRound, MailWarning, CheckCircle2 } from 'lucide-react';
+import { KeyRound, MailWarning, CheckCircle2, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { requestPasswordReset, resendVerification } from '../../lib/api';
+import CustomButton from '../ui/CustomButton';
 
 const card = 'liquid-glass rounded-xl';
 const label = 'text-[10px] uppercase tracking-widest font-bold text-ink-muted m-0 mb-1';
 
 export default function AccountSection({ onClose }: { onClose: () => void }) {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const [sendingReset, setSendingReset] = useState(false);
   const [resetSent, setResetSent] = useState(false);
   const [sendingVerify, setSendingVerify] = useState(false);
@@ -96,6 +99,34 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
             </div>
           </div>
 
+          {/* Preferences */}
+          <div className={`${card} p-4 sm:p-6 flex items-center gap-4 flex-wrap`}>
+            <div>
+              <p className="text-[13px] font-bold m-0">Appearance</p>
+              <p className="text-ink-muted text-[12px] mt-1 m-0">Switch between light and dark mode.</p>
+            </div>
+            <div className="flex px-5 items-center gap-1 p-1">
+              <CustomButton
+                onClick={() => theme !== 'light' && toggleTheme()}
+                variant="ghost"
+                size="sm"
+                className={theme !== 'light' ? 'text-ink-muted' : ''}
+                style={theme === 'light' ? { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' } : undefined}
+              >
+                <Sun className="w-3.5 h-3.5" /> Light
+              </CustomButton>
+              <CustomButton
+                onClick={() => theme !== 'dark' && toggleTheme()}
+                variant="ghost"
+                size="sm"
+                className={theme !== 'dark' ? 'text-ink-muted' : ''}
+                style={theme === 'dark' ? { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' } : undefined}
+              >
+                <Moon className="w-3.5 h-3.5" /> Dark
+              </CustomButton>
+            </div>
+          </div>
+
           {/* Verification callout */}
           {!user.emailVerified && (
             <div
@@ -106,14 +137,16 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
                 <p className="text-[12px] font-bold m-0" style={{ color: '#F5C542' }}>Your email isn't verified yet</p>
                 <p className="text-ink-muted text-[12px] mt-1 m-0">Verify it to unlock all account features.</p>
               </div>
-              <button
+              <CustomButton
                 onClick={handleResendVerification}
                 disabled={sendingVerify || verifySent}
-                className="px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
+                variant="ghost"
+                size="none"
+                className="px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest"
                 style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
               >
                 {verifySent ? 'Email Sent' : sendingVerify ? 'Sending...' : 'Resend Verification Email'}
-              </button>
+              </CustomButton>
             </div>
           )}
 
@@ -125,15 +158,17 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
                 {resetSent ? 'Reset link sent — check your inbox.' : 'Send yourself a reset link to change your password.'}
               </p>
             </div>
-            <button
+            <CustomButton
               onClick={handleChangePassword}
               disabled={sendingReset || resetSent}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
+              variant="ghost"
+              size="none"
+              className="flex items-center gap-2 px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest"
               style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
             >
               <KeyRound className="w-3.5 h-3.5" />
               {resetSent ? 'Sent' : sendingReset ? 'Sending...' : 'Change Password'}
-            </button>
+            </CustomButton>
           </div>
         </div>
       </div>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { User as UserIcon, Eye, EyeOff, Loader2, MailCheck, KeyRound } from 'lucide-react';
+import { User as UserIcon, Eye, EyeOff, MailCheck, KeyRound } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { requestPasswordReset, googleLoginUrl } from '../../lib/api';
+import CustomButton from '../ui/CustomButton';
 
 export type AuthMode = 'login' | 'signup';
 
@@ -97,17 +98,19 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                   <p className="text-ink-muted text-sm font-light leading-relaxed mb-8">
                     If that email is registered, we sent a reset link. Check your inbox and follow the instructions.
                   </p>
-                  <button
+                  <CustomButton
                     onClick={() => {
                       setIsForgot(false);
                       setForgotSent(false);
                       setForgotEmail('');
                       onModeChange('login');
                     }}
-                    className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary transition-colors cursor-pointer"
+                    variant="ghost"
+                    size="none"
+                    className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary transition-colors"
                   >
                     Back to Login
-                  </button>
+                  </CustomButton>
                 </div>
               ) : (
                 <>
@@ -140,23 +143,20 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                       <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{forgotError}</p>
                     )}
 
-                    <button
-                      disabled={forgotLoading}
-                      className="liquid-glass w-full py-3.5 md:py-4 text-white font-black uppercase tracking-widest hover:border-brand-primary/50 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl border-white/10 relative group cursor-pointer disabled:cursor-not-allowed"
-                    >
-                      <span className="relative z-10">
-                        {forgotLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Send Reset Link'}
-                      </span>
-                    </button>
+                    <CustomButton loading={forgotLoading} className="w-full">
+                      Send Reset Link
+                    </CustomButton>
                   </form>
 
                   <div className="text-center">
-                    <button
+                    <CustomButton
                       onClick={() => setIsForgot(false)}
-                      className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1 cursor-pointer"
+                      variant="ghost"
+                      size="none"
+                      className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1"
                     >
                       Back to Login
-                    </button>
+                    </CustomButton>
                   </div>
                 </>
               )
@@ -169,15 +169,17 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                 <p className="text-ink-muted text-sm font-light leading-relaxed mb-8">
                   We sent a verification link to your email. Verify your account, then come back and log in.
                 </p>
-                <button
+                <CustomButton
                   onClick={() => {
                     setVerificationSent(false);
                     onModeChange('login');
                   }}
-                  className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary transition-colors cursor-pointer"
+                  variant="ghost"
+                  size="none"
+                  className="text-xs font-bold uppercase tracking-widest border-b border-brand-primary pb-1 hover:text-brand-primary transition-colors"
                 >
                   Go to Login
-                </button>
+                </CustomButton>
               </div>
             ) : (
               <>
@@ -215,23 +217,27 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                         className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm pr-10 rounded-xl"
                         placeholder="••••••••"
                       />
-                      <button
+                      <CustomButton
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-white cursor-pointer"
+                        variant="icon"
+                        size="none"
+                        className="absolute right-3 top-1/2 -translate-y-1/2 text-ink-muted hover:text-white"
                       >
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                      </button>
+                      </CustomButton>
                     </div>
                     {mode === 'login' && (
                       <div className="flex justify-end pt-1">
-                        <button
+                        <CustomButton
                           type="button"
                           onClick={() => setIsForgot(true)}
-                          className="text-[10px] text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest cursor-pointer transition-colors"
+                          variant="ghost"
+                          size="none"
+                          className="text-[10px] text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest transition-colors"
                         >
                           Forgot Password?
-                        </button>
+                        </CustomButton>
                       </div>
                     )}
                   </div>
@@ -240,14 +246,9 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                     <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{error}</p>
                   )}
 
-                  <button
-                    disabled={isSubmitting}
-                    className="liquid-glass w-full py-3.5 md:py-4 text-white font-black uppercase tracking-widest hover:border-brand-primary/50 disabled:opacity-50 flex items-center justify-center gap-2 rounded-xl border-white/10 relative group cursor-pointer disabled:cursor-not-allowed"
-                  >
-                    <span className="relative z-10">
-                      {isSubmitting ? <Loader2 className="w-5 h-5 animate-spin" /> : mode === 'login' ? 'Access' : 'Register'}
-                    </span>
-                  </button>
+                  <CustomButton loading={isSubmitting} className="w-full">
+                    {mode === 'login' ? 'Access' : 'Register'}
+                  </CustomButton>
                 </form>
 
                 {/* Divider + Google sign-in */}
@@ -272,12 +273,14 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                 </a>
 
                 <div className="text-center">
-                  <button
+                  <CustomButton
                     onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')}
-                    className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1 cursor-pointer"
+                    variant="ghost"
+                    size="none"
+                    className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1"
                   >
                     {mode === 'login' ? 'New here? Sign Up' : 'Registered? Login'}
-                  </button>
+                  </CustomButton>
                 </div>
               </>
             )}

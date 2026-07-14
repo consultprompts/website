@@ -24,20 +24,14 @@ export default function Footer() {
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
 
         {/* ── Top grid ── */}
-        <div
-          className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_1.3fr] gap-10 xl:gap-12 pb-12 border-b border-white/5"
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-[1.4fr_1fr_1fr_1.3fr] gap-10 xl:gap-12 pb-12 border-b border-white/5">
           {/* Brand */}
           <div className="flex flex-col gap-[18px]">
             <Link to="/" className="flex items-center gap-[10px] no-underline">
-              <img src={logoSrc} alt="Consult Prompts" className="h-[30px] w-auto object-contain" />
-              <span className="font-display font-bold uppercase text-white text-base">
-                Consult Prompts
-              </span>
+              <img src={logoSrc} alt="Consult Prompts" className="h-[30px] w-auto object-contain navbar-logo" />
+              <span className="font-display font-bold uppercase text-white text-base">Consult Prompts</span>
             </Link>
-            <p className="text-ink-muted font-light text-[13px] leading-relaxed m-0 max-w-[280px]">
-              Brutally fast, no-nonsense websites for local businesses. Live in 72 hours, or it's free.
-            </p>
+            <p className="text-ink-muted font-light text-[13px] leading-relaxed m-0 max-w-[280px]">Brutally fast, no-nonsense websites for local businesses. Live in 72 hours, or it's free.</p>
             <div className="flex items-center gap-2">
               <span className="font-display font-extrabold text-brand-primary text-[15px]">4.9★</span>
               <span className="text-ink-muted text-xs">from 34 shops shipped</span>
@@ -73,19 +67,10 @@ export default function Footer() {
 
         {/* ── Bottom row ── */}
         <div className="flex flex-wrap items-center justify-between gap-4 pt-7">
-          <div className="text-[10px] uppercase" style={{ color: 'rgba(161,161,161,0.5)', letterSpacing: '0.25em' }}>
-            © 2026 Consult Prompts. All Rights Reserved.
-          </div>
+          <div className="text-[10px] uppercase" style={{ color: 'rgba(161,161,161,0.5)', letterSpacing: '0.25em' }}>© 2026 Consult Prompts. All Rights Reserved.</div>
           <div className="flex gap-6">
             {(['Privacy', 'Terms'] as const).map(label => (
-              <a
-                key={label}
-                href="#"
-                className="text-ink-muted no-underline uppercase text-[11px] transition-colors hover:text-white"
-                style={{ letterSpacing: '0.08em' }}
-              >
-                {label}
-              </a>
+              <a key={label} href="#" className="text-ink-muted no-underline uppercase text-[11px] transition-colors hover:text-white" style={{ letterSpacing: '0.08em' }}>{label}</a>
             ))}
           </div>
         </div>

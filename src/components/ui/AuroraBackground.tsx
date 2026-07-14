@@ -8,12 +8,13 @@ const BLOBS_DARK = [
 ];
 
 // Light theme: warm orange/amber palette matching the light-mode brand
-// accent (#EA580C), at much higher alpha — low-alpha color barely
-// registers on white.
+// accent (#EA580C), pushed to more saturated/brighter hues and higher
+// alpha than the brand color itself — low-alpha, low-saturation color
+// barely registers on white and just looks like a gray smudge.
 const BLOBS_LIGHT = [
-  { cx: 0.25, cy: 0.35, r: 0.45, color: [234, 88, 12],   alpha: 0.26, sx: 0.18, sy: 0.12, speed: 0.00035 },
-  { cx: 0.75, cy: 0.60, r: 0.40, color: [217, 119, 6],   alpha: 0.20, sx: 0.14, sy: 0.16, speed: 0.00025 },
-  { cx: 0.50, cy: 0.80, r: 0.35, color: [194, 65, 12],   alpha: 0.18, sx: 0.20, sy: 0.10, speed: 0.00040 },
+  { cx: 0.25, cy: 0.35, r: 0.45, color: [255, 87, 34],   alpha: 0.38, sx: 0.18, sy: 0.12, speed: 0.00035 },
+  { cx: 0.75, cy: 0.60, r: 0.40, color: [255, 171, 0],   alpha: 0.32, sx: 0.14, sy: 0.16, speed: 0.00025 },
+  { cx: 0.50, cy: 0.80, r: 0.35, color: [255, 61, 0],    alpha: 0.30, sx: 0.20, sy: 0.10, speed: 0.00040 },
 ];
 
 // Drifting radial-gradient blobs on a canvas — the same background used

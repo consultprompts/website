@@ -95,6 +95,25 @@ export const REVIEWS: Review[] = [
       { value: '#1', label: 'Local rank' },
     ],
   },
+  {
+    client: 'Boardwalk Fries',
+    quote:
+      'The speed is insane. 40% sales lift in the first week. Our regulars now order online while waiting in line.',
+    image: '/boardwalk.jpeg',
+    business: 'FAST FOOD RESTAURANT',
+    author: 'Maria Chen',
+    role: 'Maria Chen, Owner · Rehoboth, DE',
+    siteLabel: 'boardwalk fries',
+    featured: true,
+    problem:
+      'A dated site with no online ordering — regulars were calling in orders or just walking away during the lunch rush.',
+    fix: 'A fast, mobile-first menu page with one-tap ordering built in, live in under three days.',
+    result: '40% sales lift in the first week, with regulars now ordering online while they wait in line.',
+    metrics: [
+      { value: '+40%', label: 'Sales lift' },
+      { value: '72h', label: 'To launch' },
+    ],
+  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -125,7 +144,7 @@ export const PROCESS_STEPS: ProcessStep[] = [
   },
   {
     id: '03',
-    title: 'Get more Sales',
+    title: 'Get more Customers',
     description:
       'Stop losing customers to slow loading times or bad UX. Convert visitors into loyal clients immediately.',
     icon: <CheckCircle className="w-6 h-6 text-brand-primary" />,
@@ -209,7 +228,7 @@ export const PACKAGES: Package[] = [
     timeline: '48–72 hour turnaround',
     cta: 'Select Package',
     features: [
-      { icon: <Smartphone className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '3-5 Modern Pages (Mobile-First)' },
+      { icon: <Smartphone className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '3-5 Modern Pages' },
       { icon: <Zap className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Speed Optimization' },
       { icon: <CloudCog className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Domain & Hosting Transfer' },
       { icon: <Search className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Basic Global SEO' },
@@ -235,12 +254,12 @@ export const PACKAGES: Package[] = [
     price: '$499',
     tier: 'Performance',
     featured: true,
-    featuresIntro: 'Everything in Digital Face-Lift, plus:',
+    featuresIntro: 'Everything in DFL, plus:',
     bestFor: 'Best for: businesses that rely on local search',
     timeline: '48–72 hour turnaround',
     cta: 'Go Visibility',
     features: [
-      { icon: <MapPin className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Google Business Profile (GBP) Fix' },
+      { icon: <MapPin className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Google Business Profile' },
       { icon: <Search className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Local SEO (City/Neighborhood)' },
       { icon: <Instagram className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Social Feed Auto-Sync' },
       { icon: <Brain className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'AI Persuasive Copywriting' },
@@ -264,7 +283,7 @@ export const PACKAGES: Package[] = [
     tagline: 'The premium. Saving the owner 5+ hours a week in admin work.',
     price: '$699',
     tier: 'Enterprise',
-    featuresIntro: 'Everything in Visibility Booster, plus:',
+    featuresIntro: 'Everything in VB, plus:',
     bestFor: 'Best for: owners ready to automate admin work',
     timeline: '48–72 hour turnaround',
     cta: 'Go Premium',

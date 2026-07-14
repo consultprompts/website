@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { PACKAGES, COMPARISON_ROWS } from '../data/content';
+import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const EASE = [0.16, 1, 0.3, 1] as any;
@@ -124,8 +125,10 @@ export default function Pricing() {
                 >
                   {pkg.timeline}
                 </p>
-                <button
+                <CustomButton
                   onClick={() => navigate('/settings/my-projects/new-project')}
+                  variant="ghost"
+                  size="none"
                   style={{
                     marginTop: 'auto',
                     textAlign: 'center',
@@ -138,14 +141,13 @@ export default function Pricing() {
                     textTransform: 'uppercase',
                     letterSpacing: '0.08em',
                     border: ctaBorder,
-                    cursor: 'pointer',
                     transition: 'opacity 0.2s',
                   }}
                   onMouseEnter={e => (e.currentTarget.style.opacity = '0.85')}
                   onMouseLeave={e => (e.currentTarget.style.opacity = '1')}
                 >
                   {pkg.cta}
-                </button>
+                </CustomButton>
               </div>
 
               {/* Right: categorized feature list */}
