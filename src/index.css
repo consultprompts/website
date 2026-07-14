@@ -25,20 +25,132 @@
   }
 }
 
+/* ── Light theme ─────────────────────────────────────────────────────────
+   `html.light` flips the design tokens; utilities like bg-bg-base and
+   text-ink-muted follow automatically. Hardcoded white utilities
+   (text-white, border-white/10, …) are remapped below via color-mix on
+   --color-ink-base, so a `.force-dark` wrapper (settings console, auth
+   modal) restores the original dark look just by re-setting the tokens. */
+
+html.light {
+  --color-bg-base: #FAFAF9;
+  --color-bg-surface: #FFFFFF;
+  --color-ink-base: #14161A;
+  --color-ink-muted: #5B6068;
+  --color-border-standard: #E7E5E2;
+  /* Neon cyan reads poorly on light backgrounds — accent flips to orange,
+     and the electric-purple secondary follows it to amber so background
+     glows and gradients stay warm. */
+  --color-brand-primary: #EA580C;
+  --color-brand-secondary: #F59E0B;
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
+}
+
+html.light .force-dark {
+  --color-bg-base: #050505;
+  --color-bg-surface: #121212;
+  --color-ink-base: #FFFFFF;
+  --color-ink-muted: #A1A1A1;
+  --color-border-standard: rgba(255, 255, 255, 0.1);
+  --color-brand-primary: #00F0FF;
+  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+}
+
+html.light .neon-glow {
+  box-shadow: 0 0 20px rgba(234, 88, 12, 0.2);
+}
+
+html.light .text-white,
+html.light .hover\:text-white:hover {
+  color: var(--color-ink-base);
+}
+html.light .text-white\/80 { color: color-mix(in srgb, var(--color-ink-base) 80%, transparent); }
+html.light .text-white\/70 { color: color-mix(in srgb, var(--color-ink-base) 70%, transparent); }
+html.light .text-white\/60 { color: color-mix(in srgb, var(--color-ink-base) 60%, transparent); }
+html.light .text-white\/50 { color: color-mix(in srgb, var(--color-ink-base) 50%, transparent); }
+html.light .text-white\/30 { color: color-mix(in srgb, var(--color-ink-base) 30%, transparent); }
+html.light .text-white\/25 { color: color-mix(in srgb, var(--color-ink-base) 25%, transparent); }
+html.light .text-white\/20 { color: color-mix(in srgb, var(--color-ink-base) 20%, transparent); }
+html.light .text-white\/5 { color: color-mix(in srgb, var(--color-ink-base) 5%, transparent); }
+html.light .text-white\/\[0\.03\] { color: color-mix(in srgb, var(--color-ink-base) 4%, transparent); }
+
+html.light .border-white\/5 { border-color: color-mix(in srgb, var(--color-ink-base) 8%, transparent); }
+html.light .border-white\/\[0\.06\] { border-color: color-mix(in srgb, var(--color-ink-base) 8%, transparent); }
+html.light .border-white\/8 { border-color: color-mix(in srgb, var(--color-ink-base) 10%, transparent); }
+html.light .border-white\/\[0\.08\] { border-color: color-mix(in srgb, var(--color-ink-base) 10%, transparent); }
+html.light .border-white\/10 { border-color: color-mix(in srgb, var(--color-ink-base) 12%, transparent); }
+html.light .border-white\/20 { border-color: color-mix(in srgb, var(--color-ink-base) 20%, transparent); }
+html.light .border-white\/30 { border-color: color-mix(in srgb, var(--color-ink-base) 30%, transparent); }
+html.light .hover\:border-white\/30:hover { border-color: color-mix(in srgb, var(--color-ink-base) 30%, transparent); }
+html.light .hover\:border-white\/50:hover { border-color: color-mix(in srgb, var(--color-ink-base) 45%, transparent); }
+
+html.light .bg-white\/\[0\.01\] { background-color: color-mix(in srgb, var(--color-ink-base) 2%, transparent); }
+html.light .bg-white\/\[0\.02\] { background-color: color-mix(in srgb, var(--color-ink-base) 3%, transparent); }
+html.light .bg-white\/\[0\.04\] { background-color: color-mix(in srgb, var(--color-ink-base) 4%, transparent); }
+html.light .bg-white\/5 { background-color: color-mix(in srgb, var(--color-ink-base) 5%, transparent); }
+html.light .bg-white\/10 { background-color: color-mix(in srgb, var(--color-ink-base) 8%, transparent); }
+html.light .hover\:bg-white\/\[0\.02\]:hover { background-color: color-mix(in srgb, var(--color-ink-base) 4%, transparent); }
+html.light .hover\:bg-white\/\[0\.03\]:hover { background-color: color-mix(in srgb, var(--color-ink-base) 4%, transparent); }
+html.light .hover\:bg-white\/5:hover { background-color: color-mix(in srgb, var(--color-ink-base) 6%, transparent); }
+html.light .hover\:bg-white\/10:hover { background-color: color-mix(in srgb, var(--color-ink-base) 8%, transparent); }
+html.light .active\:bg-white\/\[0\.04\]:active { background-color: color-mix(in srgb, var(--color-ink-base) 5%, transparent); }
+
+/* Navbar reads bg-bg-base/95 — page bg (#FAFAF9) looks gray there; use pure white */
+html.light .bg-bg-base\/95 { background-color: rgba(255, 255, 255, 0.95); }
+@media (min-width: 768px) {
+  html.light .md\:bg-bg-base\/90 { background-color: rgba(255, 255, 255, 0.9); }
+}
+
+html.light .from-white\/10 { --tw-gradient-from: color-mix(in srgb, var(--color-ink-base) 6%, transparent); }
+html.light .to-white\/5 { --tw-gradient-to: color-mix(in srgb, var(--color-ink-base) 3%, transparent); }
+
+html.light .glass {
+  background: color-mix(in srgb, var(--color-ink-base) 5%, transparent);
+  border-color: color-mix(in srgb, var(--color-ink-base) 10%, transparent);
+}
+html.light .brutalist-border {
+  border-color: color-mix(in srgb, var(--color-ink-base) 20%, transparent);
+}
+html.light .shimmer-skeleton {
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--color-ink-base) 3%, transparent) 25%,
+    color-mix(in srgb, var(--color-ink-base) 9%, transparent) 50%,
+    color-mix(in srgb, var(--color-ink-base) 3%, transparent) 75%
+  );
+  background-size: 200% 100%;
+}
+
 .text-gradient {
   @apply bg-clip-text text-transparent bg-linear-to-r from-brand-primary to-brand-secondary;
+}
+
+/* Filled CTA buttons get a brand gradient (primary → blend toward secondary).
+   Scoped to button/a elements so small filled chips and dots stay solid. */
+button.bg-brand-primary,
+a.bg-brand-primary {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-brand-primary),
+    color-mix(in srgb, var(--color-brand-primary) 45%, var(--color-brand-secondary))
+  );
+}
+button.bg-brand-primary:hover,
+a.bg-brand-primary:hover {
+  filter: brightness(1.08);
 }
 
 .glass {
   @apply bg-white/5 backdrop-blur-xl border border-white/10;
 }
 
+/* Glass effect removed — these are now plain bordered containers. */
 .liquid-glass {
-  @apply bg-linear-to-br from-white/10 via-white/5 to-white/[0.02] backdrop-blur-2xl border border-white/20 shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden;
+  @apply border border-white/20 relative overflow-hidden;
 }
 
 .liquid-glass-tracker {
-  @apply bg-linear-to-br from-white/[0.02] via-white/[0.05] to-white/[0.02] backdrop-blur-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] relative overflow-hidden;
+  @apply relative overflow-hidden;
 }
 
 .brutalist-border {
@@ -60,11 +172,11 @@
 }
 
 .brutalist-scrollbar::-webkit-scrollbar-track {
-  background: rgba(255, 255, 255, 0.05);
+  background: color-mix(in srgb, var(--color-ink-base) 5%, transparent);
 }
 
 .brutalist-scrollbar::-webkit-scrollbar-thumb {
-  background: #00F0FF;
+  background: var(--color-brand-primary);
   border-radius: 0px;
 }
 
@@ -87,7 +199,7 @@
 
 .brutalist-scrollbar {
   scrollbar-width: thin;
-  scrollbar-color: #00F0FF rgba(255, 255, 255, 0.05);
+  scrollbar-color: var(--color-brand-primary) color-mix(in srgb, var(--color-ink-base) 5%, transparent);
 }
 
 @keyframes marquee {
@@ -108,13 +220,6 @@
   .marquee-track,
   .aurora-band {
     animation: none;
-  }
-}
-
-@media (max-width: 767px) {
-  .liquid-glass {
-    backdrop-filter: none;
-    -webkit-backdrop-filter: none;
   }
 }
 

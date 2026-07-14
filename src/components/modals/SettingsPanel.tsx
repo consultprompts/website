@@ -39,10 +39,10 @@ function formatDate(iso: string) {
 
 const STATUS_STYLE: Record<string, { bg: string; fg: string; label: string }> = {
   pending:   { bg: 'rgba(245,197,66,0.18)',  fg: '#F5C542', label: 'pending' },
-  accepted:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'in progress' },
+  accepted:  { bg: 'color-mix(in srgb, var(--color-brand-primary) 18%, transparent)',   fg: 'var(--color-brand-primary)', label: 'in progress' },
   revision:  { bg: 'rgba(245,197,66,0.18)',  fg: '#F5C542', label: 'revision' },
   completed: { bg: 'rgba(112,0,255,0.22)',   fg: '#B98CFF', label: 'completed' },
-  launched:  { bg: 'rgba(0,240,255,0.18)',   fg: '#00F0FF', label: 'launched' },
+  launched:  { bg: 'color-mix(in srgb, var(--color-brand-primary) 18%, transparent)',   fg: 'var(--color-brand-primary)', label: 'launched' },
   suspended: { bg: 'rgba(255,107,107,0.18)', fg: '#FF6B6B', label: 'suspended' },
 };
 
@@ -62,12 +62,12 @@ type RowState = {
 function rowState(k: number, lead: Lead): RowState {
   const done = lead.milestone_index >= k;
   if (done && k === MILESTONE.meeting && lead.meeting_skipped) {
-    return { done, clickable: false, badge: { label: 'Skipped', color: '#A1A1A1' } };
+    return { done, clickable: false, badge: { label: 'Skipped', color: 'var(--color-ink-muted)' } };
   }
   if (done && k === MILESTONE.mockup) {
     // milestone_index === MILESTONE.mockup means URL sent, awaiting client review.
     if (lead.milestone_index === MILESTONE.mockup) {
-      return { done, clickable: false, badge: { label: 'Sent', color: '#00F0FF' } };
+      return { done, clickable: false, badge: { label: 'Sent', color: 'var(--color-brand-primary)' } };
     }
     return { done, clickable: false };
   }
@@ -333,9 +333,9 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   );
 
   const stats = [
-    { label: 'Total Leads', value: leads.length, color: '#FFFFFF' },
+    { label: 'Total Leads', value: leads.length, color: 'var(--color-ink-base)' },
     { label: 'Pending', value: leads.filter((l) => l.status === 'pending').length, color: '#F5C542' },
-    { label: 'In Progress', value: leads.filter((l) => l.status === 'accepted' || l.status === 'revision').length, color: '#00F0FF' },
+    { label: 'In Progress', value: leads.filter((l) => l.status === 'accepted' || l.status === 'revision').length, color: 'var(--color-brand-primary)' },
     { label: 'Launched', value: leads.filter((l) => l.status === 'launched' || l.status === 'completed').length, color: '#B98CFF' },
   ];
 
@@ -398,7 +398,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
             {/* Unified top bar — desktop only (≥1250px) */}
             <div
               className="hidden settings:flex items-center justify-between px-5 flex-shrink-0"
-              style={{ height: 56, borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+              style={{ height: 56, borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
             >
               <div className="flex items-center gap-2.5">
                 <img src={logo} alt="ConsultPrompts" className="w-6 h-6 object-contain" />
@@ -406,7 +406,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               </div>
               <button
                 onClick={onClose}
-                style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                 className="w-7 h-7 rounded-full bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
               >
                 ✕
@@ -425,15 +425,15 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                       key={n.key}
                       onClick={() => onSectionChange(n.key)}
                       className={`flex items-center gap-3 px-5 py-3 w-full text-left border-none cursor-pointer whitespace-nowrap border-l-2 transition-colors ${
-                        active ? 'bg-[rgba(0,240,255,0.08)] border-[#00F0FF]' : 'bg-transparent border-transparent'
+                        active ? 'bg-brand-primary/10 border-brand-primary' : 'bg-transparent border-transparent'
                       }`}
                     >
                       <span
                         className="w-2 h-2 rounded-full flex-shrink-0"
-                        style={{ background: active ? '#00F0FF' : 'rgba(255,255,255,0.2)' }}
+                        style={{ background: active ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 20%, transparent)' }}
                       />
                       <span
-                        style={{ color: active ? '#FFFFFF' : '#A1A1A1' }}
+                        style={{ color: active ? 'var(--color-ink-base)' : 'var(--color-ink-muted)' }}
                         className="text-[11px] font-bold uppercase tracking-[0.1em]"
                       >
                         {n.label}
@@ -464,7 +464,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               {mobileScreen === 'menu' ? (
                 <div className="flex flex-col h-full min-h-0">
                   <div
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+                    style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
                     className="px-4 py-4 flex items-center justify-between gap-4 flex-shrink-0"
                   >
                     <div className="flex items-center gap-2.5">
@@ -473,7 +473,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                     </div>
                     <button
                       onClick={onClose}
-                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                       className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
                     >
                       ✕
@@ -481,21 +481,21 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-4 py-4">
-                    <div className="flex flex-col rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+                    <div className="flex flex-col rounded-xl overflow-hidden" style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
                       {NAV.map((n, i) => {
                         const Icon = n.icon;
                         return (
                           <button
                             key={n.key}
                             onClick={() => { onSectionChange(n.key); setMobileScreen('detail'); }}
-                            style={{ borderBottom: i < NAV.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none' }}
+                            style={{ borderBottom: i < NAV.length - 1 ? '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' : 'none' }}
                             className="flex items-center gap-3.5 px-4 py-4 w-full text-left border-none cursor-pointer bg-bg-surface active:bg-white/[0.04] transition-colors"
                           >
                             <div
                               className="w-9 h-9 rounded-full flex items-center justify-center flex-shrink-0"
-                              style={{ background: 'rgba(0,240,255,0.1)' }}
+                              style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)' }}
                             >
-                              <Icon className="w-4 h-4" style={{ color: '#00F0FF' }} />
+                              <Icon className="w-4 h-4" style={{ color: 'var(--color-brand-primary)' }} />
                             </div>
                             <span className="flex-1 text-[14px] font-bold text-white">{n.label}</span>
                             <ChevronRight className="w-4 h-4 text-ink-muted flex-shrink-0" />
@@ -509,8 +509,8 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                 /* detail + lead-detail share the same header; only the title and back target differ */
                 <div className="flex flex-col h-full min-h-0">
                   <div
-                    style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
-                    className="px-2 py-3 flex items-center gap-2 flex-shrink-0"
+                    style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
+                    className="px-2 py-3 flex items-center justify-between gap-2 flex-shrink-0"
                   >
                     <button
                       onClick={() => {
@@ -523,12 +523,9 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                       <ChevronLeft className="w-5 h-5" />
                       <span className="text-[12px] font-bold uppercase tracking-widest">Back</span>
                     </button>
-                    <span className="flex-1 text-center text-[12px] font-bold uppercase tracking-widest text-ink-muted truncate">
-                      {mobileScreen === 'lead-detail' ? (selected?.name ?? '') : NAV.find((n) => n.key === section)?.label}
-                    </span>
                     <button
                       onClick={onClose}
-                      style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                      style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                       className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
                     >
                       ✕
@@ -624,7 +621,7 @@ function AgencySection({
             {stats.map((s) => (
               <div
                 key={s.label}
-                style={{ border: '1px solid rgba(255,255,255,0.05)' }}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)' }}
                 className="bg-bg-surface p-4 rounded-sm flex flex-col gap-1"
               >
                 <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0">{s.label}</p>
@@ -639,7 +636,7 @@ function AgencySection({
           <div className="flex flex-col lg:flex-1 lg:min-h-0">
             <div className="flex items-center justify-between mb-3 gap-4 flex-wrap flex-shrink-0">
               <div
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+                style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                 className="flex p-1 rounded-sm"
               >
                 {(['pending', 'accepted', 'revision', 'launched'] as Filter[]).map((f) => {
@@ -649,8 +646,8 @@ function AgencySection({
                       key={f}
                       onClick={() => setFilter(active ? null : f)}
                       style={{
-                        background: active ? '#00F0FF' : 'transparent',
-                        color: active ? '#050505' : '#A1A1A1',
+                        background: active ? 'var(--color-brand-primary)' : 'transparent',
+                        color: active ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
                       }}
                       className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none cursor-pointer rounded-[3px] transition-all"
                     >
@@ -664,7 +661,7 @@ function AgencySection({
 
             {/* Search — matches customer name, business/project name, or email; forgives one typo */}
             <div
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
               className="flex items-center gap-2.5 px-3.5 rounded-sm mb-4 flex-shrink-0"
             >
               <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
@@ -715,7 +712,7 @@ function AgencySection({
             {selected ? (
               <div
                 key={selected.id}
-                style={{ border: '1px solid rgba(255,255,255,0.06)' }}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
                 className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 lg:h-full lg:overflow-y-auto"
               >
                 <div className="flex justify-between items-start">
@@ -725,7 +722,7 @@ function AgencySection({
                   </div>
                   <button
                     onClick={() => setSelectedId(null)}
-                    style={{ border: '1px solid rgba(255,255,255,0.1)' }}
+                    style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                     className="w-8 h-8 rounded-full bg-transparent text-white cursor-pointer text-base leading-none flex items-center justify-center flex-shrink-0"
                   >
                     ✕
@@ -736,7 +733,7 @@ function AgencySection({
             ) : (
               <div
                 key="empty"
-                style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
+                style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
                 className="flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
               >
                 Select a lead to view details and manage milestones.
@@ -848,16 +845,16 @@ function LeadDetailPanel({
                   >
                     <div
                       style={{
-                        background: done ? '#00F0FF' : 'transparent',
-                        color: done ? '#050505' : '#A1A1A1',
-                        border: `1px solid ${done ? '#00F0FF' : 'rgba(255,255,255,0.2)'}`,
+                        background: done ? 'var(--color-brand-primary)' : 'transparent',
+                        color: done ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
+                        border: `1px solid ${done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 20%, transparent)'}`,
                       }}
                       className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
                     >
                       {done ? '✓' : k}
                     </div>
                     <span
-                      style={{ color: done ? '#FFFFFF' : '#A1A1A1', fontWeight: clickable ? 700 : 500 }}
+                      style={{ color: done ? 'var(--color-ink-base)' : 'var(--color-ink-muted)', fontWeight: clickable ? 700 : 500 }}
                       className="text-[13px]"
                     >
                       {label}
@@ -898,7 +895,7 @@ function LeadDetailPanel({
           note={selected.revision_feedback ? `Client requested changes: ${selected.revision_feedback}` : undefined}
           placeholder="https://figma.com/..."
           cta="Send to Client"
-          accent="#00F0FF"
+          accent="var(--color-brand-primary)"
           error={actionError}
           onSubmit={(url) => onMockupSave(selected.id, url)}
           onClose={() => setUrlModal(null)}
@@ -956,7 +953,7 @@ function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: st
         className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em] cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
         style={
           suspended
-            ? { background: 'transparent', border: '1px solid rgba(0,240,255,0.3)', color: '#00F0FF' }
+            ? { background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)', color: 'var(--color-brand-primary)' }
             : { background: 'transparent', border: '1px solid rgba(255,107,107,0.4)', color: '#FF6B6B' }
         }
       >
@@ -994,7 +991,7 @@ function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCance
       <div onClick={onCancel} className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.65)' }} />
       <div
         className="relative w-full flex flex-col gap-4 text-white p-6"
-        style={{ maxWidth: 420, background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 }}
+        style={{ maxWidth: 420, background: 'var(--color-bg-surface)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 6 }}
       >
         <p className="m-0 font-bold uppercase" style={{ fontSize: 11, letterSpacing: '0.14em', color: accent }}>
           {title}
@@ -1004,14 +1001,14 @@ function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCance
           <button
             onClick={onConfirm}
             className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer"
-            style={{ background: accent, color: '#050505' }}
+            style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {confirmLabel}
           </button>
           <button
             onClick={onCancel}
             className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+            style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
           >
             Cancel
           </button>
@@ -1052,7 +1049,7 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
       <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.65)' }} />
       <div
         className="relative w-full flex flex-col gap-4 text-white p-6"
-        style={{ maxWidth: 420, background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6 }}
+        style={{ maxWidth: 420, background: 'var(--color-bg-surface)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 6 }}
       >
         <p className="m-0 font-bold uppercase" style={{ fontSize: 11, letterSpacing: '0.14em', color: accent }}>
           {title}
@@ -1067,7 +1064,7 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
           onKeyDown={(e) => e.key === 'Enter' && submit()}
           placeholder={placeholder}
           className="w-full rounded-sm px-3 py-2.5 text-[13px] text-white focus:outline-none"
-          style={{ background: 'rgba(255,255,255,0.07)', border: '1px solid rgba(255,255,255,0.12)' }}
+          style={{ background: 'color-mix(in srgb, var(--color-ink-base) 7%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 12%, transparent)' }}
           autoFocus
         />
         {error && (
@@ -1080,14 +1077,14 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
             onClick={submit}
             disabled={!url.trim() || saving}
             className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none cursor-pointer disabled:opacity-50"
-            style={{ background: accent, color: '#050505' }}
+            style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {saving ? 'Sending…' : cta}
           </button>
           <button
             onClick={onClose}
             className="px-4 py-2.5 rounded-sm font-bold text-[10px] uppercase tracking-[0.1em] cursor-pointer"
-            style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+            style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
           >
             Cancel
           </button>
@@ -1103,7 +1100,7 @@ function LeadLink({ url, label }: { url: string; label?: string }) {
   const href = safeUrl(url);
   if (!href) return <span className="break-all">{url}</span>;
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: '#00F0FF' }}>
+    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: 'var(--color-brand-primary)' }}>
       {label ?? url}
     </a>
   );
@@ -1116,7 +1113,7 @@ function SubmittedBriefButton({ lead }: { lead: Lead }) {
       <button
         onClick={() => setOpen(true)}
         className="w-full flex justify-between items-center px-4 py-3.5 cursor-pointer rounded-sm"
-        style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
       >
         <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
         <span className="text-[10px] text-ink-muted">▸</span>
@@ -1132,8 +1129,8 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
   const rows: { label: string; value: React.ReactNode }[] = [];
   rows.push({ label: 'Business Name', value: lead.name });
   rows.push({ label: 'Business Type', value: lead.business });
-  rows.push({ label: 'Email', value: <a href={`mailto:${lead.email}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.email}</a> });
-  if (lead.phone_number) rows.push({ label: 'Phone', value: <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: '#00F0FF' }}>{lead.phone_number}</a> });
+  rows.push({ label: 'Email', value: <a href={`mailto:${lead.email}`} className="hover:underline" style={{ color: 'var(--color-brand-primary)' }}>{lead.email}</a> });
+  if (lead.phone_number) rows.push({ label: 'Phone', value: <a href={`tel:${lead.phone_number}`} className="hover:underline" style={{ color: 'var(--color-brand-primary)' }}>{lead.phone_number}</a> });
   if (lead.contact_method) rows.push({ label: 'Preferred Contact', value: lead.contact_method });
   if (lead.package) {
     const pkg = PACKAGES.find((p) => p.id === lead.package);
@@ -1142,7 +1139,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
       value: (
         <span className="uppercase" style={{ letterSpacing: '0.04em' }}>
           {pkg?.name ?? lead.package}
-          {pkg && <span className="ml-2 font-bold" style={{ color: '#00F0FF' }}>{pkg.price}</span>}
+          {pkg && <span className="ml-2 font-bold" style={{ color: 'var(--color-brand-primary)' }}>{pkg.price}</span>}
         </span>
       ),
     });
@@ -1175,15 +1172,15 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
       />
       <div
         className="relative w-full flex flex-col text-white"
-        style={{ maxWidth: 480, maxHeight: '84vh', background: '#121212', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 6, overflow: 'hidden' }}
+        style={{ maxWidth: 480, maxHeight: '84vh', background: 'var(--color-bg-surface)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 6, overflow: 'hidden' }}
       >
         {/* Header */}
         <div
           className="flex items-start justify-between gap-4 flex-shrink-0"
-          style={{ padding: '22px 26px', borderBottom: '1px solid rgba(255,255,255,0.06)', background: 'linear-gradient(135deg, rgba(0,240,255,0.06), rgba(112,0,255,0.05))' }}
+          style={{ padding: '22px 26px', borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 6%, transparent), rgba(112,0,255,0.05))' }}
         >
           <div>
-            <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.16em', color: '#00F0FF', marginBottom: 4 }}>
+            <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.16em', color: 'var(--color-brand-primary)', marginBottom: 4 }}>
               Submitted Brief
             </p>
             <h3 className="m-0 font-display font-bold italic" style={{ fontSize: 20 }}>
@@ -1193,7 +1190,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           <button
             onClick={onClose}
             className="bg-transparent text-white cursor-pointer text-sm leading-none flex items-center justify-center flex-shrink-0"
-            style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ width: 30, height: 30, borderRadius: '50%', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           >
             ✕
           </button>
@@ -1204,11 +1201,11 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           {/* Key fact rows */}
           <div className="flex flex-col">
             {rows.map(({ label, value }) => (
-              <div key={label} className="flex" style={{ gap: 16, padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
-                <span className="font-bold uppercase flex-shrink-0" style={{ fontSize: 10, letterSpacing: '0.1em', color: '#A1A1A1', width: 130, paddingTop: 1 }}>
+              <div key={label} className="flex" style={{ gap: 16, padding: '10px 0', borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)' }}>
+                <span className="font-bold uppercase flex-shrink-0" style={{ fontSize: 10, letterSpacing: '0.1em', color: 'var(--color-ink-muted)', width: 130, paddingTop: 1 }}>
                   {label}
                 </span>
-                <span className="min-w-0" style={{ fontSize: 13, color: '#FFFFFF' }}>
+                <span className="min-w-0" style={{ fontSize: 13, color: 'var(--color-ink-base)' }}>
                   {value}
                 </span>
               </div>
@@ -1218,12 +1215,12 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           {/* Pages Needed */}
           {!!lead.pages_needed?.length && (
             <div>
-              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
                 Pages Needed
               </p>
               <div className="flex flex-wrap" style={{ gap: 8 }}>
                 {lead.pages_needed.map((p) => (
-                  <span key={p} style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: 'rgba(0,240,255,0.1)', border: '1px solid rgba(0,240,255,0.25)', color: '#00F0FF' }}>
+                  <span key={p} style={{ fontSize: 11, fontWeight: 600, padding: '6px 12px', borderRadius: 999, background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 25%, transparent)', color: 'var(--color-brand-primary)' }}>
                     {p}
                   </span>
                 ))}
@@ -1234,14 +1231,14 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           {/* Brand Colors */}
           {colors.length > 0 && (
             <div>
-              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
                 Brand Colors
               </p>
               <div className="flex" style={{ gap: 10 }}>
                 {colors.map((c, i) => (
-                  <div key={i} className="flex items-center" style={{ gap: 8, padding: '6px 12px 6px 6px', background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 999 }}>
-                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: '1px solid rgba(255,255,255,0.25)', flexShrink: 0, display: 'inline-block' }} />
-                    <span className="font-display" style={{ fontSize: 11, color: '#FFFFFF' }}>{c}</span>
+                  <div key={i} className="flex items-center" style={{ gap: 8, padding: '6px 12px 6px 6px', background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 999 }}>
+                    <span style={{ width: 20, height: 20, borderRadius: '50%', background: c, border: '1px solid color-mix(in srgb, var(--color-ink-base) 25%, transparent)', flexShrink: 0, display: 'inline-block' }} />
+                    <span className="font-display" style={{ fontSize: 11, color: 'var(--color-ink-base)' }}>{c}</span>
                   </div>
                 ))}
               </div>
@@ -1251,7 +1248,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           {/* Logo */}
           {lead.has_logo && lead.logo_url && (
             <div>
-              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
                 Logo
               </p>
               <LeadLink url={lead.logo_url} label="View logo" />
@@ -1261,7 +1258,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           {/* Inspiration */}
           {!!lead.inspiration_urls?.length && (
             <div>
-              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: '#A1A1A1', marginBottom: 10 }}>
+              <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
                 Inspiration
               </p>
               <div className="flex flex-col" style={{ gap: 6 }}>
@@ -1290,14 +1287,14 @@ function LaunchedDetails({ lead }: { lead: Lead }) {
   return (
     <div className="flex flex-col gap-2">
       <div
-        style={{ background: 'rgba(0,240,255,0.08)', border: '1px solid rgba(0,240,255,0.25)', color: '#00F0FF' }}
+        style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 8%, transparent)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 25%, transparent)', color: 'var(--color-brand-primary)' }}
         className="p-3.5 rounded-sm text-[12px] font-bold uppercase tracking-[0.08em] text-center"
       >
         Project Launched 🎉
       </div>
 
       <div
-        style={{ background: '#050505', border: '1px solid rgba(255,255,255,0.06)' }}
+        style={{ background: 'var(--color-bg-base)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
         className="p-4 rounded-sm flex flex-col gap-2.5"
       >
         {lead.site_url && (
@@ -1321,7 +1318,7 @@ function LaunchedDetails({ lead }: { lead: Lead }) {
           )}
           <div>
             <p className="m-0 text-[9px] uppercase tracking-[0.1em] text-ink-muted font-bold mb-0.5">Maintenance</p>
-            <p className="m-0 text-[13px]" style={{ color: lead.wants_maintenance ? '#00F0FF' : '#A1A1A1' }}>
+            <p className="m-0 text-[13px]" style={{ color: lead.wants_maintenance ? 'var(--color-brand-primary)' : 'var(--color-ink-muted)' }}>
               {lead.wants_maintenance ? 'Active' : 'None'}
             </p>
           </div>
@@ -1352,8 +1349,8 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
     <div
       onClick={onClick}
       style={{
-        background: isSelected ? 'rgba(0,240,255,0.06)' : 'rgba(255,255,255,0.02)',
-        border: `1px solid ${isSelected ? 'rgba(0,240,255,0.4)' : 'rgba(255,255,255,0.05)'}`,
+        background: isSelected ? 'color-mix(in srgb, var(--color-brand-primary) 6%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)',
+        border: `1px solid ${isSelected ? 'color-mix(in srgb, var(--color-brand-primary) 40%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)'}`,
         transition: 'background 0.15s, border-color 0.15s',
       }}
       className="p-[18px_20px] rounded-sm cursor-pointer hover:border-brand-primary/30"
@@ -1393,10 +1390,10 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
               {lead.milestone_index}/{MILESTONES.length} complete
             </p>
           </div>
-          <div className="h-1 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.08)' }}>
+          <div className="h-1 rounded-full overflow-hidden" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}>
             <div
               className="h-full rounded-full"
-              style={{ width: `${pct}%`, background: 'linear-gradient(90deg, #00F0FF, #7000FF)' }}
+              style={{ width: `${pct}%`, background: 'linear-gradient(90deg, var(--color-brand-primary), #7000FF)' }}
             />
           </div>
         </div>
@@ -1414,7 +1411,7 @@ function StubSection({ title, subtitle, placeholder }: { title: string; subtitle
       </div>
       <div className="flex-1 flex items-center justify-center p-6 md:p-10">
         <div
-          style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
+          style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
           className="text-center rounded-sm p-8 md:p-[60px_40px] text-ink-muted italic text-[13px]"
         >
           {placeholder}
@@ -1427,7 +1424,7 @@ function StubSection({ title, subtitle, placeholder }: { title: string; subtitle
 function EmptyState({ text }: { text: string }) {
   return (
     <div
-      style={{ border: '1px dashed rgba(255,255,255,0.1)' }}
+      style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
       className="py-[60px] px-5 text-center rounded-sm text-ink-muted italic"
     >
       {text}

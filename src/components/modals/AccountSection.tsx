@@ -75,7 +75,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
             <div>
               <p className={label}>Email Status</p>
               {user.emailVerified ? (
-                <span className="inline-flex items-center gap-1.5 text-[12px] font-bold" style={{ color: '#00F0FF' }}>
+                <span className="inline-flex items-center gap-1.5 text-[12px] font-bold" style={{ color: 'var(--color-brand-primary)' }}>
                   <CheckCircle2 className="w-3.5 h-3.5" /> Verified
                 </span>
               ) : (
@@ -110,7 +110,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
                 onClick={handleResendVerification}
                 disabled={sendingVerify || verifySent}
                 className="px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-                style={{ background: '#F5C542', color: '#050505' }}
+                style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
               >
                 {verifySent ? 'Email Sent' : sendingVerify ? 'Sending...' : 'Resend Verification Email'}
               </button>
@@ -129,7 +129,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
               onClick={handleChangePassword}
               disabled={sendingReset || resetSent}
               className="flex items-center gap-2 px-5 py-2.5 rounded-sm font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-              style={{ background: '#00F0FF', color: '#050505' }}
+              style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
             >
               <KeyRound className="w-3.5 h-3.5" />
               {resetSent ? 'Sent' : sendingReset ? 'Sending...' : 'Change Password'}

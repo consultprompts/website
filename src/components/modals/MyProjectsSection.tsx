@@ -23,7 +23,7 @@ const PACKAGE_NAME: Record<string, string> = Object.fromEntries(
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   pending:   { label: 'Under Review', color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
-  accepted:  { label: 'In Progress',  color: '#00F0FF', bg: 'rgba(0,240,255,0.10)' },
+  accepted:  { label: 'In Progress',  color: 'var(--color-brand-primary)', bg: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)' },
   revision:  { label: 'Revision',     color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
   launched:  { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
   suspended: { label: 'Suspended',    color: '#FF6B6B', bg: 'rgba(255,107,107,0.14)' },
@@ -87,7 +87,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-3 rounded-lg font-bold text-sm"
-            style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.3)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', color: 'var(--color-brand-primary)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)' }}
           >
             <ExternalLink className="w-4 h-4" />
             View Your Mockup
@@ -120,7 +120,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
               onClick={handleApprove}
               disabled={submitting}
               className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:opacity-60"
-              style={{ background: '#00F0FF', color: '#050505' }}
+              style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
             >
               {submitting ? 'Saving…' : 'Approve Design'}
             </button>
@@ -128,7 +128,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
               onClick={() => setShowFeedback(true)}
               disabled={submitting}
               className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] cursor-pointer disabled:opacity-60"
-              style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff' }}
+              style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 20%, transparent)', color: 'var(--color-ink-base)' }}
             >
               Request Changes
             </button>
@@ -143,14 +143,14 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
               placeholder="Describe what you'd like changed…"
               rows={4}
               className="w-full rounded-lg p-3 text-sm font-light text-white resize-none focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
             <div className="flex gap-3">
               <button
                 onClick={handleRequestChanges}
                 disabled={submitting}
                 className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:opacity-60"
-                style={{ background: '#F5C542', color: '#050505' }}
+                style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
               >
                 {submitting ? 'Submitting…' : 'Submit Feedback'}
               </button>
@@ -158,7 +158,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                 onClick={() => { setShowFeedback(false); setFeedback(''); setError(''); }}
                 disabled={submitting}
                 className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] cursor-pointer disabled:opacity-60"
-                style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+                style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
               >
                 Cancel
               </button>
@@ -222,17 +222,17 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     return (
       <div
         className="rounded-xl overflow-hidden"
-        style={{ border: '1px solid rgba(0,240,255,0.2)' }}
+        style={{ border: '1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent)' }}
       >
         <div
           className="px-5 py-3 flex items-center gap-2"
-          style={{ background: 'rgba(0,240,255,0.08)' }}
+          style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 8%, transparent)' }}
         >
-          <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#00F0FF' }}>
+          <span className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'var(--color-brand-primary)' }}>
             ✓ Payment Confirmed
           </span>
         </div>
-        <div className="px-5 py-4 flex flex-col gap-3" style={{ background: 'rgba(0,240,255,0.03)' }}>
+        <div className="px-5 py-4 flex flex-col gap-3" style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 3%, transparent)' }}>
           <p className="text-xs text-ink-muted font-light">
             Your site will be launched shortly. Check your email for a receipt.
           </p>
@@ -255,7 +255,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             </div>
             <div>
               <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Maintenance</p>
-              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? '#00F0FF' : '#555' }}>
+              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? 'var(--color-brand-primary)' : '#555' }}>
                 {lead.wants_maintenance ? `$${MAINTENANCE_MONTHLY_PRICE}/mo` : 'None'}
               </p>
             </div>
@@ -273,25 +273,25 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     <>
       <div className="w-fullrounded-xl flex flex-col gap-6">
         {/* Fee summary */}
-        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-          <div className="px-4 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
+        <div className="rounded-lg overflow-hidden" style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}>
+          <div className="px-4 py-2" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)' }}>
             <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Order Summary</p>
           </div>
 
           {pkgName && (
-            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
               <span className="text-[13px] text-ink-muted">{pkgName}</span>
               <span className="text-[13px] font-bold text-white">${pkgPrice}</span>
             </div>
           )}
 
-          <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
             <span className="text-[13px] text-ink-muted">Domain registration</span>
             <span className="text-[13px] font-bold text-white">${DOMAIN_FEE} / year</span>
           </div>
 
           {maintenance && (
-            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
               <span className="text-[13px] text-ink-muted">Site maintenance</span>
               <span className="text-[13px] font-bold text-white">${MAINTENANCE_MONTHLY_PRICE} / month</span>
             </div>
@@ -300,10 +300,10 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
           {/* Total row */}
           <div
             className="flex justify-between items-center px-4 py-3"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.12)', background: 'rgba(0,240,255,0.06)' }}
+            style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 12%, transparent)', background: 'color-mix(in srgb, var(--color-brand-primary) 6%, transparent)' }}
           >
             <div>
-              <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: '#00F0FF' }}>
+              <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: 'var(--color-brand-primary)' }}>
                 Due Today
               </span>
               {maintenance && (
@@ -312,12 +312,12 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
                 </span>
               )}
             </div>
-            <span className="text-[20px] font-black" style={{ color: '#00F0FF' }}>
+            <span className="text-[20px] font-black" style={{ color: 'var(--color-brand-primary)' }}>
               ${total}
             </span>
           </div>
 
-          <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+          <div className="px-4 py-2" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)' }}>
             <p className="text-[10px] text-ink-muted font-light">
               Domain renews annually. You'll be reminded before the renewal date.
             </p>
@@ -327,7 +327,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
         {/* Maintenance toggle */}
         <div
           className="rounded-lg py-2 px-4 flex items-center justify-between gap-4"
-          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+          style={{ background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
         >
           <div>
             <p className="text-xs text-ink-muted font-light mt-0.5">
@@ -340,7 +340,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             onClick={() => !savingMaintenance && toggleMaintenance(!maintenance)}
             disabled={savingMaintenance}
             className="flex-shrink-0 w-12 h-6 rounded-full relative transition-colors focus:outline-none disabled:opacity-60 cursor-pointer border-none p-0"
-            style={{ background: maintenance ? '#00F0FF' : 'rgba(255,255,255,0.15)' }}
+            style={{ background: maintenance ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           >
             <span
               className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
@@ -352,7 +352,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
         <button
           onClick={() => setShowPayModal(true)}
           className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] border-none cursor-pointer"
-          style={{ background: '#00F0FF', color: '#050505' }}
+          style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           Pay Now
         </button>
@@ -399,7 +399,7 @@ function PayModal({
           <X className="w-5 h-5" />
         </button>
 
-        <p className="text-[12px] uppercase tracking-widest font-bold mb-1" style={{ color: '#00F0FF' }}>
+        <p className="text-[12px] uppercase tracking-widest font-bold mb-1" style={{ color: 'var(--color-brand-primary)' }}>
           Payment Details
         </p>
         <p className="text-xs text-ink-muted font-light mb-6">Enter your card details to pay ${total} and launch your site.</p>
@@ -412,7 +412,7 @@ function PayModal({
               placeholder="1234 5678 9012 3456"
               maxLength={19}
               className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
           </div>
           <div className="flex gap-3">
@@ -423,7 +423,7 @@ function PayModal({
                 placeholder="MM / YY"
                 maxLength={7}
                 className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
               />
             </div>
             <div className="flex-1">
@@ -433,7 +433,7 @@ function PayModal({
                 placeholder="123"
                 maxLength={4}
                 className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-                style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+                style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
               />
             </div>
           </div>
@@ -443,7 +443,7 @@ function PayModal({
               type="text"
               placeholder="Jane Smith"
               className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
           </div>
           <div>
@@ -452,7 +452,7 @@ function PayModal({
               type="text"
               placeholder="123 Main St, City, State, ZIP"
               className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
           </div>
         </div>
@@ -465,7 +465,7 @@ function PayModal({
           onClick={onConfirm}
           disabled={paying}
           className="w-full mt-6 text-[13px] font-bold px-[18px] py-3 rounded-[9px] border-none cursor-pointer disabled:opacity-60"
-          style={{ background: '#00F0FF', color: '#050505' }}
+          style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           {paying ? 'Processing…' : `Pay $${total} & Launch`}
         </button>
@@ -501,31 +501,31 @@ function milestoneStepInfo(lead: Lead, i: number, meetingReRequested: boolean) {
     label = MILESTONES_PENDING[i];
   }
 
-  const labelColor = done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.3)';
+  const labelColor = done ? 'var(--color-ink-base)' : current ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 30%, transparent)';
   return { k, done, current, label, labelColor };
 }
 
 function MilestoneDot({ done, current, k, size = 'w-7 h-7' }: { done: boolean; current: boolean; k: number; size?: string }) {
   if (done) {
     return (
-      <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ background: '#00F0FF', border: '2px solid #00F0FF' }}>
-        <span className="text-xs font-black" style={{ color: '#050505' }}>✓</span>
+      <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ background: 'var(--color-brand-primary)', border: '2px solid var(--color-brand-primary)' }}>
+        <span className="text-xs font-black" style={{ color: 'var(--color-bg-base)' }}>✓</span>
       </div>
     );
   }
   if (current) {
     return (
       <div className={`relative ${size} z-10`}>
-        <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'rgba(0,240,255,0.35)', animationDuration: '1.6s' }} />
-        <div className={`relative ${size} rounded-full flex items-center justify-center`} style={{ background: 'transparent', border: '2px solid #00F0FF' }}>
-          <span className="text-xs font-black" style={{ color: '#00F0FF' }}>{k}</span>
+        <div className="absolute inset-0 rounded-full animate-ping" style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 35%, transparent)', animationDuration: '1.6s' }} />
+        <div className={`relative ${size} rounded-full flex items-center justify-center`} style={{ background: 'transparent', border: '2px solid var(--color-brand-primary)' }}>
+          <span className="text-xs font-black" style={{ color: 'var(--color-brand-primary)' }}>{k}</span>
         </div>
       </div>
     );
   }
   return (
-    <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ border: '2px solid rgba(255,255,255,0.2)' }}>
-      <span className="text-[11px] font-bold" style={{ color: 'rgba(255,255,255,0.3)' }}>{k}</span>
+    <div className={`rounded-full flex items-center justify-center ${size} relative z-10`} style={{ border: '2px solid color-mix(in srgb, var(--color-ink-base) 20%, transparent)' }}>
+      <span className="text-[11px] font-bold" style={{ color: 'color-mix(in srgb, var(--color-ink-base) 30%, transparent)' }}>{k}</span>
     </div>
   );
 }
@@ -558,7 +558,7 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
               {i < MILESTONES.length - 1 && (
                 <div
                   className="absolute h-0.5"
-                  style={{ top: 14, left: '50%', width: '100%', background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }}
+                  style={{ top: 14, left: '50%', width: '100%', background: done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 12%, transparent)' }}
                 />
               )}
 
@@ -592,7 +592,7 @@ function HorizontalMilestoneTracker({ lead }: { lead: Lead }) {
               >
                 {/* Connector pinned to dot centre (18px = half of w-9 h-9) */}
                 {i < MILESTONES.length - 1 && (
-                  <div className="absolute h-0.5" style={{ top: 18, left: '50%', width: MOBILE_STEP_WIDTH, background: done ? '#00F0FF' : 'rgba(255,255,255,0.12)' }} />
+                  <div className="absolute h-0.5" style={{ top: 18, left: '50%', width: MOBILE_STEP_WIDTH, background: done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 12%, transparent)' }} />
                 )}
 
                 <div className="transition-transform duration-500 ease-out" style={{ transform: `scale(${scale})` }}>
@@ -666,7 +666,7 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm"
-            style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.3)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', color: 'var(--color-brand-primary)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)' }}
           >
             <ExternalLink className="w-4 h-4" />
             Visit site
@@ -702,7 +702,7 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
       </div>
 
       {/* Vertical divider */}
-      <div className="self-stretch w-px flex-shrink-0" style={{ background: 'rgba(255,255,255,0.08)' }} />
+      <div className="self-stretch w-px flex-shrink-0" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }} />
 
       {/* Center — description */}
       <div className="px-6 py-5 flex items-start gap-3 flex-1 min-w-0">
@@ -719,9 +719,9 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
         <button
           onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
           className="text-[13px] font-bold px-4 py-2 rounded-[9px] cursor-pointer whitespace-nowrap"
-          style={{ border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', color: '#ffffff' }}
-          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
-          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.18)')}
+          style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 18%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
+          onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
+          onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 18%, transparent)')}
         >
           Edit submission
         </button>
@@ -759,8 +759,8 @@ function CyclingLoader({ words }: { words: string[] }) {
 
   return (
     <div className="flex items-center gap-2.5">
-      <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" style={{ color: '#00F0FF' }} />
-      <span className="text-[13px] font-bold" style={{ color: '#00F0FF' }}>
+      <Loader2 className="w-4 h-4 animate-spin flex-shrink-0" style={{ color: 'var(--color-brand-primary)' }} />
+      <span className="text-[13px] font-bold" style={{ color: 'var(--color-brand-primary)' }}>
         {words[i]}
         <span className="inline-block w-[3ch] text-left">{'.'.repeat(dots)}</span>
       </span>
@@ -804,8 +804,8 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
           disabled={meetingState === 'sending' || meetingRequested}
           className="px-[18px] py-2 rounded-[9px] font-bold text-[13px] border-none cursor-pointer disabled:cursor-default transition-colors"
           style={meetingRequested
-            ? { background: 'transparent', border: '2px solid #00F0FF', color: '#00F0FF' }
-            : { background: '#00F0FF', color: '#050505' }}
+            ? { background: 'transparent', border: '2px solid var(--color-brand-primary)', color: 'var(--color-brand-primary)' }
+            : { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
         >
           {meetingState === 'sending' ? 'Sending…' : meetingRequested ? '✓ Meeting Requested' : meetingState === 'error' ? 'Try Again' : 'Request a Meeting'}
         </button>
@@ -958,7 +958,7 @@ function ActivityPanel({ lead }: { lead: Lead }) {
         <div className="px-6 pb-6 flex flex-col gap-3">
           {events.map((e) => (
             <div key={e.id} className="flex items-start gap-3">
-              <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0" style={{ background: '#00F0FF' }} />
+              <div className="w-1.5 h-1.5 rounded-full mt-[7px] flex-shrink-0" style={{ background: 'var(--color-brand-primary)' }} />
               <div className="flex-1 min-w-0 flex items-center justify-between gap-3">
                 <p className="text-[13px] text-white/80 font-light m-0">
                   {ACTIVITY_LABEL[e.event_type] ?? e.event_type}
@@ -1004,7 +1004,7 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
             <div
               key={lead.id}
               className="rounded-[14px] border px-6 py-[22px] flex items-center justify-between"
-              style={{ borderColor: 'rgba(255,255,255,0.08)', background: 'var(--bg-surface, rgba(255,255,255,0.03))' }}
+              style={{ borderColor: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)', background: 'var(--bg-surface, color-mix(in srgb, var(--color-ink-base) 3%, transparent))' }}
             >
               <div>
                 <p className="font-display font-bold text-base">{lead.business}</p>
@@ -1019,7 +1019,7 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
                   target="_blank"
                   rel="noopener noreferrer"
                   className="text-[12px] font-bold"
-                  style={{ color: 'var(--brand-primary, #00F0FF)' }}
+                  style={{ color: 'var(--brand-primary, var(--color-brand-primary))' }}
                 >
                   Visit site ↗
                 </a>
@@ -1056,11 +1056,11 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
       <h2 className="font-display font-bold text-2xl mt-4 mb-1">Payments</h2>
       <p className="text-[13px] text-ink-muted mb-6">Your billing history with Consult Prompts.</p>
 
-      <div className="w-full rounded-[14px] border overflow-hidden" style={{ borderColor: 'rgba(255,255,255,0.08)' }}>
+      <div className="w-full rounded-[14px] border overflow-hidden" style={{ borderColor: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}>
         {/* Header row: NAME | AMOUNT | DATE */}
         <div
           className="px-5 py-4 grid"
-          style={{ background: 'rgba(255,255,255,0.03)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
+          style={{ background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
         >
           {['NAME', 'AMOUNT', 'DATE'].map((col, i) => (
             <span key={col} className={`text-[11px] font-bold uppercase tracking-widest text-ink-muted${i === 2 ? ' text-right' : ''}`}>{col}</span>
@@ -1074,14 +1074,14 @@ function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) 
             const dateStr = lead.paid_at
               ? new Date(lead.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
               : '—';
-            const description = `${lead.business} — ${PACKAGE_NAME[lead.package ?? ''] ?? lead.package ?? '—'}`;
+            const description = `${lead.business}`;
             const amount = lead.payment_amount != null ? `$${lead.payment_amount.toFixed(2)}` : '—';
 
             return (
               <div
                 key={lead.id}
                 className="px-5 py-[14px] grid"
-                style={{ borderTop: '1px solid rgba(255,255,255,0.06)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
+                style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
               >
                 <span className="text-[13px] text-white">{description}</span>
                 <span className="text-[13px] font-bold text-white">{amount}</span>
@@ -1202,18 +1202,18 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               <button
                 onClick={() => toSubView('old-projects')}
                 className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
-                style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)')}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)')}
               >
                 Old Projects
               </button>
               <button
                 onClick={() => toSubView('payments')}
                 className="text-[13px] font-bold px-[18px] py-2 rounded-[9px] cursor-pointer"
-                style={{ border: '1px solid rgba(255,255,255,0.15)', background: 'transparent', color: '#ffffff' }}
-                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.4)')}
-                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'rgba(255,255,255,0.15)')}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
+                onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
+                onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)')}
               >
                 Payments
               </button>

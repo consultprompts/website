@@ -40,7 +40,7 @@ export default function AuthCallback() {
             ? 'Your Google account email is not verified.'
             : 'Something went wrong during sign-in. Please try again.'}
         </p>
-        <Link to="/" className="text-sm font-bold hover:underline" style={{ color: '#00F0FF' }}>
+        <Link to="/" className="text-sm font-bold hover:underline" style={{ color: 'var(--color-brand-primary)' }}>
           Back to home
         </Link>
       </div>

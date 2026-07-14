@@ -8,7 +8,10 @@ export default function FinalCTA({ onStartProject }: FinalCTAProps) {
   return (
     <section className="relative py-24 md:py-36 px-6 text-center overflow-hidden bg-bg-base flex flex-col items-center justify-center">
       <div className="absolute inset-0 pointer-events-none">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_50%,rgba(0,240,255,0.18)_0%,transparent_70%)]" />
+        <div
+          className="absolute inset-0"
+          style={{ background: 'radial-gradient(ellipse 80% 60% at 50% 50%, color-mix(in srgb, var(--color-brand-primary) 18%, transparent) 0%, transparent 70%)' }}
+        />
         <div className="hidden md:block absolute bottom-0 left-1/2 -translate-x-1/2 w-[700px] h-[350px] bg-brand-primary/25 rounded-full blur-[90px]" />
       </div>
       <div className="relative max-w-3xl mx-auto w-full">
@@ -31,7 +34,7 @@ export default function FinalCTA({ onStartProject }: FinalCTAProps) {
         >
           <button
             onClick={onStartProject}
-            className="bg-brand-primary text-bg-base font-black text-base md:text-lg px-8 py-4 rounded-xl hover:scale-105 hover:shadow-[0_0_30px_rgba(0,240,255,0.4)] transition-all duration-200 cursor-pointer"
+            className="bg-brand-primary text-bg-base font-black text-base md:text-lg px-8 py-4 rounded-xl hover:scale-105 hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-brand-primary)_40%,transparent)] transition-all duration-200 cursor-pointer"
           >
             Start your project →
           </button>

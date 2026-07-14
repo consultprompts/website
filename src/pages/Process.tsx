@@ -81,7 +81,7 @@ export default function Process() {
       <header style={{ padding: '148px 24px 56px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
         <span
           className="font-bold uppercase block"
-          style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
+          style={{ color: 'var(--color-brand-primary)', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
         >
           Our DNA
         </span>
@@ -108,7 +108,7 @@ export default function Process() {
             className="step-row"
             style={{
               padding: '40px 0',
-              borderBottom: i < STEPS.length - 1 ? '1px solid rgba(255,255,255,0.06)' : 'none',
+              borderBottom: i < STEPS.length - 1 ? '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' : 'none',
             }}
           >
             {/* Left rail — icon badge + connector */}
@@ -118,8 +118,8 @@ export default function Process() {
                   width: 64,
                   height: 64,
                   borderRadius: 999,
-                  background: 'linear-gradient(135deg, rgba(0,240,255,0.15), rgba(112,0,255,0.08))',
-                  border: '1px solid rgba(0,240,255,0.3)',
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 15%, transparent), rgba(112,0,255,0.08))',
+                  border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -131,7 +131,7 @@ export default function Process() {
               {i < STEPS.length - 1 && (
                 <div
                   className="step-connector"
-                  style={{ width: 1, flex: 1, minHeight: 40, background: 'rgba(255,255,255,0.08)', transformOrigin: 'top' }}
+                  style={{ width: 1, flex: 1, minHeight: 40, background: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)', transformOrigin: 'top' }}
                 />
               )}
             </div>
@@ -142,12 +142,12 @@ export default function Process() {
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 14, marginBottom: 12, flexWrap: 'wrap' }}>
                 <span
                   className="font-display"
-                  style={{ fontSize: 13, fontWeight: 800, color: '#00F0FF', textTransform: 'uppercase', letterSpacing: '0.1em' }}
+                  style={{ fontSize: 13, fontWeight: 800, color: 'var(--color-brand-primary)', textTransform: 'uppercase', letterSpacing: '0.1em' }}
                 >
                   Step {step.id}
                 </span>
                 <span
-                  style={{ fontSize: 11, color: '#A1A1A1', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}
+                  style={{ fontSize: 11, color: 'var(--color-ink-muted)', textTransform: 'uppercase', letterSpacing: '0.1em', fontWeight: 700 }}
                 >
                   {step.timing}
                 </span>
@@ -164,17 +164,17 @@ export default function Process() {
               {/* What You Do / What We Do */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 mb-6">
                 <div
-                  style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)', borderRadius: 12, padding: 20 }}
+                  style={{ background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 7%, transparent)', borderRadius: 12, padding: 20 }}
                 >
                   <p
-                    style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#A1A1A1', margin: '0 0 14px' }}
+                    style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-muted)', margin: '0 0 14px' }}
                   >
                     What You Do
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {step.yourRole.map(item => (
                       <div key={item} style={{ display: 'flex', gap: 10, fontSize: 13 }}>
-                        <span style={{ color: '#A1A1A1', flexShrink: 0 }}>·</span>
+                        <span style={{ color: 'var(--color-ink-muted)', flexShrink: 0 }}>·</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -183,21 +183,21 @@ export default function Process() {
 
                 <div
                   style={{
-                    background: 'rgba(0,240,255,0.05)',
-                    border: '1px solid rgba(0,240,255,0.18)',
+                    background: 'color-mix(in srgb, var(--color-brand-primary) 5%, transparent)',
+                    border: '1px solid color-mix(in srgb, var(--color-brand-primary) 18%, transparent)',
                     borderRadius: 12,
                     padding: 20,
                   }}
                 >
                   <p
-                    style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#00F0FF', margin: '0 0 14px' }}
+                    style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-brand-primary)', margin: '0 0 14px' }}
                   >
                     What We Do
                   </p>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {step.ourRole.map(item => (
                       <div key={item} style={{ display: 'flex', gap: 10, fontSize: 13 }}>
-                        <span style={{ color: '#00F0FF', flexShrink: 0 }}>✓</span>
+                        <span style={{ color: 'var(--color-brand-primary)', flexShrink: 0 }}>✓</span>
                         <span>{item}</span>
                       </div>
                     ))}
@@ -212,15 +212,15 @@ export default function Process() {
                   alignItems: 'center',
                   gap: 12,
                   padding: '14px 18px',
-                  background: 'rgba(255,255,255,0.02)',
-                  border: '1px dashed rgba(255,255,255,0.15)',
+                  background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)',
+                  border: '1px dashed color-mix(in srgb, var(--color-ink-base) 15%, transparent)',
                   borderRadius: 10,
                 }}
               >
                 <span style={{ fontSize: 16, flexShrink: 0 }}>📦</span>
                 <span style={{ fontSize: 13 }}>
                   <strong
-                    style={{ color: '#A1A1A1', fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.08em', marginRight: 8 }}
+                    style={{ color: 'var(--color-ink-muted)', fontWeight: 700, textTransform: 'uppercase', fontSize: 10, letterSpacing: '0.08em', marginRight: 8 }}
                   >
                     You Get
                   </strong>
@@ -234,7 +234,7 @@ export default function Process() {
 
       {/* ── Closing CTA ── */}
       <section
-        style={{ padding: '80px 24px', background: 'rgba(255,255,255,0.02)', textAlign: 'center' }}
+        style={{ padding: '80px 24px', background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)', textAlign: 'center' }}
       >
         <h2
           className="font-display font-bold italic"
@@ -249,8 +249,8 @@ export default function Process() {
           onClick={() => navigate('/settings/my-projects/new-project')}
           className="font-black transition-opacity hover:opacity-90 cursor-pointer"
           style={{
-            background: '#00F0FF',
-            color: '#050505',
+            background: 'var(--color-brand-primary)',
+            color: 'var(--color-bg-base)',
             padding: '16px 34px',
             borderRadius: 12,
             border: 'none',

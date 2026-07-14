@@ -11,7 +11,7 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
       <div className="max-w-7xl mx-auto">
         <div className="mb-16 text-center lg:text-left">
           <span className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-4 block">Scalable Growth Tiers</span>
-          <h2 className="font-display text-4xl md:text-6xl font-bold mb-8 italic leading-tight">Pick Your Fuel.</h2>
+          <h2 className="font-display text-4xl md:text-3xl font-bold mb-8 italic leading-tight">Pick Your Fuel.</h2>
         </div>
 
         <div
@@ -22,8 +22,8 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
               key={pkg.id}
               className={
                 pkg.featured
-                  ? 'liquid-glass p-8 rounded-xl border border-brand-primary/40 relative flex flex-col bg-linear-to-br from-white/10 to-white/5 overflow-hidden transition-[border-color,box-shadow] duration-300 hover:border-brand-primary hover:ring-[3px] hover:ring-brand-primary/40 hover:shadow-[0_0_48px_rgba(0,240,255,0.18)]'
-                  : 'liquid-glass p-8 rounded-xl border border-white/[0.08] flex flex-col relative transition-[border-color,box-shadow] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.12)]'
+                  ? 'liquid-glass p-8 rounded-xl border border-brand-primary/40 relative flex flex-col bg-linear-to-br from-white/10 to-white/5 overflow-hidden transition-[border-color,box-shadow] duration-300 hover:border-brand-primary hover:ring-[3px] hover:ring-brand-primary/40 hover:shadow-[0_0_48px_color-mix(in srgb, var(--color-brand-primary) 18%, transparent)]'
+                  : 'liquid-glass p-8 rounded-xl border border-white/[0.08] flex flex-col relative transition-[border-color,box-shadow] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_color-mix(in srgb, var(--color-brand-primary) 12%, transparent)]'
               }
             >
               {pkg.featured && (

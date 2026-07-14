@@ -34,7 +34,7 @@ export default function Academy() {
           <button
             onClick={() => navigate('/')}
             style={{
-              color: '#FFFFFF',
+              color: 'var(--color-ink-base)',
               background: 'none',
               border: 'none',
               borderBottom: '1px solid #7000FF',

@@ -260,7 +260,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                 <a
                   href={googleLoginUrl()}
                   className="w-full py-3 md:py-3.5 mb-6 md:mb-8 flex items-center justify-center gap-3 rounded-xl font-bold text-sm text-white no-underline transition-colors hover:border-white/30"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.12)' }}
+                  style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 12%, transparent)' }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />

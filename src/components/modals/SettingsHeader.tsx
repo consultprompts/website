@@ -12,7 +12,7 @@ interface SettingsHeaderProps {
 export default function SettingsHeader({ title, subtitle, onBack }: SettingsHeaderProps) {
   return (
     <div
-      style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}
+      style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
       className={`${onBack ? 'flex' : 'hidden md:flex'} px-4 md:px-8 py-3 md:py-4 items-center gap-4 flex-shrink-0`}
     >
       {onBack && (

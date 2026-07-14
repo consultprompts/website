@@ -15,7 +15,7 @@ export default function Pricing() {
       <header style={{ padding: '148px 24px 56px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
         <span
           className="font-bold uppercase block"
-          style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
+          style={{ color: 'var(--color-brand-primary)', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
         >
           Scalable Growth Tiers
         </span>
@@ -38,11 +38,11 @@ export default function Pricing() {
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 64px', display: 'flex', flexDirection: 'column', gap: 28 }}>
         {PACKAGES.map((pkg, i) => {
           const featured = !!pkg.featured;
-          const accent = featured ? '#00F0FF' : '#A1A1A1';
-          const accentBg = featured ? 'rgba(0,240,255,0.12)' : 'rgba(255,255,255,0.06)';
-          const ctaBg = featured ? '#00F0FF' : 'transparent';
-          const ctaFg = featured ? '#050505' : '#FFFFFF';
-          const ctaBorder = featured ? 'none' : '1px solid rgba(255,255,255,0.15)';
+          const accent = featured ? 'var(--color-brand-primary)' : 'var(--color-ink-muted)';
+          const accentBg = featured ? 'color-mix(in srgb, var(--color-brand-primary) 12%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 6%, transparent)';
+          const ctaBg = featured ? 'var(--color-brand-primary)' : 'transparent';
+          const ctaFg = featured ? 'var(--color-bg-base)' : 'var(--color-ink-base)';
+          const ctaBorder = featured ? 'none' : '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)';
 
           return (
             <div
@@ -50,9 +50,9 @@ export default function Pricing() {
               className="pkg-card-grid"
               style={{
                 background: featured
-                  ? 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(255,255,255,0.03))'
-                  : 'rgba(255,255,255,0.03)',
-                border: `1px solid ${featured ? 'rgba(0,240,255,0.35)' : 'rgba(255,255,255,0.08)'}`,
+                  ? 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 10%, transparent), color-mix(in srgb, var(--color-ink-base) 3%, transparent))'
+                  : 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)',
+                border: `1px solid ${featured ? 'color-mix(in srgb, var(--color-brand-primary) 35%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)'}`,
                 borderRadius: 18,
                 padding: 40,
                 position: 'relative',
@@ -65,8 +65,8 @@ export default function Pricing() {
                     position: 'absolute',
                     top: 0,
                     right: 0,
-                    background: '#00F0FF',
-                    color: '#050505',
+                    background: 'var(--color-brand-primary)',
+                    color: 'var(--color-bg-base)',
                     fontSize: 9,
                     fontWeight: 800,
                     padding: '6px 16px',
@@ -114,13 +114,13 @@ export default function Pricing() {
                     {pkg.price}
                   </span>
                   <span
-                    style={{ fontSize: 11, color: '#A1A1A1', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.1em' }}
+                    style={{ fontSize: 11, color: 'var(--color-ink-muted)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.1em' }}
                   >
                     / {pkg.tier}
                   </span>
                 </div>
                 <p
-                  style={{ fontSize: 11, color: '#A1A1A1', margin: '0 0 28px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}
+                  style={{ fontSize: 11, color: 'var(--color-ink-muted)', margin: '0 0 28px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em' }}
                 >
                   {pkg.timeline}
                 </p>
@@ -155,7 +155,7 @@ export default function Pricing() {
                   display: 'flex',
                   flexDirection: 'column',
                   gap: 22,
-                  borderLeft: '1px solid rgba(255,255,255,0.08)',
+                  borderLeft: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
                   paddingLeft: 40,
                 }}
               >
@@ -166,7 +166,7 @@ export default function Pricing() {
                       fontWeight: 800,
                       textTransform: 'uppercase',
                       letterSpacing: '0.1em',
-                      color: '#00F0FF',
+                      color: 'var(--color-brand-primary)',
                       fontStyle: 'italic',
                     }}
                   >
@@ -181,7 +181,7 @@ export default function Pricing() {
                         fontWeight: 800,
                         textTransform: 'uppercase',
                         letterSpacing: '0.12em',
-                        color: '#A1A1A1',
+                        color: 'var(--color-ink-muted)',
                         margin: '0 0 12px',
                       }}
                     >
@@ -190,11 +190,11 @@ export default function Pricing() {
                     <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                       {cat.items.map(f => (
                         <div key={f.label} style={{ display: 'flex', gap: 12 }}>
-                          <span style={{ color: '#00F0FF', flexShrink: 0, fontSize: 13, marginTop: 1 }}>✓</span>
+                          <span style={{ color: 'var(--color-brand-primary)', flexShrink: 0, fontSize: 13, marginTop: 1 }}>✓</span>
                           <div>
                             <div style={{ fontSize: 13, fontWeight: 600 }}>{f.label}</div>
                             <div
-                              style={{ fontSize: 12, color: '#A1A1A1', marginTop: 2, fontWeight: 300, lineHeight: 1.5 }}
+                              style={{ fontSize: 12, color: 'var(--color-ink-muted)', marginTop: 2, fontWeight: 300, lineHeight: 1.5 }}
                             >
                               {f.detail}
                             </div>
@@ -220,7 +220,7 @@ export default function Pricing() {
         >
           Compare Every Package.
         </h2>
-        <div style={{ overflowX: 'auto', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 16 }}>
+        <div style={{ overflowX: 'auto', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 16 }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: 640 }}>
             <thead>
               <tr>
@@ -228,12 +228,12 @@ export default function Pricing() {
                   style={{
                     textAlign: 'left',
                     padding: '20px 24px',
-                    background: 'rgba(255,255,255,0.02)',
-                    borderBottom: '1px solid rgba(255,255,255,0.08)',
+                    background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)',
+                    borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
                     fontSize: 11,
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    color: '#A1A1A1',
+                    color: 'var(--color-ink-muted)',
                     fontWeight: 700,
                   }}
                 >
@@ -245,18 +245,18 @@ export default function Pricing() {
                     style={{
                       textAlign: 'center',
                       padding: '20px 20px',
-                      background: pkg.featured ? 'rgba(0,240,255,0.08)' : 'rgba(255,255,255,0.02)',
-                      borderBottom: '1px solid rgba(255,255,255,0.08)',
-                      borderLeft: '1px solid rgba(255,255,255,0.06)',
+                      background: pkg.featured ? 'color-mix(in srgb, var(--color-brand-primary) 8%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)',
+                      borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
+                      borderLeft: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
                       minWidth: 140,
                     }}
                   >
-                    <div className="font-display" style={{ fontWeight: 700, fontStyle: 'italic', fontSize: 15, color: '#FFFFFF' }}>
+                    <div className="font-display" style={{ fontWeight: 700, fontStyle: 'italic', fontSize: 15, color: 'var(--color-ink-base)' }}>
                       {pkg.name}
                     </div>
                     <div
                       className="font-display"
-                      style={{ fontWeight: 900, fontSize: 22, color: pkg.featured ? '#00F0FF' : '#FFFFFF', marginTop: 4 }}
+                      style={{ fontWeight: 900, fontSize: 22, color: pkg.featured ? 'var(--color-brand-primary)' : 'var(--color-ink-base)', marginTop: 4 }}
                     >
                       {pkg.price}
                     </div>
@@ -271,8 +271,8 @@ export default function Pricing() {
                     style={{
                       padding: '14px 24px',
                       fontSize: 13,
-                      color: '#FFFFFF',
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
+                      color: 'var(--color-ink-base)',
+                      borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)',
                     }}
                   >
                     {row.label}
@@ -283,14 +283,14 @@ export default function Pricing() {
                       style={{
                         textAlign: 'center',
                         padding: '14px 20px',
-                        borderBottom: '1px solid rgba(255,255,255,0.05)',
-                        borderLeft: '1px solid rgba(255,255,255,0.05)',
-                        background: PACKAGES[ci].featured ? 'rgba(0,240,255,0.03)' : 'transparent',
+                        borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)',
+                        borderLeft: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)',
+                        background: PACKAGES[ci].featured ? 'color-mix(in srgb, var(--color-brand-primary) 3%, transparent)' : 'transparent',
                       }}
                     >
                       <span
                         style={{
-                          color: yes ? '#00F0FF' : 'rgba(255,255,255,0.2)',
+                          color: yes ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 20%, transparent)',
                           fontSize: 15,
                           fontWeight: 700,
                         }}
@@ -312,8 +312,8 @@ export default function Pricing() {
       >
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(0,240,255,0.08), rgba(112,0,255,0.04))',
-            border: '1px solid rgba(0,240,255,0.2)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 8%, transparent), rgba(112,0,255,0.04))',
+            border: '1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent)',
             borderRadius: 16,
             padding: 36,
             display: 'flex',

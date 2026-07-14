@@ -20,7 +20,7 @@ export default function About() {
             right: 0,
             width: 600,
             height: 460,
-            background: 'rgba(0,240,255,0.06)',
+            background: 'color-mix(in srgb, var(--color-brand-primary) 6%, transparent)',
             borderRadius: 999,
             filter: 'blur(140px)',
             pointerEvents: 'none',
@@ -29,7 +29,7 @@ export default function About() {
         <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1, textAlign: 'center' }}>
           <span
             className="font-bold uppercase block"
-            style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
+            style={{ color: 'var(--color-brand-primary)', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
           >
             Who We Are
           </span>
@@ -57,7 +57,7 @@ export default function About() {
       >
         <div>
           <span
-            style={{ color: '#00F0FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', display: 'block', marginBottom: 14 }}
+            style={{ color: 'var(--color-brand-primary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', display: 'block', marginBottom: 14 }}
           >
             The Mission
           </span>
@@ -79,12 +79,12 @@ export default function About() {
           style={{
             aspectRatio: '4 / 3',
             borderRadius: 16,
-            background: 'linear-gradient(135deg, rgba(0,240,255,0.12), rgba(112,0,255,0.08))',
-            border: '1px solid rgba(255,255,255,0.08)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 12%, transparent), rgba(112,0,255,0.08))',
+            border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#A1A1A1',
+            color: 'var(--color-ink-muted)',
             fontSize: 12,
             textTransform: 'uppercase',
             letterSpacing: '0.1em',
@@ -96,13 +96,13 @@ export default function About() {
       </section>
 
       {/* ── Values ── */}
-      <section style={{ padding: '80px 24px', background: 'rgba(255,255,255,0.02)' }}>
+      <section style={{ padding: '80px 24px', background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)' }}>
         <div style={{ maxWidth: 1080, margin: '0 auto' }}>
           <div
             style={{ textAlign: 'center', marginBottom: 48 }}
           >
             <span
-              style={{ color: '#00F0FF', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', marginBottom: 14 }}
+              style={{ color: 'var(--color-brand-primary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', marginBottom: 14 }}
             >
               What We Stand For
             </span>
@@ -119,8 +119,8 @@ export default function About() {
               <div
                 key={v.title}
                 style={{
-                  background: 'linear-gradient(135deg, rgba(255,255,255,0.06), rgba(255,255,255,0.02))',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-ink-base) 6%, transparent), color-mix(in srgb, var(--color-ink-base) 2%, transparent))',
+                  border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
                   borderRadius: 14,
                   padding: 28,
                 }}
@@ -142,8 +142,8 @@ export default function About() {
       <section
         style={{
           padding: '64px 24px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
+          borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
         }}
       >
         <div
@@ -159,11 +159,11 @@ export default function About() {
         >
           {SITE_STATS.map(stat => (
             <div key={stat.label}>
-              <div className="font-display" style={{ fontSize: 36, fontWeight: 900, color: '#00F0FF' }}>
+              <div className="font-display" style={{ fontSize: 36, fontWeight: 900, color: 'var(--color-brand-primary)' }}>
                 {stat.value}
               </div>
               <div
-                style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#A1A1A1', marginTop: 6 }}
+                style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-muted)', marginTop: 6 }}
               >
                 {stat.label}
               </div>
@@ -189,8 +189,8 @@ export default function About() {
           onClick={() => navigate('/pricing')}
           className="font-black transition-opacity hover:opacity-90 cursor-pointer"
           style={{
-            background: '#00F0FF',
-            color: '#050505',
+            background: 'var(--color-brand-primary)',
+            color: 'var(--color-bg-base)',
             padding: '16px 34px',
             borderRadius: 12,
             border: 'none',

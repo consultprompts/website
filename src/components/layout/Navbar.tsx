@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { Menu, X, Settings, User as UserIcon } from 'lucide-react';
+import { Menu, X, Settings, User as UserIcon, Sun, Moon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
+import { useTheme } from '../../context/ThemeContext';
 import { useBodyScrollLock } from '../../hooks';
 
 interface NavbarProps {
@@ -20,6 +21,7 @@ const NAV_LINKS = [
 
 export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
   const { user, logout } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const navigate = useNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -75,16 +77,32 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
                 </div>
               </button>
             )}
+            <button
+              onClick={toggleTheme}
+              className="w-9 h-9 rounded-full border border-white/10 hover:border-brand-primary flex items-center justify-center transition-colors cursor-pointer"
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Moon className="w-4 h-4" /> : <Sun className="w-4 h-4" />}
+            </button>
           </div>
 
-          {/* Mobile hamburger */}
-          <button
-            onClick={() => setMobileOpen(v => !v)}
-            className="xl:hidden p-2 text-white cursor-pointer"
-            aria-label="Toggle menu"
-          >
-            {mobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
-          </button>
+          {/* Mobile actions: theme toggle + hamburger */}
+          <div className="xl:hidden flex items-center gap-1">
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-white cursor-pointer"
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {theme === 'light' ? <Moon className="w-6 h-6" /> : <Sun className="w-6 h-6" />}
+            </button>
+            <button
+              onClick={() => setMobileOpen(v => !v)}
+              className="p-2 text-white cursor-pointer"
+              aria-label="Toggle menu"
+            >
+              {mobileOpen ? <X className="w-7 h-7" /> : <Menu className="w-7 h-7" />}
+            </button>
+          </div>
         </div>
       </nav>
 

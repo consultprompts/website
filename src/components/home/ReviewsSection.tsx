@@ -37,7 +37,7 @@ export default function ReviewsSection() {
           {REVIEWS.map((review, i) => (
             <div
               key={review.client}
-              className="liquid-glass group flex flex-col gap-5 p-6 rounded-2xl flex-shrink-0 w-[calc(100vw-3rem)] md:w-[calc(50vw-3rem)] lg:w-auto snap-start transition-[border-color,box-shadow,ring] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_rgba(0,240,255,0.12)]"
+              className="liquid-glass group flex flex-col gap-5 p-6 rounded-2xl flex-shrink-0 w-[calc(100vw-3rem)] md:w-[calc(50vw-3rem)] lg:w-auto snap-start transition-[border-color,box-shadow,ring] duration-300 hover:border-brand-primary/60 hover:ring-[3px] hover:ring-brand-primary/30 hover:shadow-[0_0_40px_color-mix(in srgb, var(--color-brand-primary) 12%, transparent)]"
             >
               <div className="flex gap-1">
                 {[...Array(5)].map((_, j) => (

@@ -23,7 +23,7 @@ export default function Work() {
       <header style={{ padding: '148px 24px 48px', maxWidth: 900, margin: '0 auto', textAlign: 'center' }}>
         <span
           className="font-bold uppercase block"
-          style={{ color: '#00F0FF', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
+          style={{ color: 'var(--color-brand-primary)', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
         >
           The Receipts
         </span>
@@ -32,7 +32,7 @@ export default function Work() {
           style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px', lineHeight: 1.05 }}
         >
           Built for the block.{' '}
-          <span style={{ color: '#00F0FF' }}>Loved</span> by it.
+          <span style={{ color: 'var(--color-brand-primary)' }}>Loved</span> by it.
         </h1>
         <p
           className="text-ink-muted font-light"
@@ -49,8 +49,8 @@ export default function Work() {
       >
         <div
           style={{
-            background: 'linear-gradient(135deg, rgba(0,240,255,0.08), rgba(112,0,255,0.03))',
-            border: '1px solid rgba(0,240,255,0.22)',
+            background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 8%, transparent), rgba(112,0,255,0.03))',
+            border: '1px solid color-mix(in srgb, var(--color-brand-primary) 22%, transparent)',
             borderRadius: 20,
             padding: 48,
             position: 'relative',
@@ -67,8 +67,8 @@ export default function Work() {
               fontWeight: 800,
               textTransform: 'uppercase',
               letterSpacing: '0.1em',
-              color: '#00F0FF',
-              background: 'rgba(0,240,255,0.12)',
+              color: 'var(--color-brand-primary)',
+              background: 'color-mix(in srgb, var(--color-brand-primary) 12%, transparent)',
               padding: '6px 14px',
               borderRadius: 999,
             }}
@@ -77,7 +77,7 @@ export default function Work() {
           </span>
 
           <span
-            style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#A1A1A1' }}
+            style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-muted)' }}
           >
             {featured.business}
           </span>
@@ -91,9 +91,9 @@ export default function Work() {
           {/* Problem / Fix / Result */}
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
             {[
-              { label: 'The Problem', color: '#A1A1A1', text: featured.problem },
-              { label: 'The Fix',     color: '#00F0FF', text: featured.fix },
-              { label: 'The Result',  color: '#A1A1A1', text: featured.result },
+              { label: 'The Problem', color: 'var(--color-ink-muted)', text: featured.problem },
+              { label: 'The Fix',     color: 'var(--color-brand-primary)', text: featured.fix },
+              { label: 'The Result',  color: 'var(--color-ink-muted)', text: featured.result },
             ].map(card => (
               <div
                 key={card.label}
@@ -119,7 +119,7 @@ export default function Work() {
               justifyContent: 'space-between',
               gap: 24,
               flexWrap: 'wrap',
-              borderTop: '1px solid rgba(255,255,255,0.1)',
+              borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)',
               paddingTop: 28,
             }}
           >
@@ -129,11 +129,11 @@ export default function Work() {
             <div style={{ display: 'flex', gap: 32, flexShrink: 0 }}>
               {featured.metrics.map(m => (
                 <div key={m.label}>
-                  <div className="font-display" style={{ fontSize: 26, fontWeight: 900, color: '#00F0FF' }}>
+                  <div className="font-display" style={{ fontSize: 26, fontWeight: 900, color: 'var(--color-brand-primary)' }}>
                     {m.value}
                   </div>
                   <div
-                    style={{ fontSize: 10, color: '#A1A1A1', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}
+                    style={{ fontSize: 10, color: 'var(--color-ink-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}
                   >
                     {m.label}
                   </div>
@@ -147,7 +147,7 @@ export default function Work() {
       {/* ── More Launches ── */}
       <section style={{ maxWidth: 1080, margin: '0 auto', padding: '0 24px 80px', display: 'flex', flexDirection: 'column', gap: 24 }}>
         <p
-          style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: '#A1A1A1', margin: '0 0 8px' }}
+          style={{ fontSize: 11, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.14em', color: 'var(--color-ink-muted)', margin: '0 0 8px' }}
         >
           More Launches
         </p>
@@ -159,8 +159,8 @@ export default function Work() {
               className="launch-row"
               style={{
                 gridTemplateColumns: imgLeft ? '1fr 1.1fr' : '1.1fr 1fr',
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.08)',
+                background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)',
+                border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
                 borderRadius: 16,
                 padding: 32,
               }}
@@ -168,7 +168,7 @@ export default function Work() {
               {/* Text block */}
               <div style={{ order: imgLeft ? 2 : 1 }}>
                 <span
-                  style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#A1A1A1' }}
+                  style={{ fontSize: 10, fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-muted)' }}
                 >
                   {cs.business}
                 </span>
@@ -180,11 +180,11 @@ export default function Work() {
                 </p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                   <div style={{ fontSize: 13 }}>
-                    <strong style={{ color: '#00F0FF', fontWeight: 700 }}>Fix: </strong>
+                    <strong style={{ color: 'var(--color-brand-primary)', fontWeight: 700 }}>Fix: </strong>
                     {cs.fix}
                   </div>
                   <div style={{ fontSize: 13 }}>
-                    <strong style={{ color: '#A1A1A1', fontWeight: 700 }}>Result: </strong>
+                    <strong style={{ color: 'var(--color-ink-muted)', fontWeight: 700 }}>Result: </strong>
                     {cs.result}
                   </div>
                 </div>
@@ -195,7 +195,7 @@ export default function Work() {
                         {m.value}
                       </div>
                       <div
-                        style={{ fontSize: 9, color: '#A1A1A1', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}
+                        style={{ fontSize: 9, color: 'var(--color-ink-muted)', textTransform: 'uppercase', letterSpacing: '0.08em', marginTop: 2 }}
                       >
                         {m.label}
                       </div>
@@ -211,12 +211,12 @@ export default function Work() {
                   order: imgLeft ? 1 : 2,
                   aspectRatio: '4 / 3',
                   borderRadius: 12,
-                  background: 'linear-gradient(135deg, rgba(0,240,255,0.1), rgba(112,0,255,0.06))',
-                  border: '1px solid rgba(255,255,255,0.08)',
+                  background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 10%, transparent), rgba(112,0,255,0.06))',
+                  border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#A1A1A1',
+                  color: 'var(--color-ink-muted)',
                   fontSize: 11,
                   textTransform: 'uppercase',
                   letterSpacing: '0.1em',
@@ -234,8 +234,8 @@ export default function Work() {
       <section
         style={{
           padding: '56px 24px',
-          borderTop: '1px solid rgba(255,255,255,0.06)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
+          borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
         }}
       >
         <div
@@ -251,11 +251,11 @@ export default function Work() {
         >
           {STATS.map(stat => (
             <div key={stat.label}>
-              <div className="font-display" style={{ fontSize: 36, fontWeight: 900, color: '#00F0FF' }}>
+              <div className="font-display" style={{ fontSize: 36, fontWeight: 900, color: 'var(--color-brand-primary)' }}>
                 {stat.value}
               </div>
               <div
-                style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: '#A1A1A1', marginTop: 6 }}
+                style={{ fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.1em', color: 'var(--color-ink-muted)', marginTop: 6 }}
               >
                 {stat.label}
               </div>
@@ -278,8 +278,8 @@ export default function Work() {
           onClick={() => navigate('/settings/my-projects/new-project')}
           className="font-black transition-opacity hover:opacity-90 cursor-pointer"
           style={{
-            background: '#00F0FF',
-            color: '#050505',
+            background: 'var(--color-brand-primary)',
+            color: 'var(--color-bg-base)',
             padding: '16px 34px',
             borderRadius: 12,
             border: 'none',

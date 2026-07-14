@@ -1,9 +1,19 @@
 import React, { useEffect, useRef } from 'react';
+import { useTheme } from '../../context/ThemeContext';
 
-const BLOBS = [
+const BLOBS_DARK = [
   { cx: 0.25, cy: 0.35, r: 0.45, color: [0, 240, 255],  alpha: 0.14, sx: 0.18, sy: 0.12, speed: 0.00035 },
   { cx: 0.75, cy: 0.60, r: 0.40, color: [112, 0, 255],  alpha: 0.11, sx: 0.14, sy: 0.16, speed: 0.00025 },
   { cx: 0.50, cy: 0.80, r: 0.35, color: [0, 130, 255],  alpha: 0.09, sx: 0.20, sy: 0.10, speed: 0.00040 },
+];
+
+// Light theme: warm orange/amber palette matching the light-mode brand
+// accent (#EA580C), at much higher alpha — low-alpha color barely
+// registers on white.
+const BLOBS_LIGHT = [
+  { cx: 0.25, cy: 0.35, r: 0.45, color: [234, 88, 12],   alpha: 0.26, sx: 0.18, sy: 0.12, speed: 0.00035 },
+  { cx: 0.75, cy: 0.60, r: 0.40, color: [217, 119, 6],   alpha: 0.20, sx: 0.14, sy: 0.16, speed: 0.00025 },
+  { cx: 0.50, cy: 0.80, r: 0.35, color: [194, 65, 12],   alpha: 0.18, sx: 0.20, sy: 0.10, speed: 0.00040 },
 ];
 
 // Drifting radial-gradient blobs on a canvas — the same background used
@@ -11,8 +21,10 @@ const BLOBS = [
 // blur has actual color to pick up instead of flattening to gray.
 export default function AuroraBackground({ className = 'absolute inset-0 w-full h-full pointer-events-none' }: { className?: string }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
+  const { theme } = useTheme();
 
   useEffect(() => {
+    const BLOBS = theme === 'light' ? BLOBS_LIGHT : BLOBS_DARK;
     const canvas = canvasRef.current;
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
@@ -58,7 +70,7 @@ export default function AuroraBackground({ className = 'absolute inset-0 w-full 
       cancelAnimationFrame(raf);
       ro.disconnect();
     };
-  }, []);
+  }, [theme]);
 
   return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
 }

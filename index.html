@@ -2,6 +2,14 @@
 <html lang="en" style="background:#050505">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Apply the saved theme before first paint to avoid a dark flash.
+      // Default is light; ThemeContext keeps this in sync afterwards.
+      if (localStorage.getItem('theme') !== 'dark') {
+        document.documentElement.classList.add('light');
+        document.documentElement.style.background = '#FAFAF9';
+      }
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
     <title>ConsultPrompts | High-Performance Web Design for Local Businesses</title>
     <meta name="description" content="ConsultPrompts delivers high-speed, high-conversion web design for local businesses. Get a mobile-optimized site in 72 hours for a $299 flat fee. No hidden costs." />
@@ -50,7 +58,7 @@
       }
     </script>
   </head>
-  <body style="background:#050505">
+  <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

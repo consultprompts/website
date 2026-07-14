@@ -31,7 +31,7 @@ const PACKAGE_NAME: Record<string, string> = Object.fromEntries(
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
   pending:   { label: 'Under Review', color: '#F5C542', bg: 'rgba(245,197,66,0.12)' },
-  accepted:  { label: 'In Progress',  color: '#00F0FF', bg: 'rgba(0,240,255,0.10)' },
+  accepted:  { label: 'In Progress',  color: 'var(--color-brand-primary)', bg: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)' },
   completed: { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
   launched:  { label: 'Launched',     color: '#B98CFF', bg: 'rgba(112,0,255,0.18)' },
 };
@@ -81,7 +81,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
   return (
     <div
       className="mt-4 rounded-xl p-5 flex flex-col gap-4"
-      style={{ background: 'rgba(0,240,255,0.05)', border: '1px solid rgba(0,240,255,0.2)' }}
+      style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent)' }}
     >
       {safeUrl(lead.mockup_url) && (
         <div>
@@ -91,7 +91,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 text-sm font-bold hover:underline"
-            style={{ color: '#00F0FF' }}
+            style={{ color: 'var(--color-brand-primary)' }}
           >
             <ExternalLink className="w-4 h-4" />
             Open Mockup
@@ -122,7 +122,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                   onClick={handleAccept}
                   disabled={submitting}
                   className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-                  style={{ background: '#00F0FF', color: '#050505' }}
+                  style={{ background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
                 >
                   {submitting ? 'Saving…' : 'Accept'}
                 </button>
@@ -130,7 +130,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                   onClick={() => setShowFeedback(true)}
                   disabled={submitting}
                   className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest cursor-pointer disabled:opacity-60"
-                  style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.2)', color: '#ffffff' }}
+                  style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 20%, transparent)', color: 'var(--color-ink-base)' }}
                 >
                   Request Changes
                 </button>
@@ -145,14 +145,14 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                   placeholder="Describe what you'd like changed…"
                   rows={4}
                   className="w-full rounded-lg p-3 text-sm font-light text-white resize-none focus:outline-none"
-                  style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+                  style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
                 />
                 <div className="flex gap-3">
                   <button
                     onClick={handleRequestChanges}
                     disabled={submitting}
                     className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-                    style={{ background: '#F5C542', color: '#050505' }}
+                    style={{ background: '#F5C542', color: 'var(--color-bg-base)' }}
                   >
                     {submitting ? 'Submitting…' : 'Submit Feedback'}
                   </button>
@@ -160,7 +160,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
                     onClick={() => { setShowFeedback(false); setFeedback(''); setError(''); }}
                     disabled={submitting}
                     className="px-5 py-2.5 rounded-lg font-black text-[11px] uppercase tracking-widest cursor-pointer disabled:opacity-60"
-                    style={{ background: 'transparent', border: '1px solid rgba(255,255,255,0.15)', color: '#A1A1A1' }}
+                    style={{ background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', color: 'var(--color-ink-muted)' }}
                   >
                     Cancel
                   </button>
@@ -223,18 +223,18 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
     return (
       <div
         className="mt-4 rounded-xl overflow-hidden"
-        style={{ border: '1px solid rgba(0,240,255,0.2)' }}
+        style={{ border: '1px solid color-mix(in srgb, var(--color-brand-primary) 20%, transparent)' }}
       >
         <div
           className="px-5 py-3 flex items-center gap-2"
-          style={{ background: 'rgba(0,240,255,0.08)' }}
+          style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 8%, transparent)' }}
         >
-          <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: '#00F0FF' }} />
-          <p className="text-[11px] uppercase tracking-widest font-bold" style={{ color: '#00F0FF' }}>
+          <CheckCircle2 className="w-4 h-4 flex-shrink-0" style={{ color: 'var(--color-brand-primary)' }} />
+          <p className="text-[11px] uppercase tracking-widest font-bold" style={{ color: 'var(--color-brand-primary)' }}>
             Payment Confirmed
           </p>
         </div>
-        <div className="px-5 py-4 flex flex-col gap-3" style={{ background: 'rgba(0,240,255,0.03)' }}>
+        <div className="px-5 py-4 flex flex-col gap-3" style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 3%, transparent)' }}>
           <p className="text-xs text-ink-muted font-light">
             Your site will be launched shortly. Check your email for a receipt.
           </p>
@@ -257,7 +257,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             </div>
             <div>
               <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Maintenance</p>
-              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? '#00F0FF' : '#555' }}>
+              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? 'var(--color-brand-primary)' : '#555' }}>
                 {lead.wants_maintenance ? `$${MAINTENANCE_MONTHLY_PRICE}/mo` : 'None'}
               </p>
             </div>
@@ -285,25 +285,25 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
         const pkgName  = lead.package ? (PACKAGE_NAME[lead.package] ?? lead.package) : null;
         const total = pkgPrice + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0);
         return (
-          <div className="rounded-lg overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-            <div className="px-4 py-2" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <div className="rounded-lg overflow-hidden" style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}>
+            <div className="px-4 py-2" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)' }}>
               <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Order Summary</p>
             </div>
 
             {pkgName && (
-              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
                 <span className="text-[13px] text-ink-muted">{pkgName}</span>
                 <span className="text-[13px] font-bold text-white">${pkgPrice}</span>
               </div>
             )}
 
-            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+            <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
               <span className="text-[13px] text-ink-muted">Domain registration</span>
               <span className="text-[13px] font-bold text-white">${DOMAIN_FEE} / year</span>
             </div>
 
             {maintenance && (
-              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid rgba(255,255,255,0.06)' }}>
+              <div className="flex justify-between items-center px-4 py-2.5" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}>
                 <span className="text-[13px] text-ink-muted">Site maintenance</span>
                 <span className="text-[13px] font-bold text-white">${MAINTENANCE_MONTHLY_PRICE} / month</span>
               </div>
@@ -312,7 +312,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             {/* Total row */}
             <div
               className="flex justify-between items-center px-4 py-3"
-              style={{ borderTop: '1px solid rgba(255,255,255,0.12)', background: 'rgba(185,140,255,0.06)' }}
+              style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 12%, transparent)', background: 'rgba(185,140,255,0.06)' }}
             >
               <div>
                 <span className="text-[11px] font-black uppercase tracking-widest" style={{ color: '#B98CFF' }}>
@@ -329,7 +329,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
               </span>
             </div>
 
-            <div className="px-4 py-2" style={{ borderTop: '1px solid rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+            <div className="px-4 py-2" style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)' }}>
               <p className="text-[10px] text-ink-muted font-light">
                 Domain renews annually. You'll be reminded before the renewal date.
               </p>
@@ -347,7 +347,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             placeholder="1234 5678 9012 3456"
             maxLength={19}
             className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           />
         </div>
         <div className="flex gap-3">
@@ -358,7 +358,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
               placeholder="MM / YY"
               maxLength={7}
               className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
           </div>
           <div className="flex-1">
@@ -368,7 +368,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
               placeholder="123"
               maxLength={4}
               className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-              style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
             />
           </div>
         </div>
@@ -378,7 +378,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             type="text"
             placeholder="Jane Smith"
             className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           />
         </div>
         <div>
@@ -387,7 +387,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
             type="text"
             placeholder="123 Main St, City, State, ZIP"
             className="w-full rounded-lg px-4 py-3 text-sm font-light text-white focus:outline-none"
-            style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.15)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
           />
         </div>
       </div>
@@ -395,7 +395,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
       {/* Maintenance toggle */}
       <div
         className="rounded-lg p-4 flex items-center justify-between gap-4"
-        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}
+        style={{ background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
       >
         <div>
           <p className="text-sm font-bold text-white">Add monthly site maintenance?</p>
@@ -409,7 +409,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
           onClick={() => !savingMaintenance && toggleMaintenance(!maintenance)}
           disabled={savingMaintenance}
           className="flex-shrink-0 w-12 h-6 rounded-full relative transition-colors focus:outline-none disabled:opacity-60 cursor-pointer border-none p-0"
-          style={{ background: maintenance ? '#00F0FF' : 'rgba(255,255,255,0.15)' }}
+          style={{ background: maintenance ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)' }}
         >
           <span
             className="absolute top-0.5 w-5 h-5 rounded-full bg-white shadow-sm transition-all duration-200"
@@ -426,7 +426,7 @@ function PaymentPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead
         onClick={handlePay}
         disabled={paying}
         className="w-full py-3.5 rounded-lg font-black text-[11px] uppercase tracking-widest border-none cursor-pointer disabled:opacity-60"
-        style={{ background: '#B98CFF', color: '#050505' }}
+        style={{ background: '#B98CFF', color: 'var(--color-bg-base)' }}
       >
         {paying ? 'Processing…' : `Pay $${(lead.package ? (PACKAGE_PRICE[lead.package] ?? 0) : 0) + DOMAIN_FEE + (maintenance ? MAINTENANCE_MONTHLY_PRICE : 0)} & Launch`}
       </button>
@@ -456,8 +456,8 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
 
     return (
       <div className="mt-6 flex flex-col gap-3">
-        <div className="p-4 rounded-xl border" style={{ background: 'rgba(0,240,255,0.07)', borderColor: 'rgba(0,240,255,0.25)' }}>
-          <p className="text-sm font-black uppercase tracking-widest" style={{ color: '#00F0FF' }}>
+        <div className="p-4 rounded-xl border" style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 7%, transparent)', borderColor: 'color-mix(in srgb, var(--color-brand-primary) 25%, transparent)' }}>
+          <p className="text-sm font-black uppercase tracking-widest" style={{ color: 'var(--color-brand-primary)' }}>
             Project Launched 🎉
           </p>
           <p className="mt-1 text-xs text-ink-muted font-light">All milestones completed.</p>
@@ -469,7 +469,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-3 rounded-xl font-bold text-sm"
-            style={{ background: 'rgba(0,240,255,0.1)', color: '#00F0FF', border: '1px solid rgba(0,240,255,0.25)' }}
+            style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', color: 'var(--color-brand-primary)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 25%, transparent)' }}
           >
             <ExternalLink className="w-4 h-4" />
             Visit Your Site
@@ -479,12 +479,12 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
         {/* Payment summary */}
         <div
           className="rounded-xl overflow-hidden"
-          style={{ border: '1px solid rgba(255,255,255,0.08)' }}
+          style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
         >
-          <div className="px-4 py-2.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
+          <div className="px-4 py-2.5" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)' }}>
             <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted">Billing Summary</p>
           </div>
-          <div className="grid grid-cols-2 gap-3 px-4 py-3" style={{ background: 'rgba(255,255,255,0.02)' }}>
+          <div className="grid grid-cols-2 gap-3 px-4 py-3" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)' }}>
             {paidDate && (
               <div>
                 <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Paid On</p>
@@ -503,7 +503,7 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
             </div>
             <div>
               <p className="text-[9px] uppercase tracking-widest font-bold text-ink-muted mb-0.5">Maintenance</p>
-              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? '#00F0FF' : '#555' }}>
+              <p className="text-[13px] font-bold" style={{ color: lead.wants_maintenance ? 'var(--color-brand-primary)' : '#555' }}>
                 {lead.wants_maintenance ? `$${MAINTENANCE_MONTHLY_PRICE}/mo` : 'None'}
               </p>
             </div>
@@ -532,19 +532,19 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                   className="absolute left-[10px] top-[22px] w-px"
                   style={{
                     height: 28,
-                    background: done ? '#00F0FF' : 'rgba(255,255,255,0.1)',
+                    background: done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 10%, transparent)',
                   }}
                 />
               )}
               <div className="flex-shrink-0 mt-0.5">
                 {done ? (
-                  <CheckCircle2 className="w-5 h-5" style={{ color: '#00F0FF' }} />
+                  <CheckCircle2 className="w-5 h-5" style={{ color: 'var(--color-brand-primary)' }} />
                 ) : current ? (
                   <div
                     className="w-5 h-5 rounded-full border-2 flex items-center justify-center"
-                    style={{ borderColor: '#00F0FF', background: 'rgba(0,240,255,0.15)' }}
+                    style={{ borderColor: 'var(--color-brand-primary)', background: 'color-mix(in srgb, var(--color-brand-primary) 15%, transparent)' }}
                   >
-                    <div className="w-2 h-2 rounded-full" style={{ background: '#00F0FF' }} />
+                    <div className="w-2 h-2 rounded-full" style={{ background: 'var(--color-brand-primary)' }} />
                   </div>
                 ) : (
                   <Circle className="w-5 h-5 text-white/20" />
@@ -554,13 +554,13 @@ function MilestoneTracker({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
                 <p
                   className="text-sm font-bold leading-tight"
                   style={{
-                    color: done ? '#ffffff' : current ? '#00F0FF' : 'rgba(255,255,255,0.35)',
+                    color: done ? 'var(--color-ink-base)' : current ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 35%, transparent)',
                   }}
                 >
                   {label}
                 </p>
                 {current && (
-                  <p className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: '#00F0FF' }}>
+                  <p className="text-[10px] uppercase tracking-widest mt-0.5" style={{ color: 'var(--color-brand-primary)' }}>
                     Current stage
                   </p>
                 )}
@@ -596,7 +596,7 @@ function ProjectCard({ lead, active, onUpdate }: { lead: Lead; active: boolean; 
   return (
     <div
       className="liquid-glass rounded-xl p-6 md:p-8"
-      style={{ borderColor: active ? 'rgba(0,240,255,0.2)' : 'rgba(255,255,255,0.06)' }}
+      style={{ borderColor: active ? 'color-mix(in srgb, var(--color-brand-primary) 20%, transparent)' : 'color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
     >
       <div className="flex items-start justify-between gap-4 flex-wrap">
         <div>
