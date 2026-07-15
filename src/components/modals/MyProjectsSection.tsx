@@ -1044,7 +1044,7 @@ function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void })
           return (
             <div
               key={lead.id}
-              className="rounded-[14px] border px-6 py-[22px] flex items-center justify-between"
+              className="rounded-[14px] border px-6 py-4 flex items-center justify-between"
               style={{ borderColor: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)', background: 'var(--bg-surface, color-mix(in srgb, var(--color-ink-base) 3%, transparent))' }}
             >
               <div>

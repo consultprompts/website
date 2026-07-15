@@ -27,16 +27,16 @@ const VARIANT_CLASSES: Record<CustomButtonVariant, string> = {
 // a caller out entirely and drive layout purely through className without fighting
 // for utility precedence against a base class.
 const SIZE_CLASSES: Record<CustomButtonSize, string> = {
-  sm: 'inline-flex items-center justify-center gap-1.5 px-4 py-2 text-xs rounded-lg',
-  md: 'inline-flex items-center justify-center gap-2 px-5 py-2.5 text-sm rounded-xl',
-  lg: 'inline-flex items-center justify-center gap-2.5 px-8 py-4 text-base rounded-xl',
+  sm: 'inline-flex items-center justify-center gap-1.5 px-4 py-2.5 text-xs rounded-lg',
+  md: 'inline-flex items-center justify-center gap-2 px-5 py-3 text-sm rounded-xl',
+  lg: 'inline-flex items-center justify-center gap-2.5 px-8 py-3.5 text-base rounded-xl',
   none: '',
 };
 
 const ICON_SIZE_CLASSES: Record<CustomButtonSize, string> = {
-  sm: 'inline-flex items-center justify-center w-8 h-8 rounded-full',
-  md: 'inline-flex items-center justify-center w-9 h-9 rounded-full',
-  lg: 'inline-flex items-center justify-center w-11 h-11 rounded-full',
+  sm: 'inline-flex items-center justify-center w-8 h-9 rounded-full',
+  md: 'inline-flex items-center justify-center w-9 h-10 rounded-full',
+  lg: 'inline-flex items-center justify-center w-11 h-12 rounded-full',
   none: '',
 };
 

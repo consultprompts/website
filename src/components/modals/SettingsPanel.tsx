@@ -6,6 +6,7 @@ import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, complet
 import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONE, projectStatusText } from '../../lib/milestones';
 import { PACKAGES } from '../../data/content';
+import logoSrc from '../../logo.png';
 import logo from '../../logo.png';
 import AccountSection from './AccountSection';
 import MyProjectsSection from './MyProjectsSection';
@@ -26,6 +27,8 @@ interface SettingsPanelProps {
   fullScreen?: boolean;
   /** Active section — owned by the route (/settings/:section). */
   section: Section;
+  /** True when the route was a bare "/settings" — no section was requested yet, so mobile should land on the section picker instead of jumping into `section`. */
+  startOnMenu?: boolean;
   onSectionChange: (s: Section) => void;
 }
 
@@ -148,7 +151,7 @@ function leadMatchesSearch(lead: Lead, query: string) {
   );
 }
 
-export default function SettingsPanel({ isOpen, onClose, fullScreen = false, section, onSectionChange }: SettingsPanelProps) {
+export default function SettingsPanel({ isOpen, onClose, fullScreen = false, section, startOnMenu = false, onSectionChange }: SettingsPanelProps) {
   const { user, isAdmin, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
@@ -158,11 +161,11 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
-  // Starts on 'detail', not 'menu' — `section` is always already resolved by
-  // the route (Settings.tsx canonicalizes to my-projects), so opening should
-  // land directly on that section instead of an extra section-picker tap.
-  // 'menu' is still reachable via the in-panel Back button to switch sections.
-  const [mobileScreen, setMobileScreen] = useState<MobileScreen>('detail');
+  // Starts on 'detail' when the route already picked a section — e.g. a deep
+  // link to /settings/my-projects — so opening lands directly on it instead
+  // of an extra section-picker tap. A bare "/settings" (startOnMenu) has no
+  // section to jump into, so it starts on the picker itself.
+  const [mobileScreen, setMobileScreen] = useState<MobileScreen>(startOnMenu ? 'menu' : 'detail');
   const [filter, setFilter] = useState<Filter | null>(null);
   const [search, setSearch] = useState('');
   const [selectedId, setSelectedId] = useState<string | null>(null);
@@ -393,7 +396,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
         <div className={`fixed inset-0 z-[120] flex items-center justify-center ${fullScreen ? 'p-0' : 'p-6'}`}>
           <div className="absolute inset-0 bg-bg-base" />
           <div
-            style={fullScreen ? { width: '100%', height: '100vh' } : { maxWidth: 1180, height: '90vh' }}
+            style={fullScreen ? { width: '100%', height: '100dvh' } : { maxWidth: 1180, height: '90vh' }}
             className="relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white"
           >
             {/* Unified top bar — desktop only (≥1250px) */}
@@ -472,21 +475,15 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                 <div className="flex flex-col h-full min-h-0">
                   <div
                     style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
-                    className="px-4 py-4 flex items-center justify-between gap-4 flex-shrink-0"
+                    className="px-6 py-2 flex items-center justify-between gap-4 flex-shrink-0"
                   >
                     <div className="flex items-center gap-2.5">
-                      <img src={logo} alt="ConsultPrompts" className="w-6 h-6 object-contain" />
-                      <span className="font-display font-bold italic text-[15px]">Settings</span>
+                      <img src={logoSrc} alt="ConsultPrompts" className="h-10 w-auto object-contain navbar-logo" />
+                      <span className="font-display font-bold italic text-[16px]">Settings</span>
                     </div>
-                    <CustomButton
-                      onClick={onClose}
-                      variant="icon"
-                      size="sm"
-                      style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-                      className="text-base leading-none"
-                    >
-                      ✕
-                    </CustomButton>
+                    <div className="xl:hidden flex items-center gap-1">
+                      <CustomButton onClick={onClose} variant="icon" size="lg"><X/></CustomButton>
+                    </div>
                   </div>
 
                   <div className="flex-1 overflow-y-auto px-4 py-4">
@@ -521,7 +518,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                 <div className="flex flex-col h-full min-h-0">
                   <div
                     style={{ borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
-                    className="px-2 py-3 flex items-center justify-between gap-2 flex-shrink-0"
+                    className="px-6 py-2 flex items-center justify-between gap-4 flex-shrink-0"
                   >
                     <CustomButton
                       onClick={() => {
@@ -531,20 +528,14 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                       }}
                       variant="ghost"
                       size="none"
-                      className="flex items-center gap-0.5 pl-2 pr-3 py-2 rounded-lg border-none flex-shrink-0"
+                      className="flex items-center gap-0.5 pr-3 rounded-lg border-none flex-shrink-0"
                     >
                       <ChevronLeft className="w-5 h-5" />
-                      <span className="text-[12px] font-bold uppercase tracking-widest">Back</span>
+                      <span className="text-[15px] font-bold uppercase tracking-widest">Back</span>
                     </CustomButton>
-                    <CustomButton
-                      onClick={onClose}
-                      variant="icon"
-                      size="sm"
-                      style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-                      className="text-base leading-none"
-                    >
-                      ✕
-                    </CustomButton>
+                    <div className="xl:hidden flex items-center gap-1">
+                      <CustomButton onClick={onClose} variant="icon" size="lg"><X/></CustomButton>
+                    </div>
                   </div>
                   <div className="flex-1 flex flex-col min-h-0">
                     {mobileScreen === 'detail' ? sectionContent : (

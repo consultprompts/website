@@ -32,14 +32,17 @@ export default function Settings() {
     }
   }, [user, loading, navigate, location.pathname]);
 
-  // /settings (or an unknown/forbidden section) canonicalizes to my-projects.
+  // An unknown/forbidden section canonicalizes to my-projects. A bare
+  // "/settings" (no sectionParam at all) is left alone — SettingsPanel
+  // renders it as the section picker on mobile instead of redirecting.
   useEffect(() => {
-    if (!loading && user && !validSection) {
+    if (!loading && user && sectionParam && !validSection) {
       navigate('/settings/my-projects', { replace: true });
     }
-  }, [loading, user, validSection, navigate]);
+  }, [loading, user, sectionParam, validSection, navigate]);
 
-  if (loading || !user || !validSection) return null;
+  if (loading || !user) return null;
+  if (sectionParam && !validSection) return null; // pending redirect above
 
   // navigate(-1) only works when this page was reached by an in-app push
   // (e.g. the Console button). If /settings was loaded directly — refresh,
@@ -61,7 +64,8 @@ export default function Settings() {
     <SettingsPanel
       isOpen={true}
       fullScreen
-      section={validSection}
+      section={validSection ?? 'my-projects'}
+      startOnMenu={!validSection}
       // replace: section switches don't stack history entries, so the ✕
       // (navigate(-1)) still exits settings instead of stepping back
       // through every section visited.

@@ -79,7 +79,7 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
 
         <div className="flex flex-col gap-3">
           <CustomButton onClick={() => { onStartProject(); closeMobile(); }} tabIndex={mobileOpen ? 0 : -1}>Start a project</CustomButton>
-          <CustomButton onClick={() => navigate('/settings/my-projects')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Console</CustomButton>
+          <CustomButton onClick={() => navigate('/settings')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Console</CustomButton>
           {!loading && (
             !user
               ? <CustomButton onClick={() => { onOpenAuth(); closeMobile(); }} variant="outline" tabIndex={mobileOpen ? 0 : -1}>Sign up / Log in</CustomButton>

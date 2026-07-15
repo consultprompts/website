@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
 import { useBodyScrollLock } from '../../hooks';
 import { LayoutContext, type LayoutContextValue } from '../../context/LayoutContext';
 import Navbar from './Navbar';
@@ -9,6 +9,7 @@ import AuthModal, { type AuthMode } from '../modals/AuthModal';
 
 export default function Layout() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');
 
@@ -21,6 +22,18 @@ export default function Layout() {
     setAuthMode(mode);
     setIsAuthOpen(true);
   }, []);
+
+  // Strip ?auth=login&next=... from the URL on close so a refresh doesn't
+  // reopen the modal — those params only make sense while it's open.
+  const closeAuthModal = useCallback(() => {
+    setIsAuthOpen(false);
+    if (searchParams.has('auth') || searchParams.has('next')) {
+      const next = new URLSearchParams(searchParams);
+      next.delete('auth');
+      next.delete('next');
+      setSearchParams(next, { replace: true });
+    }
+  }, [searchParams, setSearchParams]);
 
   const handleStartProject = useCallback(() => {
     if (startProjectHandler.current) {
@@ -43,7 +56,7 @@ export default function Layout() {
           isOpen={isAuthOpen}
           mode={authMode}
           onModeChange={setAuthMode}
-          onClose={() => setIsAuthOpen(false)}
+          onClose={closeAuthModal}
           onSuccess={() => authSuccessHandler.current?.()}
         />
         

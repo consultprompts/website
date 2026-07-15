@@ -9,12 +9,12 @@ export default function FaqSection() {
   return (
     <section id="faq" aria-label="Frequently Asked Questions" className="py-24 px-6 relative border-b border-white/5">
       <div className="max-w-2xl mx-auto">
-        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 max-[1250px]:pb-5 px-7">
           <h2 className="section-title">Web Design FAQ.</h2>
           <p className="section-sub-title">Everything you need to know about our high-speed development process.</p>
         </div>
 
-        <div className="space-y-4">
+        <div className="space-y-4 px-5 pt-4">
           {FAQS.map((faq, i) => (
             <div key={i} className="liquid-glass border border-white/10 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]">
               <CustomButton 

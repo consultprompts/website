@@ -11,13 +11,13 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
   return (
     <section id="pricing" aria-label="Pricing and Web Design Services" className="py-16 md:py-24 px-6 relative">
       <div className="max-w-5xl mx-auto">
-        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 max-[1250px]:pb-5 px-7">
           <span className="section-badge">Scalable Growth Tiers</span>
           <h2 className="section-title">Pick Your Fuel.</h2>
           <p className="section-sub-title">We build fast, no-nonsense sites for local businesses. Three days, three prices, no agency overhead.</p>
         </div>
 
-        <div className="grid grid-cols-1 min-[1250px]:grid-cols-3 gap-8 md:gap-12 px-1 pt-4 pb-4">
+        <div className="grid grid-cols-1 min-[1250px]:grid-cols-3 gap-8 md:gap-12 px-5 pt-4 pb-4">
           {PACKAGES.map((pkg) => (
             <div key={pkg.id} className={`p-8 rounded-xl border ${pkg.featured ? 'border-brand-primary min-[1250px]:-translate-y-3' : 'border-white/[0.08]'} flex flex-col relative transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]`}>
               {pkg.featured && (
