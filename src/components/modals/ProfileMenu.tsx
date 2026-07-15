@@ -17,14 +17,9 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
     <>
       {isOpen && user && (
         <>
-          <div
-            onClick={onClose}
-            className="fixed inset-0 z-[155] bg-transparent cursor-pointer"
-          />
+          <div onClick={onClose} className="fixed inset-0 z-[155] bg-transparent cursor-pointer"/>
           <div className="fixed inset-0 z-[160] flex items-end justify-center p-6 md:items-start md:justify-end md:p-24 overflow-hidden pointer-events-none">
-            <div
-              className="w-full max-w-sm liquid-glass border-brand-primary/20 pointer-events-auto shadow-2xl p-8 rounded-xl"
-            >
+            <div className="w-full max-w-sm liquid-glass border-brand-primary/20 pointer-events-auto shadow-2xl p-8 rounded-xl">
               <div className="flex items-center gap-4 mb-6">
                 <div className="w-12 h-12 rounded-full bg-brand-primary flex items-center justify-center text-bg-base font-black text-xl">
                   {user.displayName?.charAt(0).toUpperCase() || user.email.charAt(0).toUpperCase()}
