@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Building2, Package, GraduationCap, ChevronRight, ChevronLeft, X } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { getLeads, updateLeadMilestone, setMockupURL as apiSetMockupURL, completeSite, launchSite, setLeadSuspended, type Lead } from '../../lib/api';
@@ -24,6 +25,7 @@ interface AdminSettingsPanelProps {
 
 export default function AdminSettingsPanel({ isOpen, onClose, fullScreen = false, section, onSectionChange }: AdminSettingsPanelProps) {
   const { user, isAdmin, logout } = useAuth();
+  const navigate = useNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [actionError, setActionError] = useState<string | null>(null);
@@ -317,7 +319,10 @@ export default function AdminSettingsPanel({ isOpen, onClose, fullScreen = false
                   );
                 })}
                 <div className="mt-auto py-5">
-                  <CustomButton onClick={() => { logout(); onClose(); }} variant="outline" size="mdlight">Log Out</CustomButton>
+                  {/* Straight to home, replacing the /admin-settings history
+                      entry — staying on the protected route while logged out
+                      would trip the auth guard and pop the login modal. */}
+                  <CustomButton onClick={() => { logout(); navigate('/', { replace: true }); }} variant="outline" size="mdlight">Logout</CustomButton>
                 </div>
               </div>
             </div>

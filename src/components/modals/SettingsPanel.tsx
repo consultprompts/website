@@ -135,7 +135,10 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                   );
                 })}
                 <div className="mt-auto py-5">
-                  <CustomButton onClick={() => { logout(); onClose(); }} variant="outline" size="mdlight">Log Out</CustomButton>
+                  {/* Straight to home, replacing the /settings history entry —
+                      staying on the protected route while logged out would
+                      trip the auth guard and pop the login modal right back up. */}
+                  <CustomButton onClick={() => { logout(); navigate('/', { replace: true }); }} variant="outline" size="mdlight">Logout</CustomButton>
                 </div>
               </div>
             </div>

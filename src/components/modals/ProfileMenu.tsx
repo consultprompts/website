@@ -57,7 +57,7 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
                   size="none"
                   className="w-full flex items-center gap-3 p-4 transition-all font-bold text-xs uppercase tracking-widest rounded-xl"
                 >
-                  <LogOut className="w-4 h-4" /> Log Out Signal
+                  <LogOut className="w-4 h-4" /> Logout Signal
                 </CustomButton>
               </div>
             </div>

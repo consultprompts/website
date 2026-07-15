@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettingsNavigate } from '../hooks';
@@ -44,12 +44,28 @@ export default function Settings() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // Distinguishes "arrived here logged out" (prompt login, then come back)
+  // from "logged out while in here via the panel's Logout button" (just go
+  // home — re-prompting login right after an intentional logout is jarring).
+  // A ref, not state: it must survive the same render in which `user` drops
+  // to null. The panel's own navigate('/') can lose the race against this
+  // guard — router navigations are low-priority transitions while the auth
+  // state update is not — so the guard itself has to pick the destination.
+  const wasAuthedRef = useRef(false);
   useEffect(() => {
-    // Preserve the exact path the visitor was trying to reach — e.g. a bare
-    // "Start a project" CTA that hard-navigates to .../new-project with no
-    // auth pre-check — so login sends them back to what they actually wanted,
-    // not just the section root.
+    if (user) wasAuthedRef.current = true;
+  }, [user]);
+
+  useEffect(() => {
     if (!loading && !user) {
+      if (wasAuthedRef.current) {
+        navigate('/', { replace: true });
+        return;
+      }
+      // Preserve the exact path the visitor was trying to reach — e.g. a bare
+      // "Start a project" CTA that hard-navigates to .../new-project with no
+      // auth pre-check — so login sends them back to what they actually wanted,
+      // not just the section root.
       navigate(`/?auth=login&next=${encodeURIComponent(location.pathname)}`, { replace: true });
     }
   }, [user, loading, navigate, location.pathname]);

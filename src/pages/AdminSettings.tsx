@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useSettingsNavigate } from '../hooks';
@@ -38,10 +38,21 @@ export default function AdminSettings() {
     return () => cancelAnimationFrame(raf);
   }, []);
 
+  // See Settings.tsx: after an intentional in-panel logout, go home instead
+  // of re-prompting login. Ref so it survives the render where user drops.
+  const wasAuthedRef = useRef(false);
+  useEffect(() => {
+    if (user) wasAuthedRef.current = true;
+  }, [user]);
+
   useEffect(() => {
     if (loading) return;
     if (!user) {
-      navigate(`/?auth=login&next=${encodeURIComponent(location.pathname)}`, { replace: true });
+      if (wasAuthedRef.current) {
+        navigate('/', { replace: true });
+      } else {
+        navigate(`/?auth=login&next=${encodeURIComponent(location.pathname)}`, { replace: true });
+      }
       return;
     }
     // Admin-only console — regular users get their own settings instead.
