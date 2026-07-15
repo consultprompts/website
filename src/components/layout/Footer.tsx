@@ -1,6 +1,7 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import logoSrc from '../../logo.png';
+import { settingsNavState } from '../../hooks';
 
 const EXPLORE_LINKS = [
   { label: 'About Us',    to: '/about' },
@@ -19,6 +20,8 @@ const colLabel = 'text-[11px] font-bold uppercase tracking-[0.14em] text-white m
 const navLink  = 'text-[13px] text-ink-muted no-underline transition-colors hover:text-brand-primary';
 
 export default function Footer() {
+  const location = useLocation();
+
   return (
     <footer className="font-sans border-t border-white/5 bg-bg-base" style={{ padding: '64px 24px 32px' }}>
       <div style={{ maxWidth: 1280, margin: '0 auto' }}>
@@ -42,7 +45,13 @@ export default function Footer() {
           <div className="flex flex-col gap-[14px]">
             <p className={colLabel}>Explore</p>
             {EXPLORE_LINKS.map(l => (
-              <Link key={l.label} to={l.to} className={navLink}>{l.label}</Link>
+              <Link 
+                key={l.label} 
+                to={l.to} 
+                className={navLink}
+              >
+                {l.label}
+              </Link>
             ))}
           </div>
 
@@ -50,7 +59,14 @@ export default function Footer() {
           <div className="flex flex-col gap-[14px]">
             <p className={colLabel}>More From Us</p>
             {MORE_LINKS.map(l => (
-              <Link key={l.label} to={l.to} className={navLink}>{l.label}</Link>
+              <Link
+                key={l.label}
+                to={l.to}
+                state={l.to.startsWith('/settings') ? settingsNavState(location) : undefined}
+                className={navLink}
+              >
+                {l.label}
+              </Link>
             ))}
           </div>
 

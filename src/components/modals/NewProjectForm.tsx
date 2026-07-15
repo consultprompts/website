@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { CheckCircle, MessageCircle, Phone, Mail, Upload, ChevronLeft } from 'lucide-react';
+import { Upload, ChevronLeft } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { submitLead, updateLeadSubmit, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
-import Notification from '../ui/Notification';
 import CustomButton from '../ui/CustomButton';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -58,14 +57,6 @@ const TIMELINES = [
   'No rush (within a month)',
   'Just exploring',
 ];
-
-// CTA on the post-submit confirmation popup — matches whichever contact
-// method the client picked, instead of always pointing at WhatsApp.
-const CONTACT_CTA: Record<string, { href: string; label: string; icon: React.ReactNode; external?: boolean }> = {
-  WhatsApp: { href: 'https://wa.me/13026622736', label: 'Chat on WhatsApp', icon: <MessageCircle className="w-5 h-5" />, external: true },
-  Phone: { href: 'tel:+13026622736', label: 'Call Us', icon: <Phone className="w-5 h-5" /> },
-  Email: { href: 'mailto:consultprompts@gmail.com', label: 'Email Us', icon: <Mail className="w-5 h-5" /> },
-};
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -327,7 +318,6 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
   });
 
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const patch = (partial: Partial<FormState>) => setForm(f => ({ ...f, ...partial }));
@@ -376,7 +366,9 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
       } else {
         await submitLead(payload);
       }
-      setSubmitted(true);
+      // Straight back to My Projects — the freshly submitted (or updated)
+      // project appearing in the list is the confirmation.
+      onBack();
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Something went wrong. Please try again.');
     } finally {
@@ -686,36 +678,6 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
 
   return (
     <div className="flex flex-col h-full min-h-0">
-      <Notification
-        isOpen={submitted}
-        onClose={onBack}
-        icon={<CheckCircle className="w-10 h-10 text-brand-primary" />}
-        title={initialLead ? 'Submission Updated' : 'Transmission Received'}
-        description={initialLead ? 'Your project details have been updated.' : "We're already analyzing your business DNA. Expect your mockup within 24–48 hours."}
-      >
-        {(() => {
-          const cta = CONTACT_CTA[form.contactMethod] ?? CONTACT_CTA.WhatsApp;
-          return (
-            <a
-              href={cta.href}
-              {...(cta.external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-              className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-            >
-              {cta.icon}
-              {cta.label}
-            </a>
-          );
-        })()}
-        <CustomButton
-          onClick={onBack}
-          variant="outline"
-          size="none"
-          className="w-full py-4 border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl"
-        >
-          Back to My Projects
-        </CustomButton>
-      </Notification>
-
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
         <div className="max-w-2xl mx-auto w-full text-white">
           <CustomButton

@@ -1,14 +1,28 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
-import { Loader2, FolderOpen, ExternalLink, ChevronLeft, ChevronDown, X } from 'lucide-react';
+import React, { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { Loader2, FolderOpen, ExternalLink, ChevronDown, X } from 'lucide-react';
 import StatusBadge from '../ui/StatusBadge';
 import { getMyLeads, submitReview, setWantsMaintenance, markPaid, requestMeeting, getLeadActivity, type Lead, type LeadActivity } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONES_PENDING, MILESTONE, projectStatusText } from '../../lib/milestones';
-import { useBodyScrollLock } from '../../hooks';
-import NewProjectForm from './NewProjectForm';
+import { useBodyScrollLock, useSettingsNavigate } from '../../hooks';
 import CustomButton from '../ui/CustomButton';
+
+// Code-split: the brief form and the two sub-views only render on their own
+// sub-routes, so most visits to My Projects never need them — keeping them
+// out of the settings chunk trims what every settings open downloads.
+const NewProjectForm = lazy(() => import('./NewProjectForm'));
+const OldProjectsView = lazy(() => import('./OldProjectsView'));
+const PaymentsView = lazy(() => import('./PaymentsView'));
+
+// Shared Suspense fallback — same centered spinner the section already shows
+// while leads load, so a chunk fetch is indistinguishable from a data fetch.
+const chunkSpinner = (
+  <div className="flex justify-center py-20">
+    <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
+  </div>
+);
 
 // Monthly maintenance price — update this constant when pricing changes.
 const MAINTENANCE_MONTHLY_PRICE = 29;
@@ -693,7 +707,7 @@ function LastLaunchedCard({ lead }: { lead: Lead }) {
 // ---------------------------------------------------------------------------
 
 function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   const pkgName = lead.package ? (PACKAGE_NAME[lead.package] ?? null) : null;
   const date = new Date(lead.created_at).toLocaleDateString(undefined, {
     year: 'numeric', month: 'short', day: 'numeric',
@@ -1016,135 +1030,12 @@ function ActivityPanel({ lead }: { lead: Lead }) {
 }
 
 // ---------------------------------------------------------------------------
-// Sub-views
-// ---------------------------------------------------------------------------
-
-function OldProjectsView({ past, onBack }: { past: Lead[]; onBack: () => void }) {
-  return (
-    <div>
-      <CustomButton
-        onClick={onBack}
-        variant="ghost"
-        size="none"
-        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] border-none hover:text-white transition-colors mb-2"
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Back
-      </CustomButton>
-      <h2 className="font-display font-bold text-2xl mt-4 mb-1">Old projects</h2>
-      <p className="text-[13px] text-ink-muted mb-6">Past sites you've launched with us.</p>
-      <div className="flex flex-col gap-3">
-        {past.map((lead) => {
-          const pkgName = lead.package ? (PACKAGE_NAME[lead.package] ?? lead.package) : null;
-          const launchedDate = lead.paid_at
-            ? new Date(lead.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-            : null;
-          const siteUrl = safeUrl(lead.site_url);
-
-          return (
-            <div
-              key={lead.id}
-              className="rounded-[14px] border px-6 py-4 flex items-center justify-between"
-              style={{ borderColor: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)', background: 'var(--bg-surface, color-mix(in srgb, var(--color-ink-base) 3%, transparent))' }}
-            >
-              <div>
-                <p className="font-display font-bold text-base">{lead.business}</p>
-                <p className="text-[12px] text-ink-muted mt-0.5">
-                  {pkgName ?? lead.package}
-                  {launchedDate ? ` · Launched ${launchedDate}` : ''}
-                </p>
-              </div>
-              {siteUrl && (
-                <a
-                  href={siteUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-[12px] font-bold"
-                  style={{ color: 'var(--brand-primary, var(--color-brand-primary))' }}
-                >
-                  Visit site ↗
-                </a>
-              )}
-            </div>
-          );
-        })}
-        {past.length === 0 && (
-          <div className="liquid-glass rounded-xl p-12 text-center border-white/5">
-          <FolderOpen className="w-10 h-10 text-ink-muted mx-auto mb-4" />
-          <h3 className="font-display font-bold italic text-xl mb-2">No past projects yet.</h3>
-          <p className="text-ink-muted text-sm font-light">
-            Start a project and your mockup request will appear here.
-          </p>
-        </div>
-        )}
-      </div>
-    </div>
-  );
-}
-
-function PaymentsView({ leads, onBack }: { leads: Lead[]; onBack: () => void }) {
-  const paidLeads = leads.filter((l) => l.is_paid);
-
-  return (
-    <div className="w-full">
-      <CustomButton
-        onClick={onBack}
-        variant="ghost"
-        size="none"
-        className="hidden settings:flex items-center gap-1.5 text-ink-muted text-[15px] border-none hover:text-white transition-colors mb-2"
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Back
-      </CustomButton>
-      <h2 className="font-display font-bold text-2xl mt-4 mb-1">Payments</h2>
-      <p className="text-[13px] text-ink-muted mb-6">Your billing history with Consult Prompts.</p>
-
-      <div className="w-full rounded-[14px] border overflow-hidden" style={{ borderColor: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}>
-        {/* Header row: NAME | AMOUNT | DATE */}
-        <div
-          className="px-5 py-4 grid"
-          style={{ background: 'color-mix(in srgb, var(--color-ink-base) 3%, transparent)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
-        >
-          {['NAME', 'AMOUNT', 'DATE'].map((col, i) => (
-            <span key={col} className={`text-[11px] font-bold uppercase tracking-widest text-ink-muted${i === 2 ? ' text-right' : ''}`}>{col}</span>
-          ))}
-        </div>
-
-        {paidLeads.length === 0 ? (
-          <p className="text-sm text-ink-muted font-light text-center py-8">No payments yet.</p>
-        ) : (
-          paidLeads.map((lead) => {
-            const dateStr = lead.paid_at
-              ? new Date(lead.paid_at).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })
-              : '—';
-            const description = `${lead.business}`;
-            const amount = lead.payment_amount != null ? `$${lead.payment_amount.toFixed(2)}` : '—';
-
-            return (
-              <div
-                key={lead.id}
-                className="px-5 py-[14px] grid"
-                style={{ borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', gridTemplateColumns: '2.2fr 1fr 1fr' }}
-              >
-                <span className="text-[13px] text-white">{description}</span>
-                <span className="text-[13px] font-bold text-white">{amount}</span>
-                <span className="text-[13px] text-ink-muted text-right">{dateStr}</span>
-              </div>
-            );
-          })
-        )}
-      </div>
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
 // Section
 // ---------------------------------------------------------------------------
 
 export default function MyProjectsSection({ onClose }: { onClose: () => void }) {
   const location = useLocation();
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -1213,20 +1104,24 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
 
   if (editLead) {
     return (
-      <NewProjectForm
-        initialLead={editLead}
-        onBack={() => { refresh(); backToList(); }}
-        onClose={onClose}
-      />
+      <Suspense fallback={chunkSpinner}>
+        <NewProjectForm
+          initialLead={editLead}
+          onBack={() => { refresh(); backToList(); }}
+          onClose={onClose}
+        />
+      </Suspense>
     );
   }
 
   if (showNewProjectForm) {
     return (
-      <NewProjectForm
-        onBack={() => { refresh(); backToList(); }}
-        onClose={onClose}
-      />
+      <Suspense fallback={chunkSpinner}>
+        <NewProjectForm
+          onBack={() => { refresh(); backToList(); }}
+          onClose={onClose}
+        />
+      </Suspense>
     );
   }
 
@@ -1264,25 +1159,30 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               >
                 Payments
               </CustomButton>
-              <CustomButton
-                onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
-                disabled={hasActive}
-                size="none"
-                className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
-              >
-                + New project
-              </CustomButton>
+              {!loading && !hasActive && (
+                <CustomButton
+                  onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
+                  size="none"
+                  className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
+                >
+                  + New project
+                </CustomButton>
+              )}
             </div>
           </div>
 
           {/* Sub-view: old projects */}
           {subView === 'old-projects' && (
-            <OldProjectsView past={past} onBack={() => toSubView('main')} />
+            <Suspense fallback={chunkSpinner}>
+              <OldProjectsView past={past} onBack={() => toSubView('main')} />
+            </Suspense>
           )}
 
           {/* Sub-view: payments */}
           {subView === 'payments' && (
-            <PaymentsView leads={leads} onBack={() => toSubView('main')} />
+            <Suspense fallback={chunkSpinner}>
+              <PaymentsView leads={leads} onBack={() => toSubView('main')} />
+            </Suspense>
           )}
 
           {/* Main view */}

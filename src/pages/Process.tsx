@@ -1,7 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { MousePointer2, Rocket, CheckCircle } from 'lucide-react';
-import { useStartProjectHandler } from '../hooks';
+import { useStartProjectHandler, useSettingsNavigate } from '../hooks';
 import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -73,7 +72,7 @@ const STEPS = [
 // ---------------------------------------------------------------------------
 
 export default function Process() {
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   useStartProjectHandler(() => navigate('/#pricing'));
 
   return (

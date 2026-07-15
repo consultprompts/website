@@ -1,6 +1,6 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
 import { REVIEWS } from '../data/content';
+import { useSettingsNavigate } from '../hooks';
 import CustomButton from '../components/ui/CustomButton';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -13,7 +13,7 @@ const STATS = [
 ];
 
 export default function Work() {
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
 
   const featured = REVIEWS.find(r => r.featured)!;
   const others = REVIEWS.filter(r => !r.featured);

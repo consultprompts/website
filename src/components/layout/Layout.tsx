@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
-import { Outlet, useNavigate, useSearchParams } from 'react-router-dom';
-import { useBodyScrollLock } from '../../hooks';
+import { Outlet, useSearchParams } from 'react-router-dom';
+import { useBodyScrollLock, useSettingsNavigate } from '../../hooks';
 import { LayoutContext, type LayoutContextValue } from '../../context/LayoutContext';
 import Navbar from './Navbar';
 import Footer from './Footer';
@@ -8,7 +8,7 @@ import AuthModal, { type AuthMode } from '../modals/AuthModal';
 
 
 export default function Layout() {
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [isAuthOpen, setIsAuthOpen] = useState(false);
   const [authMode, setAuthMode] = useState<AuthMode>('login');

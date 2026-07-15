@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Menu, X, Settings, User as UserIcon } from 'lucide-react';
 import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
-import { useBodyScrollLock } from '../../hooks';
+import { useBodyScrollLock, useSettingsNavigate } from '../../hooks';
 import CustomButton from '../ui/CustomButton';
 
 interface NavbarProps {
@@ -20,8 +20,8 @@ const NAV_LINKS = [
 ];
 
 export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
-  const { user, logout, loading } = useAuth();
-  const navigate = useNavigate();
+  const { user, logout, loading, isAdmin } = useAuth();
+  const navigate = useSettingsNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
   const closeMobile = () => setMobileOpen(false);
@@ -29,7 +29,7 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
   useBodyScrollLock(mobileOpen);
 
   useEffect(() => {
-    if (location.pathname.startsWith('/settings')) closeMobile();
+    if (location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin-settings')) closeMobile();
   }, [location.pathname]);
 
   return (
@@ -53,9 +53,16 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
             {!loading && (
               !user
                 ? <CustomButton onClick={onOpenAuth} variant="ghost">Sign up</CustomButton>
-                : <CustomButton onClick={() => navigate('/settings/my-projects')} variant="icon"><UserIcon/></CustomButton>
+                : (
+                  <>
+                    <CustomButton onClick={() => navigate('/settings/my-projects')} variant="icon"><UserIcon/></CustomButton>
+                    {isAdmin && (
+                      <CustomButton onClick={() => navigate('/admin-settings/agency')} variant="icon" aria-label="Admin settings"><Settings/></CustomButton>
+                    )}
+                  </>
+                )
             )}
-            <CustomButton onClick={onStartProject}>Start a project</CustomButton>
+            <CustomButton onClick={onStartProject} size="mdlight">Start a project</CustomButton>
           </div>
 
           {/* Mobile actions: hamburger */}
@@ -73,13 +80,18 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
       >
         <nav className="flex-1 flex flex-col">
           {NAV_LINKS.map((link, i) => (
-            <Link key={link.href} to={link.href} onClick={closeMobile} tabIndex={mobileOpen ? 0 : -1} className="py-4 border-b border-white/10 last:border-b-0 hover:text-white font-display text-xl transition-colors cursor-pointer">{link.label}</Link>
+            <Link key={link.href} to={link.href} onClick={closeMobile} tabIndex={mobileOpen ? 0 : -1} className="py-4 hover:text-white font-display text-xl transition-colors cursor-pointer">{link.label}</Link>
           ))}
         </nav>
 
         <div className="flex flex-col gap-3">
           <CustomButton onClick={() => { onStartProject(); closeMobile(); }} tabIndex={mobileOpen ? 0 : -1}>Start a project</CustomButton>
-          <CustomButton onClick={() => navigate('/settings')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Console</CustomButton>
+          {user && isAdmin && (
+            <CustomButton onClick={() => navigate('/admin-settings/agency')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Admin Settings</CustomButton>
+          )}
+          {user && (
+            <CustomButton onClick={() => navigate('/settings')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Console</CustomButton>
+          )}
           {!loading && (
             !user
               ? <CustomButton onClick={() => { onOpenAuth(); closeMobile(); }} variant="outline" tabIndex={mobileOpen ? 0 : -1}>Sign up / Log in</CustomButton>

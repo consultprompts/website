@@ -1,17 +1,12 @@
 import React, { useState } from 'react';
-import StatusBadge from '../ui/StatusBadge';
-import CustomButton from '../ui/CustomButton';
 import { Search, X, Undo2 } from 'lucide-react';
 import { type Lead } from '../../lib/api';
 import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONE, projectStatusText } from '../../lib/milestones';
 import { PACKAGES } from '../../data/content';
+import CustomButton from '../ui/CustomButton';
 
 export type Filter = 'pending' | 'accepted' | 'revision' | 'launched';
-
-// ---------------------------------------------------------------------------
-// Helpers
-// ---------------------------------------------------------------------------
 
 function formatDate(iso: string) {
   const d = new Date(iso);
@@ -50,6 +45,7 @@ function rowState(k: number, lead: Lead): RowState {
     return { done, clickable: false, badge: { label: 'Skipped', color: 'var(--color-ink-muted)' } };
   }
   if (done && k === MILESTONE.mockup) {
+    // milestone_index === MILESTONE.mockup means URL sent, awaiting client review.
     if (lead.milestone_index === MILESTONE.mockup) {
       return { done, clickable: false, badge: { label: 'Sent', color: 'var(--color-brand-primary)' } };
     }
@@ -59,6 +55,8 @@ function rowState(k: number, lead: Lead): RowState {
   const current = lead.milestone_index === k - 1;
 
   const state = rowStateActive(k, lead, current);
+  // Frozen while suspended — visible for reference, but reactivate the
+  // project before touching anything. Badges still show for context.
   if (lead.status === 'suspended' && state.clickable) {
     return { ...state, clickable: false, lockReason: 'Reactivate the project to make changes' };
   }
@@ -96,7 +94,7 @@ function rowStateActive(k: number, lead: Lead, current: boolean): RowState {
 }
 
 function normalizeText(s: string) {
-  return s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  return s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
 }
 
 // True when `a` and `b` are within one edit (insert/delete/substitute) of each
@@ -115,6 +113,9 @@ function withinOneEdit(a: string, b: string) {
   return edits + (long.length - j) <= 1;
 }
 
+// Matches when every search token appears in the lead's customer name,
+// business/project name, or email — as a substring, or as a near-miss
+// (one typo) against any single word.
 export function leadMatchesSearch(lead: Lead, query: string) {
   const q = normalizeText(query).trim();
   if (!q) return true;
@@ -127,30 +128,428 @@ export function leadMatchesSearch(lead: Lead, query: string) {
 }
 
 // ---------------------------------------------------------------------------
-// Small shared components
-// ---------------------------------------------------------------------------
 
-function EmptyState({ text }: { text: string }) {
+interface AgencySectionProps {
+  leads: Lead[];
+  filtered: Lead[];
+  filter: Filter | null;
+  setFilter: (f: Filter | null) => void;
+  search: string;
+  setSearch: (v: string) => void;
+  stats: { label: string; value: number; color: string }[];
+  selected: Lead | null;
+  selectedId: string | null;
+  setSelectedId: (id: string | null) => void;
+  onMobileLeadSelect: () => void;
+  onAccept: (lead: Lead) => Promise<void>;
+  onCheckMeeting: (leadId: string) => Promise<void>;
+  onCompleteSite: (leadId: string) => Promise<void>;
+  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
+  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
+  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
+  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
+  onClose: () => void;
+  error: string | null;
+  actionError: string | null;
+  accepting: string | null;
+}
+
+export default function AgencySection({
+  filtered, filter, setFilter, search, setSearch, stats, selected, selectedId, setSelectedId,
+  onMobileLeadSelect, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
+  onClose, error, actionError, accepting,
+}: AgencySectionProps) {
+  const detailProps = {
+    selected: selected!,
+    onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
+    actionError, accepting,
+  };
+
   return (
-    <div
-      style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-      className="py-[60px] px-5 text-center rounded-sm text-ink-muted italic"
-    >
-      {text}
+    <div className="flex flex-col h-full min-h-0">
+      {/* Main */}
+      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 md:px-8 py-4 md:py-6 min-h-0 overflow-y-auto lg:overflow-visible">
+        {/* Left column: stats + leads */}
+        <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
+          <div className="mb-1">
+            <h2 className="font-display font-bold text-2xl">Admin</h2>
+            <p className="text-[13px] text-ink-muted mt-1">Mockup Requests / Pipeline</p>
+          </div>
+          {/* Stats */}
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
+            {stats.map((s) => (
+              <div
+                key={s.label}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)' }}
+                className="bg-bg-surface p-4 rounded-sm flex flex-col gap-1"
+              >
+                <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0">{s.label}</p>
+                <p className="font-display text-[32px] font-bold m-0" style={{ color: s.color }}>
+                  {s.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          {/* Leads column */}
+          <div className="flex flex-col lg:flex-1 lg:min-h-0">
+            <div className="flex items-center justify-between mb-3 gap-4 flex-wrap flex-shrink-0">
+              <div
+                style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
+                className="flex p-1 rounded-sm"
+              >
+                {(['pending', 'accepted', 'revision', 'launched'] as Filter[]).map((f) => {
+                  const active = filter === f;
+                  return (
+                    <CustomButton
+                      key={f}
+                      onClick={() => setFilter(active ? null : f)}
+                      variant="ghost"
+                      size="none"
+                      style={{
+                        background: active ? 'var(--color-brand-primary)' : 'transparent',
+                        color: active ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
+                      }}
+                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] border-none rounded-[3px] transition-all"
+                    >
+                      {f}
+                    </CustomButton>
+                  );
+                })}
+              </div>
+              <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
+            </div>
+
+            {/* Search — matches customer name, business/project name, or email; forgives one typo */}
+            <div
+              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
+              className="flex items-center gap-2.5 px-3.5 rounded-sm mb-4 flex-shrink-0"
+            >
+              <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
+              <input
+                type="text"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search customer, project name or email..."
+                className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
+              />
+              {search && (
+                <CustomButton
+                  onClick={() => setSearch('')}
+                  aria-label="Clear search"
+                  variant="icon"
+                  size="none"
+                  className="border-none p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
+                >
+                  <X className="w-3.5 h-3.5" />
+                </CustomButton>
+              )}
+            </div>
+
+            <div className="flex flex-col gap-2.5 pr-1 lg:flex-1 lg:overflow-y-auto">
+              {error ? (
+                <EmptyState text={error} />
+              ) : filtered.length === 0 ? (
+                <EmptyState text={search ? `No leads match "${search}".` : 'No matching communications detected in the stream.'} />
+              ) : (
+                filtered.map((lead) => (
+                  <LeadRow
+                    key={lead.id}
+                    lead={lead}
+                    isSelected={lead.id === selectedId}
+                    onClick={() => {
+                      const newId = lead.id === selectedId ? null : lead.id;
+                      setSelectedId(newId);
+                      if (newId) onMobileLeadSelect();
+                    }}
+                  />
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Desktop drawer — hidden on mobile (lead detail is in the SettingsPanel hierarchy) */}
+        <div className="hidden lg:flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
+          <>
+            {selected ? (
+              <div
+                key={selected.id}
+                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
+                className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 lg:h-full lg:overflow-y-auto"
+              >
+                <div className="flex justify-between items-start">
+                  <div>
+                    <h3 className="font-display font-bold italic text-[22px] m-0 mb-1">{selected.name}</h3>
+                    <p className="text-brand-primary text-[13px] font-medium m-0">{selected.business}</p>
+                  </div>
+                  <CustomButton
+                    onClick={() => setSelectedId(null)}
+                    variant="icon"
+                    size="sm"
+                    style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
+                    className="text-base leading-none"
+                  >
+                    ✕
+                  </CustomButton>
+                </div>
+                <LeadDetailPanel {...detailProps} />
+              </div>
+            ) : (
+              <div
+                key="empty"
+                style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
+                className="flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
+              >
+                Select a lead to view details and manage milestones.
+              </div>
+            )}
+          </>
+        </div>
+      </div>
     </div>
   );
 }
 
-function LeadLink({ url, label }: { url: string; label?: string }) {
-  const href = safeUrl(url);
-  if (!href) return <span className="break-all">{url}</span>;
+// ---------------------------------------------------------------------------
+
+interface LeadDetailPanelProps {
+  selected: Lead;
+  onAccept: (lead: Lead) => Promise<void>;
+  onCheckMeeting: (leadId: string) => Promise<void>;
+  onCompleteSite: (leadId: string) => Promise<void>;
+  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
+  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
+  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
+  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
+  actionError: string | null;
+  accepting: string | null;
+}
+
+export function LeadDetailPanel({
+  selected, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
+  actionError, accepting,
+}: LeadDetailPanelProps) {
+  const [urlModal, setUrlModal] = useState<'mockup' | 'launch' | null>(null);
+
+  const handleRowClick = (k: number) => {
+    switch (k) {
+      case MILESTONE.meeting: onCheckMeeting(selected.id); break;
+      case MILESTONE.mockup:  setUrlModal('mockup'); break;
+      case MILESTONE.website: onCompleteSite(selected.id); break;
+      case MILESTONE.live:    setUrlModal('launch'); break;
+      // approved / payment rows are never clickable
+    }
+  };
+
+  // Undo is offered on the most recent milestone only when it was a plain
+  // manual check — client-driven ones (approval, payment) can't be unwound.
+  const undoTarget = (k: number): number | null => {
+    if (k !== selected.milestone_index || selected.is_paid) return null;
+    if (k === MILESTONE.meeting && !selected.mockup_url) return 0;
+    if (k === MILESTONE.website) return MILESTONE.approved;
+    return null;
+  };
+
   return (
-    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: 'var(--color-brand-primary)' }}>
-      {label ?? url}
-    </a>
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-1">
+        <p className="text-[13px] m-0">{selected.email}</p>
+        <p className="text-ink-muted text-[10px] uppercase tracking-[0.1em] m-0">
+          {formatDate(selected.created_at)}
+        </p>
+      </div>
+
+      <SubmittedBriefButton lead={selected} />
+
+      {selected.status === 'pending' && (
+        <CustomButton
+          onClick={() => onAccept(selected)}
+          disabled={accepting === selected.id}
+          size="none"
+          className="w-full py-3.5 border-none rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
+        >
+          {accepting === selected.id ? 'Accepting...' : 'Accept & Start Milestones'}
+        </CustomButton>
+      )}
+
+      {actionError && !urlModal && (
+        <p style={{ color: '#FF6B6B' }} className="text-[11px] font-bold uppercase tracking-[0.08em] text-center m-0">
+          {actionError}
+        </p>
+      )}
+
+      {selected.status === 'suspended' && (
+        <div className="p-4 rounded-sm" style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)' }}>
+          <p className="m-0 text-[11px] font-black uppercase tracking-[0.1em]" style={{ color: '#FF6B6B' }}>
+            Project Suspended
+          </p>
+          <p className="mt-1 mb-0 text-[12px] text-ink-muted font-light">
+            Reactivate to resume work.
+          </p>
+        </div>
+      )}
+
+      {(selected.status === 'accepted' || selected.status === 'revision') && (
+        <div>
+          <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
+            Project Milestones
+          </p>
+          <div className="flex flex-col gap-0.5">
+            {MILESTONES.map((label, i) => {
+              const k = i + 1;
+              const { done, clickable, lockReason, badge } = rowState(k, selected);
+              const undoTo = selected.status !== 'suspended' && done ? undoTarget(k) : null;
+              return (
+                <div key={label} className="flex items-center gap-1">
+                  <CustomButton
+                    onClick={() => handleRowClick(k)}
+                    disabled={!clickable}
+                    title={lockReason}
+                    variant="ghost"
+                    size="none"
+                    className="flex flex-1 items-center gap-3.5 px-2 py-2.5 border-none text-left rounded-sm hover:bg-white/[0.03] transition-colors"
+                    style={{ cursor: clickable ? 'pointer' : 'default', opacity: !done && !clickable && !badge ? 0.45 : 1 }}
+                  >
+                    <div
+                      style={{
+                        background: done ? 'var(--color-brand-primary)' : 'transparent',
+                        color: done ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
+                        border: `1px solid ${done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 20%, transparent)'}`,
+                      }}
+                      className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
+                    >
+                      {done ? '✓' : k}
+                    </div>
+                    <span
+                      style={{ color: done ? 'var(--color-ink-base)' : 'var(--color-ink-muted)', fontWeight: clickable ? 700 : 500 }}
+                      className="text-[13px]"
+                    >
+                      {label}
+                      {badge && (
+                        <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: badge.color }}>
+                          {badge.label}
+                        </span>
+                      )}
+                    </span>
+                  </CustomButton>
+                  {undoTo !== null && (
+                    <CustomButton
+                      onClick={() => onUndo(selected.id, undoTo)}
+                      title="Undo this milestone"
+                      variant="icon"
+                      size="none"
+                      className="p-1.5 rounded-sm border-none text-ink-muted hover:text-white transition-colors flex-shrink-0"
+                    >
+                      <Undo2 className="w-3.5 h-3.5" />
+                    </CustomButton>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {(selected.status === 'accepted' || selected.status === 'revision' || selected.status === 'suspended') && (
+        <SuspendButton lead={selected} onSuspend={onSuspend} />
+      )}
+
+      {(selected.status === 'launched' || selected.status === 'completed') && (
+        <LaunchedDetails lead={selected} />
+      )}
+
+      {urlModal === 'mockup' && (
+        <UrlModal
+          title="Enter Mockup URL"
+          note={selected.revision_feedback ? `Client requested changes: ${selected.revision_feedback}` : undefined}
+          placeholder="https://figma.com/..."
+          cta="Send to Client"
+          accent="var(--color-brand-primary)"
+          error={actionError}
+          onSubmit={(url) => onMockupSave(selected.id, url)}
+          onClose={() => setUrlModal(null)}
+        />
+      )}
+      {urlModal === 'launch' && (
+        <UrlModal
+          title="Enter Live Site URL"
+          placeholder="https://clientsite.com"
+          cta="Launch & Notify Client"
+          accent="#B98CFF"
+          error={actionError}
+          onSubmit={(url) => onLaunchSave(selected.id, url)}
+          onClose={() => setUrlModal(null)}
+        />
+      )}
+    </div>
   );
 }
 
+// ---------------------------------------------------------------------------
+
+// Pauses (or resumes) an in-flight project. Suspending asks for confirmation
+// via an in-app popup (not the browser's native confirm()) since there's no
+// separate undo — reactivating restores whatever status the project had
+// beforehand.
+function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: string, suspended: boolean) => Promise<void> }) {
+  const [loading, setLoading] = useState(false);
+  const [confirming, setConfirming] = useState(false);
+  const suspended = lead.status === 'suspended';
+
+  const doToggle = async () => {
+    setConfirming(false);
+    setLoading(true);
+    try {
+      await onSuspend(lead.id, !suspended);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleClick = () => {
+    if (suspended) {
+      doToggle();
+    } else {
+      setConfirming(true);
+    }
+  };
+
+  return (
+    <>
+      <CustomButton
+        onClick={handleClick}
+        disabled={loading}
+        variant="outline"
+        size="none"
+        className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
+        style={
+          suspended
+            ? { background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)', color: 'var(--color-brand-primary)' }
+            : { background: 'transparent', border: '1px solid rgba(255,107,107,0.4)', color: '#FF6B6B' }
+        }
+      >
+        {loading ? (suspended ? 'Reactivating…' : 'Suspending…') : suspended ? 'Reactivate Project' : 'Suspend Project'}
+      </CustomButton>
+
+      {confirming && (
+        <ConfirmModal
+          title="Suspend Project"
+          message={`Suspend the project for ${lead.business}? Work will pause until you reactivate it.`}
+          confirmLabel="Suspend Project"
+          accent="#FF6B6B"
+          onConfirm={doToggle}
+          onCancel={() => setConfirming(false)}
+        />
+      )}
+    </>
+  );
+}
+
+// ---------------------------------------------------------------------------
+
+// Generic in-app confirm popup — replaces the browser's native window.confirm
+// so destructive admin actions get a styled, dismissible dialog instead.
 function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCancel }: {
   title: string;
   message: string;
@@ -175,7 +574,7 @@ function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCance
             onClick={onConfirm}
             variant="ghost"
             size="none"
-            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em]"
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none"
             style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {confirmLabel}
@@ -195,6 +594,11 @@ function ConfirmModal({ title, message, confirmLabel, accent, onConfirm, onCance
   );
 }
 
+// ---------------------------------------------------------------------------
+
+// Popup for the two milestones that need a URL before they can act: sending
+// the mockup for review, and putting the final website live. Closes only on
+// success — a failed save keeps it open with the error shown inline.
 function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onClose }: {
   title: string;
   note?: string;
@@ -250,7 +654,7 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
             disabled={!url.trim() || saving}
             variant="ghost"
             size="none"
-            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] disabled:opacity-50"
+            className="flex-1 py-2.5 rounded-sm font-black text-[10px] uppercase tracking-[0.1em] border-none disabled:opacity-50"
             style={{ background: accent, color: 'var(--color-bg-base)' }}
           >
             {saving ? 'Sending…' : cta}
@@ -270,56 +674,35 @@ function UrlModal({ title, note, placeholder, cta, accent, error, onSubmit, onCl
   );
 }
 
-function SuspendButton({ lead, onSuspend }: { lead: Lead; onSuspend: (leadId: string, suspended: boolean) => Promise<void> }) {
-  const [loading, setLoading] = useState(false);
-  const [confirming, setConfirming] = useState(false);
-  const suspended = lead.status === 'suspended';
+// ---------------------------------------------------------------------------
 
-  const doToggle = async () => {
-    setConfirming(false);
-    setLoading(true);
-    try {
-      await onSuspend(lead.id, !suspended);
-    } finally {
-      setLoading(false);
-    }
-  };
+function LeadLink({ url, label }: { url: string; label?: string }) {
+  const href = safeUrl(url);
+  if (!href) return <span className="break-all">{url}</span>;
+  return (
+    <a href={href} target="_blank" rel="noopener noreferrer" className="hover:underline break-all" style={{ color: 'var(--color-brand-primary)' }}>
+      {label ?? url}
+    </a>
+  );
+}
 
-  const handleClick = () => {
-    if (suspended) {
-      doToggle();
-    } else {
-      setConfirming(true);
-    }
-  };
-
+function SubmittedBriefButton({ lead }: { lead: Lead }) {
+  const [open, setOpen] = useState(false);
   return (
     <>
       <CustomButton
-        onClick={handleClick}
-        disabled={loading}
+        onClick={() => setOpen(true)}
         variant="ghost"
         size="none"
-        className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
-        style={
-          suspended
-            ? { background: 'transparent', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)', color: 'var(--color-brand-primary)' }
-            : { background: 'transparent', border: '1px solid rgba(255,107,107,0.4)', color: '#FF6B6B' }
-        }
+        className="w-full flex justify-between items-center px-4 py-3.5 rounded-sm"
+        style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
       >
-        {loading ? (suspended ? 'Reactivating…' : 'Suspending…') : suspended ? 'Reactivate Project' : 'Suspend Project'}
+        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
+        <span className="text-[10px] text-ink-muted">▸</span>
       </CustomButton>
-
-      {confirming && (
-        <ConfirmModal
-          title="Suspend Project"
-          message={`Suspend the project for ${lead.business}? Work will pause until you reactivate it.`}
-          confirmLabel="Suspend Project"
-          accent="#FF6B6B"
-          onConfirm={doToggle}
-          onCancel={() => setConfirming(false)}
-        />
-      )}
+      <>
+        {open && <BriefModal lead={lead} onClose={() => setOpen(false)} />}
+      </>
     </>
   );
 }
@@ -364,11 +747,16 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
 
   return (
     <div className="fixed inset-0 z-[130] flex items-center justify-center p-6">
-      <div onClick={onClose} className="absolute inset-0" style={{ background: 'rgba(0,0,0,0.65)' }} />
+      <div
+        onClick={onClose}
+        className="absolute inset-0"
+        style={{ background: 'rgba(0,0,0,0.65)' }}
+      />
       <div
         className="relative w-full flex flex-col text-white"
         style={{ maxWidth: 480, maxHeight: '84vh', background: 'var(--color-bg-surface)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)', borderRadius: 6, overflow: 'hidden' }}
       >
+        {/* Header */}
         <div
           className="flex items-start justify-between gap-4 flex-shrink-0"
           style={{ padding: '22px 26px', borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)', background: 'linear-gradient(135deg, color-mix(in srgb, var(--color-brand-primary) 6%, transparent), rgba(112,0,255,0.05))' }}
@@ -392,7 +780,9 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
           </CustomButton>
         </div>
 
+        {/* Scrollable body */}
         <div className="overflow-y-auto flex flex-col" style={{ padding: '22px 26px 26px', gap: 20 }}>
+          {/* Key fact rows */}
           <div className="flex flex-col">
             {rows.map(({ label, value }) => (
               <div key={label} className="flex" style={{ gap: 16, padding: '10px 0', borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)' }}>
@@ -406,6 +796,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             ))}
           </div>
 
+          {/* Pages Needed */}
           {!!lead.pages_needed?.length && (
             <div>
               <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
@@ -421,6 +812,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             </div>
           )}
 
+          {/* Brand Colors */}
           {colors.length > 0 && (
             <div>
               <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
@@ -437,6 +829,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             </div>
           )}
 
+          {/* Logo */}
           {lead.has_logo && lead.logo_url && (
             <div>
               <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
@@ -446,6 +839,7 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
             </div>
           )}
 
+          {/* Inspiration */}
           {!!lead.inspiration_urls?.length && (
             <div>
               <p className="m-0 font-bold uppercase" style={{ fontSize: 10, letterSpacing: '0.14em', color: 'var(--color-ink-muted)', marginBottom: 10 }}>
@@ -461,25 +855,6 @@ function BriefModal({ lead, onClose }: { lead: Lead; onClose: () => void }) {
         </div>
       </div>
     </div>
-  );
-}
-
-function SubmittedBriefButton({ lead }: { lead: Lead }) {
-  const [open, setOpen] = useState(false);
-  return (
-    <>
-      <CustomButton
-        onClick={() => setOpen(true)}
-        variant="ghost"
-        size="none"
-        className="w-full flex justify-between items-center px-4 py-3.5 rounded-sm"
-        style={{ background: 'color-mix(in srgb, var(--color-ink-base) 4%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }}
-      >
-        <span className="text-[10px] uppercase tracking-[0.14em] font-bold text-ink-muted">View Submitted Brief</span>
-        <span className="text-[10px] text-ink-muted">▸</span>
-      </CustomButton>
-      {open && <BriefModal lead={lead} onClose={() => setOpen(false)} />}
-    </>
   );
 }
 
@@ -568,7 +943,12 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
         <div className="min-w-0">
           <div className="flex items-center gap-2.5 mb-1 flex-wrap">
             <h4 className="m-0 text-base font-bold text-white">{lead.name}</h4>
-            <StatusBadge label={ss.label} color={ss.fg} />
+            <span
+              style={{ background: ss.bg, color: ss.fg }}
+              className="text-[9px] font-bold uppercase tracking-[0.08em] px-2 py-0.5 rounded-full"
+            >
+              {ss.label}
+            </span>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             <p className="m-0 text-brand-primary text-[13px] font-medium">{lead.business}</p>
@@ -606,357 +986,13 @@ function LeadRow({ lead, isSelected, onClick }: { key?: string; lead: Lead; isSe
   );
 }
 
-// ---------------------------------------------------------------------------
-// LeadDetailPanel
-// ---------------------------------------------------------------------------
-
-interface LeadDetailPanelProps {
-  selected: Lead;
-  onAccept: (lead: Lead) => Promise<void>;
-  onCheckMeeting: (leadId: string) => Promise<void>;
-  onCompleteSite: (leadId: string) => Promise<void>;
-  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
-  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
-  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
-  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
-  actionError: string | null;
-  accepting: string | null;
-}
-
-export function LeadDetailPanel({
-  selected, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
-  actionError, accepting,
-}: LeadDetailPanelProps) {
-  const [urlModal, setUrlModal] = useState<'mockup' | 'launch' | null>(null);
-
-  const handleRowClick = (k: number) => {
-    switch (k) {
-      case MILESTONE.meeting: onCheckMeeting(selected.id); break;
-      case MILESTONE.mockup:  setUrlModal('mockup'); break;
-      case MILESTONE.website: onCompleteSite(selected.id); break;
-      case MILESTONE.live:    setUrlModal('launch'); break;
-    }
-  };
-
-  const undoTarget = (k: number): number | null => {
-    if (k !== selected.milestone_index || selected.is_paid) return null;
-    if (k === MILESTONE.meeting && !selected.mockup_url) return 0;
-    if (k === MILESTONE.website) return MILESTONE.approved;
-    return null;
-  };
-
+function EmptyState({ text }: { text: string }) {
   return (
-    <div className="flex flex-col gap-5">
-      <div className="flex flex-col gap-1">
-        <p className="text-[13px] m-0">{selected.email}</p>
-        <p className="text-ink-muted text-[10px] uppercase tracking-[0.1em] m-0">
-          {formatDate(selected.created_at)}
-        </p>
-      </div>
-
-      <SubmittedBriefButton lead={selected} />
-
-      {selected.status === 'pending' && (
-        <CustomButton
-          onClick={() => onAccept(selected)}
-          disabled={accepting === selected.id}
-          size="none"
-          className="w-full py-3.5 rounded-sm font-black text-[11px] uppercase tracking-[0.12em]"
-        >
-          {accepting === selected.id ? 'Accepting...' : 'Accept & Start Milestones'}
-        </CustomButton>
-      )}
-
-      {actionError && !urlModal && (
-        <p style={{ color: '#FF6B6B' }} className="text-[11px] font-bold uppercase tracking-[0.08em] text-center m-0">
-          {actionError}
-        </p>
-      )}
-
-      {selected.status === 'suspended' && (
-        <div className="p-4 rounded-sm" style={{ background: 'rgba(255,107,107,0.08)', border: '1px solid rgba(255,107,107,0.25)' }}>
-          <p className="m-0 text-[11px] font-black uppercase tracking-[0.1em]" style={{ color: '#FF6B6B' }}>
-            Project Suspended
-          </p>
-          <p className="mt-1 mb-0 text-[12px] text-ink-muted font-light">
-            Reactivate to resume work.
-          </p>
-        </div>
-      )}
-
-      {(selected.status === 'accepted' || selected.status === 'revision') && (
-        <div>
-          <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0 mb-3.5">
-            Project Milestones
-          </p>
-          <div className="flex flex-col gap-0.5">
-            {MILESTONES.map((label, i) => {
-              const k = i + 1;
-              const { done, clickable, lockReason, badge } = rowState(k, selected);
-              const undoTo = selected.status !== 'suspended' && done ? undoTarget(k) : null;
-              return (
-                <div key={label} className="flex items-center gap-1">
-                  <CustomButton
-                    onClick={() => handleRowClick(k)}
-                    disabled={!clickable}
-                    title={lockReason}
-                    variant="ghost"
-                    size="none"
-                    className="flex flex-1 items-center gap-3.5 px-2 py-2.5 text-left rounded-sm hover:bg-white/[0.03] transition-colors"
-                    style={{ cursor: clickable ? 'pointer' : 'default', opacity: !done && !clickable && !badge ? 0.45 : 1 }}
-                  >
-                    <div
-                      style={{
-                        background: done ? 'var(--color-brand-primary)' : 'transparent',
-                        color: done ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
-                        border: `1px solid ${done ? 'var(--color-brand-primary)' : 'color-mix(in srgb, var(--color-ink-base) 20%, transparent)'}`,
-                      }}
-                      className="w-[22px] h-[22px] rounded-full flex-shrink-0 flex items-center justify-center text-[11px] font-black"
-                    >
-                      {done ? '✓' : k}
-                    </div>
-                    <span
-                      style={{ color: done ? 'var(--color-ink-base)' : 'var(--color-ink-muted)', fontWeight: clickable ? 700 : 500 }}
-                      className="text-[13px]"
-                    >
-                      {label}
-                      {badge && (
-                        <span className="ml-2 text-[9px] uppercase tracking-widest" style={{ color: badge.color }}>
-                          {badge.label}
-                        </span>
-                      )}
-                    </span>
-                  </CustomButton>
-                  {undoTo !== null && (
-                    <CustomButton
-                      onClick={() => onUndo(selected.id, undoTo)}
-                      title="Undo this milestone"
-                      variant="icon"
-                      size="none"
-                      className="p-1.5 rounded-sm text-ink-muted hover:text-white transition-colors flex-shrink-0"
-                    >
-                      <Undo2 className="w-3.5 h-3.5" />
-                    </CustomButton>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {(selected.status === 'accepted' || selected.status === 'revision' || selected.status === 'suspended') && (
-        <SuspendButton lead={selected} onSuspend={onSuspend} />
-      )}
-
-      {(selected.status === 'launched' || selected.status === 'completed') && (
-        <LaunchedDetails lead={selected} />
-      )}
-
-      {urlModal === 'mockup' && (
-        <UrlModal
-          title="Enter Mockup URL"
-          note={selected.revision_feedback ? `Client requested changes: ${selected.revision_feedback}` : undefined}
-          placeholder="https://figma.com/..."
-          cta="Send to Client"
-          accent="var(--color-brand-primary)"
-          error={actionError}
-          onSubmit={(url) => onMockupSave(selected.id, url)}
-          onClose={() => setUrlModal(null)}
-        />
-      )}
-      {urlModal === 'launch' && (
-        <UrlModal
-          title="Enter Live Site URL"
-          placeholder="https://clientsite.com"
-          cta="Launch & Notify Client"
-          accent="#B98CFF"
-          error={actionError}
-          onSubmit={(url) => onLaunchSave(selected.id, url)}
-          onClose={() => setUrlModal(null)}
-        />
-      )}
-    </div>
-  );
-}
-
-// ---------------------------------------------------------------------------
-// AgencySection
-// ---------------------------------------------------------------------------
-
-export interface AgencySectionProps {
-  leads: Lead[];
-  filtered: Lead[];
-  filter: Filter | null;
-  setFilter: (f: Filter | null) => void;
-  search: string;
-  setSearch: (v: string) => void;
-  stats: { label: string; value: number; color: string }[];
-  selected: Lead | null;
-  selectedId: string | null;
-  setSelectedId: (id: string | null) => void;
-  onMobileLeadSelect: () => void;
-  onAccept: (lead: Lead) => Promise<void>;
-  onCheckMeeting: (leadId: string) => Promise<void>;
-  onCompleteSite: (leadId: string) => Promise<void>;
-  onMockupSave: (leadId: string, url: string) => Promise<boolean>;
-  onLaunchSave: (leadId: string, url: string) => Promise<boolean>;
-  onUndo: (leadId: string, targetIndex: number) => Promise<void>;
-  onSuspend: (leadId: string, suspended: boolean) => Promise<void>;
-  onClose: () => void;
-  error: string | null;
-  actionError: string | null;
-  accepting: string | null;
-}
-
-export default function AgencySection({
-  filtered, filter, setFilter, search, setSearch, stats, selected, selectedId, setSelectedId,
-  onMobileLeadSelect, onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
-  onClose, error, actionError, accepting,
-}: AgencySectionProps) {
-  const detailProps = {
-    selected: selected!,
-    onAccept, onCheckMeeting, onCompleteSite, onMockupSave, onLaunchSave, onUndo, onSuspend,
-    actionError, accepting,
-  };
-
-  return (
-    <div className="flex flex-col h-full min-h-0">
-      <div className="flex-1 flex flex-col lg:flex-row gap-6 px-4 md:px-8 py-4 md:py-6 min-h-0 overflow-y-auto lg:overflow-visible">
-        {/* Left column: stats + leads */}
-        <div className="flex flex-col gap-6 min-w-0 lg:min-h-0 lg:flex-[1.4]">
-          <div className="mb-1">
-            <h2 className="font-display font-bold text-2xl">Admin</h2>
-            <p className="text-[13px] text-ink-muted mt-1">Mockup Requests / Pipeline</p>
-          </div>
-
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 flex-shrink-0">
-            {stats.map((s) => (
-              <div
-                key={s.label}
-                style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 5%, transparent)' }}
-                className="bg-bg-surface p-4 rounded-sm flex flex-col gap-1"
-              >
-                <p className="text-ink-muted text-[10px] uppercase tracking-[0.14em] font-bold m-0">{s.label}</p>
-                <p className="font-display text-[32px] font-bold m-0" style={{ color: s.color }}>
-                  {s.value}
-                </p>
-              </div>
-            ))}
-          </div>
-
-          <div className="flex flex-col lg:flex-1 lg:min-h-0">
-            <div className="flex items-center justify-between mb-3 gap-4 flex-wrap flex-shrink-0">
-              <div
-                style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-                className="flex p-1 rounded-sm"
-              >
-                {(['pending', 'accepted', 'revision', 'launched'] as Filter[]).map((f) => {
-                  const active = filter === f;
-                  return (
-                    <CustomButton
-                      key={f}
-                      onClick={() => setFilter(active ? null : f)}
-                      variant="ghost"
-                      size="none"
-                      style={{
-                        background: active ? 'var(--color-brand-primary)' : 'transparent',
-                        color: active ? 'var(--color-bg-base)' : 'var(--color-ink-muted)',
-                      }}
-                      className="px-4 py-2 text-[10px] font-bold uppercase tracking-[0.12em] rounded-[3px] transition-all"
-                    >
-                      {f}
-                    </CustomButton>
-                  );
-                })}
-              </div>
-              <p className="text-ink-muted text-[11px] uppercase tracking-[0.1em] m-0">{filtered.length} shown</p>
-            </div>
-
-            <div
-              style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-              className="flex items-center gap-2.5 px-3.5 rounded-sm mb-4 flex-shrink-0"
-            >
-              <Search className="w-4 h-4 flex-shrink-0 text-ink-muted" />
-              <input
-                type="text"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                placeholder="Search customer, project name or email..."
-                className="flex-1 min-w-0 py-2.5 bg-transparent border-none text-[13px] text-white focus:outline-none placeholder:text-ink-muted"
-              />
-              {search && (
-                <CustomButton
-                  onClick={() => setSearch('')}
-                  aria-label="Clear search"
-                  variant="icon"
-                  size="none"
-                  className="p-1 flex items-center justify-center flex-shrink-0 text-ink-muted hover:text-white"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </CustomButton>
-              )}
-            </div>
-
-            <div className="flex flex-col gap-2.5 pr-1 lg:flex-1 lg:overflow-y-auto">
-              {error ? (
-                <EmptyState text={error} />
-              ) : filtered.length === 0 ? (
-                <EmptyState text={search ? `No leads match "${search}".` : 'No matching communications detected in the stream.'} />
-              ) : (
-                filtered.map((lead) => (
-                  <LeadRow
-                    key={lead.id}
-                    lead={lead}
-                    isSelected={lead.id === selectedId}
-                    onClick={() => {
-                      const newId = lead.id === selectedId ? null : lead.id;
-                      setSelectedId(newId);
-                      if (newId) onMobileLeadSelect();
-                    }}
-                  />
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Desktop drawer */}
-        <div className="hidden lg:flex flex-col lg:flex-1 lg:min-w-[340px] lg:max-w-[720px] lg:min-h-0">
-          {selected ? (
-            <div
-              key={selected.id}
-              style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)' }}
-              className="bg-bg-surface rounded-sm p-7 flex flex-col gap-5 lg:h-full lg:overflow-y-auto"
-            >
-              <div className="flex justify-between items-start">
-                <div>
-                  <h3 className="font-display font-bold italic text-[22px] m-0 mb-1">{selected.name}</h3>
-                  <p className="text-brand-primary text-[13px] font-medium m-0">{selected.business}</p>
-                </div>
-                <CustomButton
-                  onClick={() => setSelectedId(null)}
-                  variant="icon"
-                  size="sm"
-                  style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-                  className="text-base leading-none flex-shrink-0"
-                >
-                  ✕
-                </CustomButton>
-              </div>
-              <LeadDetailPanel {...detailProps} />
-            </div>
-          ) : (
-            <div
-              key="empty"
-              style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
-              className="flex h-full rounded-sm items-center justify-center text-center p-10 text-ink-muted italic text-[13px]"
-            >
-              Select a lead to view details and manage milestones.
-            </div>
-          )}
-        </div>
-      </div>
+    <div
+      style={{ border: '1px dashed color-mix(in srgb, var(--color-ink-base) 10%, transparent)' }}
+      className="py-[60px] px-5 text-center rounded-sm text-ink-muted italic"
+    >
+      {text}
     </div>
   );
 }

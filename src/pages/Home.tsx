@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { CheckCircle, MessageCircle } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { useStartProjectHandler } from '../hooks';
+import { useStartProjectHandler, useSettingsNavigate } from '../hooks';
 import { getMyLeads } from '../lib/api';
 import { useLayout } from '../context/LayoutContext';
 
 import BackgroundDecor from '../components/layout/BackgroundDecor';
-import Notification from '../components/ui/Notification';
 
 import SeoSchema from '../components/home/SeoSchema';
 import Hero from '../components/home/Hero';
@@ -21,10 +19,9 @@ import FinalCTA from '../components/home/FinalCTA';
 export default function Home() {
   const { user } = useAuth();
   const [searchParams, setSearchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   const { openAuthModal, setAuthSuccessHandler } = useLayout();
 
-  const [isAlreadyActiveOpen, setIsAlreadyActiveOpen] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState('visibility');
   const [pendingAction, setPendingAction] = useState<'NAVIGATE_START_PROJECT' | null>(null);
 
@@ -57,8 +54,10 @@ export default function Home() {
       setPendingAction('NAVIGATE_START_PROJECT');
       openAuthModal('signup');
     } else {
+      // One project in flight at a time: with one already active, land on its
+      // tracker in My Projects instead of the new-project brief.
       if (await checkActiveLead()) {
-        setIsAlreadyActiveOpen(true);
+        navigate('/settings/my-projects');
       } else {
         navigate('/settings/my-projects/new-project', { state: { package: pkg } });
       }
@@ -67,14 +66,17 @@ export default function Home() {
 
   const handleAuthSuccess = async () => {
     const next = searchParams.get('next');
-    if (next) {
+    // Only in-app paths: reject absolute ("https://…") and protocol-relative
+    // ("//evil.com") values so a crafted login link can't bounce the user to
+    // another site after they authenticate.
+    if (next && next.startsWith('/') && !next.startsWith('//')) {
       navigate(next);
       return;
     }
     if (pendingAction === 'NAVIGATE_START_PROJECT') {
       setPendingAction(null);
       if (await checkActiveLead()) {
-        setIsAlreadyActiveOpen(true);
+        navigate('/settings/my-projects');
       } else {
         navigate('/settings/my-projects/new-project', { state: { package: selectedPackage } });
       }
@@ -93,30 +95,6 @@ export default function Home() {
     <div className="overflow-x-hidden">
       <SeoSchema />
       <BackgroundDecor />
-
-      <Notification
-        isOpen={isAlreadyActiveOpen}
-        onClose={() => setIsAlreadyActiveOpen(false)}
-        icon={<CheckCircle className="w-8 h-8 text-brand-primary" />}
-        title="You're Already in Line"
-        description="You already have an active project with us. We're working on it — reach out on WhatsApp if you have updates or questions."
-      >
-        <a
-          href="https://wa.me/13026622736"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-        >
-          <MessageCircle className="w-4 h-4" />Chat on WhatsApp
-        </a>
-        <Link
-          to="/settings/my-projects"
-          onClick={() => setIsAlreadyActiveOpen(false)}
-          className="w-full py-4 border border-brand-primary text-brand-primary font-black uppercase tracking-widest hover:bg-brand-primary hover:text-bg-base transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
-        >
-          Track My Project
-        </Link>
-      </Notification>
 
       <Hero />
       <ProcessSection />

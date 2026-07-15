@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useSettingsNavigate } from '../hooks';
 import { PACKAGES, COMPARISON_ROWS } from '../data/content';
 import CustomButton from '../components/ui/CustomButton';
 
@@ -7,7 +7,7 @@ import CustomButton from '../components/ui/CustomButton';
 const EASE = [0.16, 1, 0.3, 1] as any;
 
 export default function Pricing() {
-  const navigate = useNavigate();
+  const navigate = useSettingsNavigate();
   const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   return (

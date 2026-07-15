@@ -26,7 +26,7 @@ export default function ReviewsSection() {
             return (
             <div
               key={review.client}
-              className={`group rounded-xl border border-white flex flex-col relative overflow-hidden cursor-pointer lg:cursor-default transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)] max-[1249px]:bg-bg-surface max-[1249px]:shadow-[0_16px_30px_-10px_rgba(0,0,0,0.55)] ${
+              className={`group rounded-xl border border-white/[0.08] flex flex-col relative overflow-hidden cursor-pointer lg:cursor-default transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)] max-[1249px]:bg-bg-surface max-[1249px]:shadow-[0_16px_30px_-10px_rgba(0,0,0,0.55)] ${
                 isOpen
                   ? 'max-[1249px]:rotate-0 max-[1249px]:z-[999] max-[1249px]:scale-[1.03]'
                   : `${STACK_ROTATIONS[i % STACK_ROTATIONS.length]} ${STACK_Z[i % STACK_Z.length]}`
