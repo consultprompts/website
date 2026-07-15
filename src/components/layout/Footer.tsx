@@ -12,7 +12,7 @@ const EXPLORE_LINKS = [
 const MORE_LINKS: { label: string; to: string }[] = [
   { label: 'Track My Project', to: '/settings/my-projects' },
   { label: 'Academy',          to: '/academy' },
-  { label: 'Digital Products', to: '/ebooks' },
+  //{ label: 'Digital Products', to: '/ebooks' },
 ];
 
 const colLabel = 'text-[11px] font-bold uppercase tracking-[0.14em] text-white m-0';
@@ -74,7 +74,6 @@ export default function Footer() {
             ))}
           </div>
         </div>
-
       </div>
     </footer>
   );

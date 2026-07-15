@@ -13,41 +13,17 @@ export default function About() {
     <div className="text-white">
       {/* ── Header ── */}
       <header style={{ position: 'relative', padding: '148px 24px 64px', overflow: 'hidden' }}>
-        {/* Cyan glow blob */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            right: 0,
-            width: 600,
-            height: 460,
-            background: 'color-mix(in srgb, var(--color-brand-primary) 6%, transparent)',
-            borderRadius: 999,
-            filter: 'blur(140px)',
-            pointerEvents: 'none',
-          }}
-        />
-        <div style={{ maxWidth: 900, margin: '0 auto', position: 'relative', zIndex: 1, textAlign: 'center' }}>
-          <span
-            className="font-bold uppercase block"
-            style={{ color: 'var(--color-brand-primary)', fontSize: 12, letterSpacing: '0.14em', marginBottom: 16 }}
-          >
-            Who We Are
-          </span>
-          <h1
-            className="font-display font-bold italic"
-            style={{ fontSize: 'clamp(32px, 5vw, 60px)', margin: '0 0 20px' }}
-          >
-            We think agencies got too slow.
-          </h1>
-          <p
-            className="text-ink-muted font-light"
-            style={{ fontSize: 16, lineHeight: 1.6, margin: 0 }}
-          >
-            Consult Prompts started with one belief: a local business shouldn't wait six weeks and pay
-            six grand for a website that actually works. So we rebuilt the process from scratch around
-            speed, and we haven't slowed down since.
-          </p>
+        <div className="max-w-5xl mx-auto">
+          {/* Cyan glow blob */}
+          <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+            <span className="section-badge">Who We Are</span>
+            <h1 className="section-title">We think agencies got too slow.</h1>
+            <p className="section-sub-title">
+              Consult Prompts started with one belief: a local business shouldn't wait six weeks and pay
+              six grand for a website that actually works. So we rebuilt the process from scratch around
+              speed, and we haven't slowed down since.
+            </p>
+          </div>
         </div>
       </header>
 
@@ -57,18 +33,9 @@ export default function About() {
         style={{ maxWidth: 1000, margin: '0 auto', padding: '24px 24px 80px' }}
       >
         <div>
-          <span
-            style={{ color: 'var(--color-brand-primary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.18em', display: 'block', marginBottom: 14 }}
-          >
-            The Mission
-          </span>
-          <h2
-            className="font-display font-bold italic"
-            style={{ fontSize: 36, margin: '0 0 16px' }}
-          >
-            Real websites for real neighborhoods.
-          </h2>
-          <p className="text-ink-muted font-light" style={{ fontSize: 14, lineHeight: 1.7, margin: 0 }}>
+          <span className="section-badge">The Mission</span>
+          <h2 className="section-title">Real websites for real neighborhoods.</h2>
+          <p className="section-sub-title">
             Every diner, barbershop, and hardware store deserves a site that loads fast, looks sharp,
             and turns visitors into customers — without the overhead of a traditional agency retainer.
             That's the only thing we build.
@@ -97,22 +64,11 @@ export default function About() {
       </section>
 
       {/* ── Values ── */}
-      <section style={{ padding: '80px 24px', background: 'color-mix(in srgb, var(--color-ink-base) 2%, transparent)' }}>
-        <div style={{ maxWidth: 1080, margin: '0 auto' }}>
-          <div
-            style={{ textAlign: 'center', marginBottom: 48 }}
-          >
-            <span
-              style={{ color: 'var(--color-brand-primary)', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.14em', display: 'block', marginBottom: 14 }}
-            >
-              What We Stand For
-            </span>
-            <h2
-              className="font-display font-bold italic"
-              style={{ fontSize: 'clamp(26px, 4vw, 40px)', margin: 0 }}
-            >
-              Our Values.
-            </h2>
+      <section>
+        <div className="max-w-4xl mx-auto">
+          <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 px-7">
+            <span className="section-badge">What We Stand For</span>
+            <h2 className="section-title">Our Values.</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -140,13 +96,7 @@ export default function About() {
       </section>
 
       {/* ── Stats band ── */}
-      <section
-        style={{
-          padding: '64px 24px',
-          borderTop: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
-          borderBottom: '1px solid color-mix(in srgb, var(--color-ink-base) 6%, transparent)',
-        }}
-      >
+      <section>
         <div
           style={{
             maxWidth: 1080,

@@ -37,8 +37,8 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
       <nav className="fixed px-6 top-0 left-0 right-0 z-50 border-b border-white/5 bg-bg-base/95 md:bg-bg-base/90 md:backdrop-blur-md py-2">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
           <Link to="/" className="flex items-center no-underline" onClick={closeMobile}>
-            <img src={logoSrc} className="h-12 w-auto object-contain navbar-logo" />
-            <span className="hidden xl:flex font-display font-bold tracking-tight uppercase text-xl">Consult Prompts</span>
+            <img src={logoSrc} className="h-10 w-auto object-contain navbar-logo" />
+            <span className="font-display font-bold tracking-tight uppercase text-xl">Consult Prompts</span>
           </Link>
 
           {/* Desktop nav */}

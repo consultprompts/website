@@ -16,21 +16,21 @@ export default function FaqSection() {
 
         <div className="space-y-4">
           {FAQS.map((faq, i) => (
-            <div key={i} className="liquid-glass border border-white/10 rounded-xl">
+            <div key={i} className="liquid-glass border border-white/10 rounded-xl transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]">
               <CustomButton 
                 onClick={() => setOpenFaq(openFaq === i ? null : i)} 
                 variant="ghost" 
                 size="none" 
-                className="w-full p-4 flex items-center justify-between text-left hover:bg-white/[0.02]"
+                className="w-full p-4 flex items-center justify-between text-left"
               >
                 <span className="font-bold tracking-wide italic">{faq.question}</span>
                 {openFaq === i ? <Minus className="w-4 h-4 text-brand-primary" /> : <Plus className="w-4 h-4 text-brand-primary" />}
               </CustomButton>
-              <>
-                {openFaq === i && (
-                  <div><p className="px-6 pb-6 text-ink-muted text-sm leading-relaxed font-light">{faq.answer}</p></div>
-                )}
-              </>
+              <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                <div className="overflow-hidden">
+                  <p className="px-6 pb-6 text-ink-muted text-sm leading-relaxed font-light">{faq.answer}</p>
+                </div>
+              </div>
             </div>
           ))}
         </div>

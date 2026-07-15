@@ -80,13 +80,8 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
     <>
       {isOpen && (
         <div className="fixed inset-0 z-[110] overflow-y-auto flex items-start md:items-center justify-center p-4 md:p-6 py-12 md:py-6">
-          <div
-            onClick={handleClose}
-            className="fixed inset-0 bg-bg-base/95 backdrop-blur-md cursor-pointer"
-          />
-          <div
-            className="relative w-full max-w-sm liquid-glass p-6 md:p-10 rounded-xl border-brand-primary/30 z-10 my-auto"
-          >
+          <div onClick={handleClose} className="fixed inset-0 bg-bg-base/95 backdrop-blur-md cursor-pointer"/>
+          <div className="relative w-full max-w-sm p-6 md:p-10 rounded-xl border-brand-primary/30 z-10 my-auto shadow-2xl">
             {/* Forgot password flow */}
             {isForgot ? (
               forgotSent ? (
@@ -95,9 +90,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                     <MailCheck className="w-8 h-8 text-brand-primary" />
                   </div>
                   <h3 className="font-display text-2xl font-bold italic mb-2">Check Your Inbox</h3>
-                  <p className="text-ink-muted text-sm font-light leading-relaxed mb-8">
-                    If that email is registered, we sent a reset link. Check your inbox and follow the instructions.
-                  </p>
+                  <p className="text-ink-muted text-sm font-light leading-relaxed mb-8">If that email is registered, we sent a reset link. Check your inbox and follow the instructions.</p>
                   <CustomButton
                     onClick={() => {
                       setIsForgot(false);
@@ -118,12 +111,8 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                     <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
                       <KeyRound className="w-6 h-6 md:w-8 md:h-8 text-brand-primary" />
                     </div>
-                    <h3 className="font-display text-2xl md:text-3xl font-bold italic mb-1 md:mb-2 tracking-tight">
-                      Forgot Password
-                    </h3>
-                    <p className="text-ink-muted text-xs md:text-sm font-light">
-                      Enter your email and we'll send a reset link.
-                    </p>
+                    <h3 className="font-display text-2xl md:text-3xl font-bold italic mb-1 md:mb-2 tracking-tight">Forgot Password</h3>
+                    <p className="text-ink-muted text-xs md:text-sm font-light">Enter your email and we'll send a reset link.</p>
                   </div>
 
                   <form onSubmit={handleForgotSubmit} className="space-y-3 md:space-y-4 mb-6 md:mb-8">
@@ -143,9 +132,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                       <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{forgotError}</p>
                     )}
 
-                    <CustomButton loading={forgotLoading} className="w-full">
-                      Send Reset Link
-                    </CustomButton>
+                    <CustomButton loading={forgotLoading} className="w-full">Send Reset Link</CustomButton>
                   </form>
 
                   <div className="text-center">
@@ -246,9 +233,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                     <p className="text-red-400 text-xs font-bold uppercase tracking-widest text-center">{error}</p>
                   )}
 
-                  <CustomButton loading={isSubmitting} className="w-full">
-                    {mode === 'login' ? 'Access' : 'Register'}
-                  </CustomButton>
+                  <CustomButton loading={isSubmitting} className="w-full">{mode === 'login' ? 'Access' : 'Register'}</CustomButton>
                 </form>
 
                 {/* Divider + Google sign-in */}
@@ -260,8 +245,8 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
 
                 <a
                   href={googleLoginUrl()}
-                  className="w-full py-3 md:py-3.5 mb-6 md:mb-8 flex items-center justify-center gap-3 rounded-xl font-bold text-sm text-white no-underline transition-colors hover:border-white/30"
-                  style={{ background: 'color-mix(in srgb, var(--color-ink-base) 5%, transparent)', border: '1px solid color-mix(in srgb, var(--color-ink-base) 12%, transparent)' }}
+                  className="w-full py-3 md:py-3.5 mb-6 md:mb-8 flex items-center justify-center gap-3 rounded-xl font-bold text-sm no-underline"
+                  style={{ background: '#FFFFFF', color: '#1F1F1F', border: '1px solid #DADCE0' }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true">
                     <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z" />
@@ -277,7 +262,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                     onClick={() => onModeChange(mode === 'login' ? 'signup' : 'login')}
                     variant="ghost"
                     size="none"
-                    className="text-xs text-ink-muted hover:text-brand-primary font-bold uppercase tracking-widest border-b border-white/10 pb-1"
+                    className="text-xs text-ink-muted font-bold uppercase tracking-widest border-b border-white/10 pb-1"
                   >
                     {mode === 'login' ? 'New here? Sign Up' : 'Registered? Login'}
                   </CustomButton>

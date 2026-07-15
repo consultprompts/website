@@ -272,6 +272,20 @@ a.bg-brand-primary:hover {
   align-items: start;
 }
 
+/* Chrome/Safari paint autofilled inputs pale yellow. background-clip: text
+   removes that paint entirely — it also bleeds through semi-transparent
+   borders, so an inset box-shadow alone leaves a yellow ring. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+input:-webkit-autofill:active {
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: var(--color-ink-base);
+  caret-color: var(--color-ink-base);
+  transition: background-color 9999s ease-in-out 0s;
+}
+
 /* Pricing package card: left-col | right-col */
 .pkg-card-grid {
   display: grid;

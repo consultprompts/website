@@ -50,7 +50,7 @@ export default function AccountSection({ onClose }: { onClose: () => void }) {
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
-        <div className="w-full max-w-[1200px] mx-auto flex flex-col gap-6">
+        <div className="w-full max-w-[1000px] mx-auto flex flex-col gap-6">
           <div className="mb-1">
             <h2 className="font-display font-bold text-2xl">Account</h2>
             <p className="text-[13px] text-ink-muted mt-1">Profile / Security</p>

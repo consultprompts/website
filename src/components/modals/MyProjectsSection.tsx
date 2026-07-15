@@ -87,7 +87,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             href={safeUrl(lead.mockup_url)!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-3 rounded-lg font-bold text-sm"
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm"
             style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', color: 'var(--color-brand-primary)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)' }}
           >
             <ExternalLink className="w-4 h-4" />
@@ -701,22 +701,28 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
 
   return (
     <div
-      className="liquid-glass rounded-2xl flex items-center gap-0 overflow-hidden"
+      className="liquid-glass rounded-2xl flex items-center gap-4 mobile:gap-0 overflow-hidden p-5 mobile:p-0"
     >
-      {/* Left — status + name + date */}
-      <div className="px-6 py-5 flex-shrink-0 min-w-[180px]">
+      {/* Left — status + name + date (+ description on small screens) */}
+      <div className="flex-1 min-w-0 mobile:flex-none mobile:min-w-[180px] mobile:px-6 mobile:py-5">
         <StatusBadge label="Under Review" color="#F5C542" className="mb-2" />
         <h3 className="font-display font-bold italic text-2xl leading-tight">
           {lead.business}
         </h3>
         <p className="text-xs text-ink-muted mt-1">Started {date}</p>
+        <div className="hidden">
+          <p className="font-bold text-[14px] leading-tight mb-1">In the review queue</p>
+          <p className="text-[13px] text-ink-muted leading-snug">
+            Your application is in the queue — we'll review it and reach out soon.
+          </p>
+        </div>
       </div>
 
       {/* Vertical divider */}
-      <div className="self-stretch w-px flex-shrink-0" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }} />
+      <div className="hidden mobile:block self-stretch w-px flex-shrink-0" style={{ background: 'color-mix(in srgb, var(--color-ink-base) 8%, transparent)' }} />
 
       {/* Center — description */}
-      <div className="px-6 py-5 flex items-start gap-3 flex-1 min-w-0">
+      <div className="hidden mobile:flex px-6 py-5 items-start gap-3 flex-1 min-w-0">
         <div className="min-w-0">
           <p className="font-bold text-[14px] leading-tight mb-1">In the review queue</p>
           <p className="text-[13px] text-ink-muted leading-snug">
@@ -726,7 +732,7 @@ function PendingProjectCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
       </div>
 
       {/* Right — actions */}
-      <div className="px-6 py-5 flex items-center gap-3 flex-shrink-0">
+      <div className="flex items-center gap-3 flex-shrink-0 mobile:px-6 mobile:py-5">
         <CustomButton
           onClick={() => navigate(`/settings/my-projects/${lead.id}/edit`, { replace: true })}
           variant="outline"
@@ -782,10 +788,13 @@ function CyclingLoader({ words }: { words: string[] }) {
 }
 
 // ---------------------------------------------------------------------------
-// StageActionPanel — dispatcher
+// ScheduleMeetingPanel — standalone pane shown when the admin skipped the
+// kickoff meeting and the user hasn't requested one yet (wants_call=false).
+// Once wants_call is true and the admin marks it done (milestone_index back
+// to 1), the panel disappears.
 // ---------------------------------------------------------------------------
 
-function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
+function ScheduleMeetingPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
   const [meetingState, setMeetingState] = useState<'idle' | 'sending' | 'sent' | 'error'>('idle');
   const meetingRequested = meetingState === 'sent' || lead.wants_call;
 
@@ -800,32 +809,37 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     }
   };
 
-  // Meeting panel — also show when admin skipped the meeting and the user
-  // hasn't requested one yet (wants_call=false). Once wants_call is true and
-  // the admin marks it done (milestone_index back to 1), hide the panel.
-  if (lead.meeting_skipped && lead.milestone_index === MILESTONE.meeting && !lead.wants_call) {
-    return (
-      <div
-        className="rounded-[14px] p-6 border border-white/8 bg-bg-surface"
+  return (
+    <div
+      className="rounded-[14px] p-6 border border-white/8 bg-bg-surface"
+    >
+      <p className="font-display font-bold text-[15px] mb-1">Schedule your kickoff meeting</p>
+      <p className="text-[13px] text-ink-muted mb-5">
+        Let's talk through your goals before we start on your mockup.
+      </p>
+      <CustomButton
+        onClick={meetingRequested ? undefined : handleRequestMeeting}
+        disabled={meetingState === 'sending' || meetingRequested}
+        size="none"
+        className="px-[18px] py-2 rounded-[9px] text-[13px] border-none disabled:cursor-default"
+        style={meetingRequested
+          ? { background: 'transparent', border: '2px solid var(--color-brand-primary)', color: 'var(--color-brand-primary)' }
+          : { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
       >
-        <p className="font-display font-bold text-[15px] mb-1">Schedule your kickoff meeting</p>
-        <p className="text-[13px] text-ink-muted mb-5">
-          Let's talk through your goals before we start on your mockup.
-        </p>
-        <CustomButton
-          onClick={meetingRequested ? undefined : handleRequestMeeting}
-          disabled={meetingState === 'sending' || meetingRequested}
-          size="none"
-          className="px-[18px] py-2 rounded-[9px] text-[13px] border-none disabled:cursor-default"
-          style={meetingRequested
-            ? { background: 'transparent', border: '2px solid var(--color-brand-primary)', color: 'var(--color-brand-primary)' }
-            : { background: 'var(--color-brand-primary)', color: 'var(--color-bg-base)' }}
-        >
-          {meetingState === 'sending' ? 'Sending…' : meetingRequested ? '✓ Meeting Requested' : meetingState === 'error' ? 'Try Again' : 'Request a Meeting'}
-        </CustomButton>
-      </div>
-    );
-  }
+        {meetingState === 'sending' ? 'Sending…' : meetingRequested ? '✓ Meeting Requested' : meetingState === 'error' ? 'Try Again' : 'Request a Meeting'}
+      </CustomButton>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// StageActionPanel — dispatcher
+// ---------------------------------------------------------------------------
+
+function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: Lead) => void }) {
+  // A skipped meeting doesn't block the mockup stages — the schedule-meeting
+  // pane stacks above whichever stage panel is current.
+  const meetingSkippedPending = lead.meeting_skipped && lead.milestone_index === MILESTONE.meeting && !lead.wants_call;
 
   // Nothing done yet — waiting on the kickoff meeting to happen.
   if (lead.milestone_index === 0) {
@@ -839,28 +853,37 @@ function StageActionPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated: 
     );
   }
 
-  // Meeting done, mockup not sent yet — admin is designing it.
+  // Meeting done (or skipped), mockup not sent yet — admin is designing it.
   if (lead.milestone_index === MILESTONE.meeting && !lead.revision_feedback) {
     return (
-      <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
-        <p className="font-display font-bold text-[15px] mb-1">Designing your mockup</p>
-        <p className="text-[13px] text-ink-muted mb-5">
-          We're putting your mockup together — you'll be notified as soon as it's ready to review.
-        </p>
-        <CyclingLoader words={['Designing', 'Sketching layouts', 'Choosing colors', 'Polishing pixels', 'Cooking']} />
-      </div>
+      <>
+        {meetingSkippedPending && <ScheduleMeetingPanel lead={lead} onUpdate={onUpdate} />}
+        <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
+          <p className="font-display font-bold text-[15px] mb-1">Designing your mockup</p>
+          <p className="text-[13px] text-ink-muted mb-5">
+            We're putting your mockup together — you'll be notified as soon as it's ready to review.
+          </p>
+          <CyclingLoader words={['Designing', 'Sketching layouts', 'Choosing colors', 'Polishing pixels', 'Cooking']} />
+        </div>
+      </>
     );
   }
 
   // Mockup review panel — also visible during revision (milestone resets to
   // MilestoneMeeting while admin redesigns, but the feedback notice must persist).
   if (lead.milestone_index === MILESTONE.mockup || (lead.milestone_index === MILESTONE.meeting && !!lead.revision_feedback)) {
+    const redesigning = lead.milestone_index === MILESTONE.meeting && !!lead.revision_feedback;
     return (
       <div className="rounded-[14px] p-6 border border-white/8 bg-bg-surface">
         <p className="font-display font-bold text-[15px] mb-1">Review your mockup</p>
         <p className="text-[13px] text-ink-muted mb-5">
           Take a look at the design and let us know if it's ready to build.
         </p>
+        {redesigning && (
+          <div className="mb-4">
+            <CyclingLoader words={['Redesigning', 'Applying your feedback', 'Reworking layouts', 'Polishing pixels', 'Cooking']} />
+          </div>
+        )}
         <MockupReviewPanel lead={lead} onUpdate={onUpdate} />
       </div>
     );
@@ -1210,7 +1233,7 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   return (
     <div className="flex flex-col h-full min-h-0">
       <div className="flex-1 overflow-y-auto py-4 settings:py-6">
-        <div className="w-full max-w-[1200px] mx-auto px-4 settings:px-8">
+        <div className="w-full max-w-[1000px] mx-auto px-4 settings:px-8">
 
           {/* Header — hidden when in a sub-view; column on mobile, row ≥760px */}
           <div className={`${subView !== 'main' ? 'hidden' : 'flex'} flex-col mobile:flex-row mobile:items-start mobile:justify-between gap-4 mb-7`}>

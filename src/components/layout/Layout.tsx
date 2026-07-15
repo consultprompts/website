@@ -48,11 +48,9 @@ export default function Layout() {
         />
         
         <Navbar onStartProject={handleStartProject} onOpenAuth={() => openAuthModal('login')}/>
-
         <main className="flex-1">
           <Outlet />
         </main>
-
         <Footer />
       </div>
     </LayoutContext.Provider>

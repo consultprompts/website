@@ -107,8 +107,7 @@ export default function Home() {
           rel="noopener noreferrer"
           className="w-full py-4 bg-green-500 text-bg-base font-black uppercase tracking-widest hover:bg-green-400 transition-colors flex items-center justify-center gap-2 rounded-xl cursor-pointer"
         >
-          <MessageCircle className="w-4 h-4" />
-          Chat on WhatsApp
+          <MessageCircle className="w-4 h-4" />Chat on WhatsApp
         </a>
         <Link
           to="/settings/my-projects"

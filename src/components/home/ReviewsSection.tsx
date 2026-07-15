@@ -17,7 +17,7 @@ export default function ReviewsSection() {
           {REVIEWS.map((review, i) => (
             <div
               key={review.client}
-              className="group rounded-xl border border-white/[0.08] flex flex-col relative overflow-hidden cursor-pointer lg:cursor-default"
+              className="group rounded-xl border border-white/[0.08] flex flex-col relative overflow-hidden cursor-pointer lg:cursor-default transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]"
               onClick={() => {
                 if (window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
                 setOpenReview(prev => prev === review.client ? null : review.client);
@@ -28,7 +28,7 @@ export default function ReviewsSection() {
                 <img
                   src={review.image}
                   alt={review.client}
-                  className="w-full h-full object-cover opacity-0 transition-all duration-700 group-hover:scale-105"
+                  className="w-full h-full object-cover opacity-0 transition-all duration-700"
                   onLoad={(e) => {
                     e.currentTarget.classList.add('opacity-100');
                     const shimmer = e.currentTarget.previousElementSibling as HTMLElement | null;

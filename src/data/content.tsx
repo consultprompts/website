@@ -207,6 +207,7 @@ export interface Package {
   name: string;
   tagline: string;
   price: string;
+  maintenance: string;
   tier: string;
   featured?: boolean;
   featuresIntro?: string;
@@ -222,6 +223,7 @@ export const PACKAGES: Package[] = [
     id: 'facelift',
     name: 'Digital Face-Lift',
     tagline: 'The ultimate hook. High-speed, modern replacement for old sites.',
+    maintenance: '$9/month',
     price: '$299',
     tier: 'Startup',
     bestFor: 'Best for: brand-new businesses',
@@ -232,8 +234,6 @@ export const PACKAGES: Package[] = [
       { icon: <Zap className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Speed Optimization' },
       { icon: <CloudCog className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Domain & Hosting Transfer' },
       { icon: <Search className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Basic Global SEO' },
-      { icon: <MessageCircle className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Lead Capture Form' },
-      { icon: <Rocket className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '48–72 Hour Turnaround' },
     ],
     categories: [
       { label: 'Design & Build', items: [
@@ -243,7 +243,6 @@ export const PACKAGES: Package[] = [
       ]},
       { label: 'Growth & Support', items: [
         { label: 'Basic Global SEO', detail: 'Proper titles, meta tags and structure so search engines can find you.' },
-        { label: 'Lead Capture Form', detail: 'A contact form wired straight to your inbox — no missed inquiries.' },
       ]},
     ],
   },
@@ -251,6 +250,7 @@ export const PACKAGES: Package[] = [
     id: 'visibility',
     name: 'Visibility Booster',
     tagline: 'The better deal. Not just a site, but a way to get found on Google.',
+    maintenance: '$19/month',
     price: '$499',
     tier: 'Performance',
     featured: true,
@@ -259,21 +259,15 @@ export const PACKAGES: Package[] = [
     timeline: '48–72 hour turnaround',
     cta: 'Go Visibility',
     features: [
-      { icon: <MapPin className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Google Business Profile' },
+      { icon: <Send className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Email Automation' },
+      { icon: <MessageSquare className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '24/7 AI Chatbot Assistant' },
       { icon: <Search className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Local SEO (City/Neighborhood)' },
-      { icon: <Instagram className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Social Feed Auto-Sync' },
-      { icon: <Brain className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'AI Persuasive Copywriting' },
-      { icon: <Zap className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '1 Month "On-Call" Updates' },
     ],
     categories: [
       { label: 'Local Visibility', items: [
-        { label: 'Google Business Profile Fix', detail: 'We audit and correct your GBP listing so it shows up accurately in Maps and Search.' },
+        { label: 'Email Automation', detail: 'Automatic confirmations, reminders and follow-ups — no manual texting.' },
+        { label: '24/7 AI Chatbot Assistant', detail: 'Answers common customer questions instantly, even while you sleep.' },
         { label: 'Local SEO (City/Neighborhood)', detail: 'Pages and copy tuned to rank for searches in your specific service area.' },
-        { label: 'Social Feed Auto-Sync', detail: 'Your latest Instagram posts pull automatically into the site — always current.' },
-      ]},
-      { label: 'Copy & Care', items: [
-        { label: 'AI Persuasive Copywriting', detail: 'Every page written to convert, not just describe — tuned to your industry.' },
-        { label: '1 Month "On-Call" Updates', detail: 'Text or photo changes in the first month are handled for you, free.' },
       ]},
     ],
   },
@@ -281,6 +275,7 @@ export const PACKAGES: Package[] = [
     id: 'growth',
     name: 'Auto-Pilot Growth',
     tagline: 'The premium. Saving the owner 5+ hours a week in admin work.',
+    maintenance: '$29/month',
     price: '$699',
     tier: 'Enterprise',
     featuresIntro: 'Everything in VB, plus:',
@@ -289,16 +284,12 @@ export const PACKAGES: Package[] = [
     cta: 'Go Premium',
     features: [
       { icon: <Calendar className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Integrated Booking System' },
-      { icon: <MessageSquare className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '24/7 AI Chatbot Assistant' },
       { icon: <BarChart3 className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Premium Analytics Dashboard' },
-      { icon: <Send className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: 'Email/SMS Automation' },
       { icon: <ShieldCheck className="w-4 h-4 text-brand-primary flex-shrink-0" />, label: '3 Months Priority Support' },
     ],
     categories: [
       { label: 'Automation', items: [
         { label: 'Integrated Booking System', detail: 'Customers book appointments or reservations directly on your site.' },
-        { label: '24/7 AI Chatbot Assistant', detail: 'Answers common customer questions instantly, even while you sleep.' },
-        { label: 'Email/SMS Automation', detail: 'Automatic confirmations, reminders and follow-ups — no manual texting.' },
       ]},
       { label: 'Insight & Support', items: [
         { label: 'Premium Analytics Dashboard', detail: 'See exactly where visitors come from and what they click on.' },
