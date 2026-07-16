@@ -648,7 +648,7 @@ function ProjectSummaryCard({ lead, onUpdate }: { lead: Lead; onUpdate: (updated
   });
 
   return (
-    <div className="liquid-glass-tracker rounded-2xl p-8 mb-0">
+    <div className="gradient-card liquid-glass-tracker rounded-2xl border border-white/10 p-8 mb-0">
       <div className="flex flex-col settings:flex-row settings:items-start settings:justify-between gap-2 settings:gap-4">
         <div className="flex flex-col items-center settings:items-start">
           <h3 className="font-display font-bold italic text-[32px] text-center settings:text-left">

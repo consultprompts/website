@@ -29,8 +29,7 @@
    `html.light` flips the design tokens; utilities like bg-bg-base and
    text-ink-muted follow automatically. Hardcoded white utilities
    (text-white, border-white/10, …) are remapped below via color-mix on
-   --color-ink-base, so a `.force-dark` wrapper (settings console, auth
-   modal) restores the original dark look just by re-setting the tokens. */
+   --color-ink-base. */
 
 html.light {
   --color-bg-base: #FAFAF9;
@@ -44,20 +43,6 @@ html.light {
   --color-brand-primary: #EA580C;
   --color-brand-secondary: #F59E0B;
   --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.08);
-}
-
-html.light .force-dark {
-  --color-bg-base: #050505;
-  --color-bg-surface: #121212;
-  --color-ink-base: #FFFFFF;
-  --color-ink-muted: #A1A1A1;
-  --color-border-standard: rgba(255, 255, 255, 0.1);
-  --color-brand-primary: #00F0FF;
-  --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
-}
-
-html.light .neon-glow {
-  box-shadow: 0 0 20px rgba(234, 88, 12, 0.2);
 }
 
 /* Logo mark is a white asset made for the dark theme; force it black in light mode. */
@@ -114,10 +99,6 @@ html.light .bg-bg-base\/95 { background-color: rgba(255, 255, 255, 0.95); }
 html.light .from-white\/10 { --tw-gradient-from: color-mix(in srgb, var(--color-ink-base) 6%, transparent); }
 html.light .to-white\/5 { --tw-gradient-to: color-mix(in srgb, var(--color-ink-base) 3%, transparent); }
 
-html.light .glass {
-  background: color-mix(in srgb, var(--color-ink-base) 5%, transparent);
-  border-color: color-mix(in srgb, var(--color-ink-base) 10%, transparent);
-}
 html.light .brutalist-border {
   border-color: color-mix(in srgb, var(--color-ink-base) 20%, transparent);
 }
@@ -129,6 +110,29 @@ html.light .shimmer-skeleton {
     color-mix(in srgb, var(--color-ink-base) 3%, transparent) 75%
   );
   background-size: 200% 100%;
+}
+
+@keyframes aurora-drift {
+  0%,
+  100% { transform: translate(-50%, -50%) translate(0, 0); }
+  25%  { transform: translate(-50%, -50%) translate(var(--aurora-dx), calc(var(--aurora-dy) * -1)); }
+  50%  { transform: translate(-50%, -50%) translate(calc(var(--aurora-dx) * -0.6), calc(var(--aurora-dy) * 0.8)); }
+  75%  { transform: translate(-50%, -50%) translate(calc(var(--aurora-dx) * -1), calc(var(--aurora-dy) * -0.4)); }
+}
+
+.aurora-blob {
+  animation-name: aurora-drift;
+  animation-timing-function: ease-in-out;
+  animation-iteration-count: infinite;
+}
+
+/* Flat brand-primary tint used as a card background (Identity card, lead
+   summary card) — same color/alpha as the "Payment Confirmed" card's header
+   tint, so both read as the same accent-card style. One value works for
+   both themes since --color-brand-primary itself already flips (cyan on
+   dark, orange on light). */
+.gradient-card {
+  background: color-mix(in srgb, var(--color-brand-primary) 8%, transparent);
 }
 
 .text-gradient {
@@ -184,10 +188,6 @@ a.bg-brand-primary:hover {
   );
 }
 
-.glass {
-  @apply bg-white/5 backdrop-blur-xl border border-white/10;
-}
-
 /* Glass effect removed — these are now plain bordered containers. */
 .liquid-glass {
   @apply border border-white/20 relative overflow-hidden;
@@ -201,9 +201,40 @@ a.bg-brand-primary:hover {
   @apply border border-white/20 hover:border-brand-primary transition-colors duration-300;
 }
 
-/* Custom shadow for that neon glow */
-.neon-glow {
-  box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+/* Hover glow shared by the home-section cards (Process/Reviews/Pricing/FAQ)
+   and outline CustomButtons — theme-aware via --color-ink-base: white glow
+   on the dark theme, black shadow on the light theme. */
+.hover-shadow-theme:hover {
+  box-shadow: 0 16px 40px -8px color-mix(in srgb, var(--color-ink-base) 35%, transparent);
+}
+
+/* Live Template Showcase — thin neutral scrollbar for the mock browser's
+   preview viewport. Deliberately not tied to the site's own theme or to a
+   template's accent color: it should read as generic browser chrome
+   regardless of which of the four templates (each with its own independent
+   light/dark palette) is showing. */
+.showcase-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.5) transparent;
+}
+.showcase-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.showcase-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.showcase-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.5);
+  border-radius: 9999px;
+}
+
+@keyframes showcase-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.showcase-fade {
+  animation: showcase-fade-in 0.35s ease-out;
 }
 
 /* Google sign-in button follows the theme: dark variant (#131314, per
@@ -223,20 +254,6 @@ html.light .google-btn {
   perspective: 1000px;
 }
 
-/* Brutalist Scrollbar */
-.brutalist-scrollbar::-webkit-scrollbar {
-  height: 4px;
-}
-
-.brutalist-scrollbar::-webkit-scrollbar-track {
-  background: color-mix(in srgb, var(--color-ink-base) 5%, transparent);
-}
-
-.brutalist-scrollbar::-webkit-scrollbar-thumb {
-  background: var(--color-brand-primary);
-  border-radius: 0px;
-}
-
 @keyframes shimmer {
   0%   { background-position: -200% 0; }
   100% { background-position:  200% 0; }
@@ -254,28 +271,9 @@ html.light .google-btn {
   transition: opacity 0.5s;
 }
 
-.brutalist-scrollbar {
-  scrollbar-width: thin;
-  scrollbar-color: var(--color-brand-primary) color-mix(in srgb, var(--color-ink-base) 5%, transparent);
-}
-
-@keyframes marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
-}
-
-.marquee-track {
-  display: flex;
-  width: max-content;
-  white-space: nowrap;
-  animation: marquee 30s linear infinite;
-  will-change: transform;
-}
-
-
 @media (prefers-reduced-motion: reduce) {
-  .marquee-track,
-  .aurora-band {
+  .aurora-blob,
+  .showcase-fade {
     animation: none;
   }
 }
@@ -288,20 +286,6 @@ html.light .google-btn {
   grid-template-columns: 80px 1fr;
   gap: 32px;
   align-items: start;
-}
-
-/* Chrome/Safari paint autofilled inputs pale yellow. background-clip: text
-   removes that paint entirely — it also bleeds through semi-transparent
-   borders, so an inset box-shadow alone leaves a yellow ring. */
-input:-webkit-autofill,
-input:-webkit-autofill:hover,
-input:-webkit-autofill:focus,
-input:-webkit-autofill:active {
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: var(--color-ink-base);
-  caret-color: var(--color-ink-base);
-  transition: background-color 9999s ease-in-out 0s;
 }
 
 /* Pricing package card: left-col | right-col */

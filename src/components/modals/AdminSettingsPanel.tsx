@@ -273,7 +273,7 @@ export default function AdminSettingsPanel({ isOpen, onClose, fullScreen = false
               ...(fullScreen ? { width: '100%', height: '100dvh' } : { maxWidth: 1000, height: '90vh' }),
               clipPath: isOpen ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
             }}
-            className={`relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white transition-none settings:transition-[clip-path] settings:duration-300 settings:ease-in-out ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+            className={`relative w-full bg-bg-base border border-white/5 overflow-hidden flex flex-col text-white transition-none settings:transition-[clip-path] settings:duration-300 settings:ease-in-out ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
             aria-hidden={!isOpen}
           >
             {/* Unified top bar — desktop only (≥1250px) */}

@@ -6,6 +6,7 @@ import { joinWaitlist, checkWaitlistStatus, getEnrollmentCount } from '../lib/ap
 import AuthModal, { type AuthMode } from '../components/modals/AuthModal';
 import Logo from '../components/ui/Logo';
 import Footer from '../components/layout/Footer';
+import AuroraBackground from '../components/ui/AuroraBackground';
 import CustomButton from '../components/ui/CustomButton';
 
 export default function Ebooks() {

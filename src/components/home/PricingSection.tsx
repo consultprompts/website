@@ -19,7 +19,7 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
 
         <div className="grid grid-cols-1 min-[1250px]:grid-cols-3 gap-8 md:gap-12 px-5 pt-4 pb-4">
           {PACKAGES.map((pkg) => (
-            <div key={pkg.id} className={`p-8 rounded-xl border ${pkg.featured ? 'border-brand-primary min-[1250px]:-translate-y-3' : 'border-white/[0.08]'} flex flex-col relative transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]`}>
+            <div key={pkg.id} className={`p-8 rounded-xl border ${pkg.featured ? 'border-brand-primary min-[1250px]:-translate-y-3' : 'border-white/[0.08]'} flex flex-col relative hover-shadow-theme transition-all duration-300 hover:scale-[1.02]`}>
               {pkg.featured && (
                 <div className="absolute top-0 right-0 bg-brand-primary text-bg-base text-[10px] font-black px-4 py-1 uppercase tracking-widest rounded-tr-lg rounded-bl-lg">
                   Best Value

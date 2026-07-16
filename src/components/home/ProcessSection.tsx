@@ -19,7 +19,7 @@ export default function ProcessSection() {
 
         <div className="grid grid-cols-1 min-[1250px]:grid-cols-3 gap-8 md:gap-12 px-5 pt-4 pb-4">
           {PROCESS_STEPS.map((step, i) => (
-            <div key={step.id} className={`group p-8 relative overflow-hidden rounded-xl border border-white/[0.08] transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)] ${i === 1 ? 'min-[1250px]:-translate-y-3' : ''}`}>
+            <div key={step.id} className={`group p-8 relative overflow-hidden rounded-xl border border-white/[0.08] hover-shadow-theme transition-all duration-300 hover:scale-[1.02] ${i === 1 ? 'min-[1250px]:-translate-y-3' : ''}`}>
               <div className="absolute top-0 right-0 font-display text-8xl font-black text-white/[0.03] -translate-y-4 translate-x-1 group-hover:text-brand-primary/5 transition-colors">
                 {step.id}
               </div>

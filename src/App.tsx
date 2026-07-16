@@ -17,11 +17,6 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
-const Process = lazy(() => import('./pages/Process'));
-const Pricing = lazy(() => import('./pages/Pricing'));
-const Work = lazy(() => import('./pages/Work'));
-const About = lazy(() => import('./pages/About'));
-const Academy = lazy(() => import('./pages/Academy'));
 
 // /settings/* renders as an overlay on top of whatever page was open when it
 // was entered (see hooks/useSettingsNavigate), instead of replacing it as a
@@ -39,11 +34,6 @@ function AppRoutes() {
       <Routes location={backgroundLocation ?? location}>
         <Route element={<Layout />}>
           <Route path="/" element={<Home />} />
-          <Route path="/process" element={<Process />} />
-          <Route path="/pricing" element={<Pricing />} />
-          <Route path="/work" element={<Work />} />
-          <Route path="/about" element={<About />} />
-          <Route path="/academy" element={<Academy />} />
           {/* Direct visits to /settings/* or /admin-settings/* (refresh,
               bookmark, typed URL) have no background location yet — fall back
               to Home behind the overlay. */}

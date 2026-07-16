@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useStartProjectHandler, useSettingsNavigate } from '../hooks';
 import { getMyLeads } from '../lib/api';
@@ -10,6 +10,7 @@ import BackgroundDecor from '../components/layout/BackgroundDecor';
 import SeoSchema from '../components/home/SeoSchema';
 import Hero from '../components/home/Hero';
 import ProcessSection from '../components/home/ProcessSection';
+import ShowcaseSection from '../components/home/ShowcaseSection';
 import PricingSection from '../components/home/PricingSection';
 import ReviewsSection from '../components/home/ReviewsSection';
 import FaqSection from '../components/home/FaqSection';
@@ -18,7 +19,20 @@ import FinalCTA from '../components/home/FinalCTA';
 
 export default function Home() {
   const { user } = useAuth();
+  const { hash } = useLocation();
   const [searchParams, setSearchParams] = useSearchParams();
+
+  // Scroll to the #section in the URL — covers navbar clicks made from other
+  // pages (they navigate to /#section, landing here) and direct links.
+  // React Router doesn't scroll to hashes itself. The delay gives the just-
+  // mounted sections a frame to lay out before measuring.
+  useEffect(() => {
+    if (!hash) return;
+    const t = setTimeout(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+    return () => clearTimeout(t);
+  }, [hash]);
   const navigate = useSettingsNavigate();
   const { openAuthModal, setAuthSuccessHandler } = useLayout();
 
@@ -98,10 +112,11 @@ export default function Home() {
 
       <Hero />
       <ProcessSection />
-      <ReviewsSection />
+      <ShowcaseSection />
+      {/* <ReviewsSection /> */}
       <PricingSection onSelectPackage={handleStartProject} />
-      <FaqSection />
       {/* <ContactSection /> */}
+      <FaqSection />
       <FinalCTA onStartProject={() => handleStartProject()} />
     </div>
   );

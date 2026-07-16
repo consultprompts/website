@@ -4,15 +4,15 @@ import logoSrc from '../../logo.png';
 import { settingsNavState } from '../../hooks';
 
 const EXPLORE_LINKS = [
-  { label: 'About Us',    to: '/about' },
-  { label: 'Our Process', to: '/process' },
-  { label: 'Pricing',     to: '/pricing' },
-  { label: 'Our Work',    to: '/work' },
+  { label: 'Our Process', to: '#process' },
+  { label: 'Showcase',     to: '#showcase' },
+  { label: 'Pricing',     to: '#pricing' },
+  { label: 'FAQ',    to: '#faq' },
 ];
 
 const MORE_LINKS: { label: string; to: string }[] = [
   { label: 'Track My Project', to: '/settings/my-projects' },
-  { label: 'Academy',          to: '/academy' },
+  // { label: 'Academy',          to: '/academy' },
   //{ label: 'Digital Products', to: '/ebooks' },
 ];
 

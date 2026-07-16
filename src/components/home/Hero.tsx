@@ -17,7 +17,7 @@ export default function Hero() {
   return (
     <header id="hero" className="relative overflow-hidden">
       <AuroraBackground />
-      
+
       <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pt-40 pb-20 px-7">
         <p className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-6">
           Local Web Design — Live in 72 Hours
@@ -32,8 +32,8 @@ export default function Hero() {
           <CustomButton onClick={() => scrollTo('pricing')} arrow>
             See pricing
           </CustomButton>
-          <CustomButton onClick={() => scrollTo('reviews')} variant="outline">
-            View recent work
+          <CustomButton onClick={() => scrollTo('showcase')} variant="outline">
+            View live showcase
           </CustomButton>
         </div>
       </div>

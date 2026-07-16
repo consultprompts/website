@@ -1,10 +1,10 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
 import { useTheme } from '../../context/ThemeContext';
 
 const BLOBS_DARK = [
-  { cx: 0.25, cy: 0.35, r: 0.45, color: [0, 240, 255],  alpha: 0.14, sx: 0.18, sy: 0.12, speed: 0.00035 },
-  { cx: 0.75, cy: 0.60, r: 0.40, color: [112, 0, 255],  alpha: 0.11, sx: 0.14, sy: 0.16, speed: 0.00025 },
-  { cx: 0.50, cy: 0.80, r: 0.35, color: [0, 130, 255],  alpha: 0.09, sx: 0.20, sy: 0.10, speed: 0.00040 },
+  { cx: 25, cy: 35, r: 45, color: '0,240,255',  alpha: 0.14, dx: 18, dy: 12, dur: 34 },
+  { cx: 75, cy: 60, r: 40, color: '112,0,255',  alpha: 0.11, dx: 14, dy: 16, dur: 46 },
+  { cx: 50, cy: 80, r: 35, color: '0,130,255',  alpha: 0.09, dx: 20, dy: 10, dur: 28 },
 ];
 
 // Light theme: warm orange palette matching the light-mode brand
@@ -12,66 +12,44 @@ const BLOBS_DARK = [
 // alpha than the brand color itself — low-alpha, low-saturation color
 // barely registers on white and just looks like a gray smudge.
 const BLOBS_LIGHT = [
-  { cx: 0.25, cy: 0.35, r: 0.45, color: [255, 87, 34],   alpha: 0.38, sx: 0.18, sy: 0.12, speed: 0.00035 },
-  { cx: 0.75, cy: 0.60, r: 0.40, color: [255, 110, 20],  alpha: 0.32, sx: 0.14, sy: 0.16, speed: 0.00025 },
-  { cx: 0.50, cy: 0.80, r: 0.35, color: [255, 61, 0],    alpha: 0.30, sx: 0.20, sy: 0.10, speed: 0.00040 },
+  { cx: 25, cy: 35, r: 45, color: '255,87,34',  alpha: 0.38, dx: 18, dy: 12, dur: 34 },
+  { cx: 75, cy: 60, r: 40, color: '255,110,20', alpha: 0.32, dx: 14, dy: 16, dur: 46 },
+  { cx: 50, cy: 80, r: 35, color: '255,61,0',   alpha: 0.30, dx: 20, dy: 10, dur: 28 },
 ];
 
-// Drifting radial-gradient blobs on a canvas — the same background used
-// behind Hero. Anywhere this sits behind liquid-glass cards, the glass
-// blur has actual color to pick up instead of flattening to gray.
-export default function AuroraBackground({ className = 'absolute inset-0 w-full h-full pointer-events-none' }: { className?: string }) {
-  const canvasRef = useRef<HTMLCanvasElement>(null);
+// Drifting radial-gradient blobs — the same background used behind Hero.
+// Anywhere this sits behind liquid-glass cards, the glass blur has actual
+// color to pick up instead of flattening to gray.
+//
+// Plain CSS (not <canvas>) on purpose: Chromium has a long-standing bug
+// where backdrop-filter: blur() over a freshly-mounted <canvas> samples an
+// uninitialized (black) texture until the canvas's GPU layer is composited,
+// producing a black flash on load wherever a blurred glass card sits above
+// this background. Painted divs don't have a separate raster/texture-upload
+// step, so there's nothing for backdrop-filter to race.
+export default function AuroraBackground({ className = 'absolute inset-0 w-full h-full pointer-events-none overflow-hidden' }: { className?: string }) {
   const { theme } = useTheme();
+  const BLOBS = theme === 'light' ? BLOBS_LIGHT : BLOBS_DARK;
 
-  useEffect(() => {
-    const BLOBS = theme === 'light' ? BLOBS_LIGHT : BLOBS_DARK;
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    let raf: number;
-    let t = 0;
-
-    function resize() {
-      canvas!.width  = canvas!.offsetWidth;
-      canvas!.height = canvas!.offsetHeight;
-    }
-    resize();
-    const ro = new ResizeObserver(resize);
-    ro.observe(canvas);
-
-    function draw() {
-      const { width, height } = canvas!;
-      ctx!.clearRect(0, 0, width, height);
-
-      for (const b of BLOBS) {
-        const x = (b.cx + Math.sin(t * b.speed * 1.0) * b.sx) * width;
-        const y = (b.cy + Math.cos(t * b.speed * 1.3) * b.sy) * height;
-        const r = b.r * Math.min(width, height);
-
-        const g = ctx!.createRadialGradient(x, y, 0, x, y, r);
-        g.addColorStop(0, `rgba(${b.color.join(',')},${b.alpha})`);
-        g.addColorStop(1, `rgba(${b.color.join(',')},0)`);
-        ctx!.fillStyle = g;
-        ctx!.fillRect(0, 0, width, height);
-      }
-
-      t++;
-      raf = requestAnimationFrame(draw);
-    }
-
-    // respect prefers-reduced-motion
-    if (!window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-      draw();
-    }
-
-    return () => {
-      cancelAnimationFrame(raf);
-      ro.disconnect();
-    };
-  }, [theme]);
-
-  return <canvas ref={canvasRef} aria-hidden="true" className={className} />;
+  return (
+    <div className={className} aria-hidden="true">
+      {BLOBS.map((b, i) => (
+        <div
+          key={i}
+          className="aurora-blob absolute rounded-full"
+          style={{
+            left: `${b.cx}%`,
+            top: `${b.cy}%`,
+            width: `${b.r * 2}vmin`,
+            height: `${b.r * 2}vmin`,
+            background: `radial-gradient(circle, rgba(${b.color},${b.alpha}) 0%, rgba(${b.color},0) 70%)`,
+            ['--aurora-dx' as string]: `${b.dx}vmin`,
+            ['--aurora-dy' as string]: `${b.dy}vmin`,
+            animationDuration: `${b.dur}s`,
+            animationDelay: `${-i * 7}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
 }

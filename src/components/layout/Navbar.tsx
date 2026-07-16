@@ -13,11 +13,10 @@ interface NavbarProps {
 }
 
 const NAV_LINKS = [
-  { href: '/about',    label: 'About' },
-  { href: '/process',  label: 'Process' },
-  { href: '/pricing',  label: 'Pricing' },
-  { href: '/work',     label: 'Work' },
-  { href: '/academy',  label: 'Academy' },
+  { href: '#process',  label: 'Process' },
+  { href: '#showcase',  label: 'Showcase' },
+  { href: '#pricing',  label: 'Pricing' },
+  { href: '#faq',  label: 'FAQ' },
 ];
 
 export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
@@ -37,6 +36,18 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
     }
   }, [location.pathname]);
 
+  const handleSectionClick = (e: React.MouseEvent, hash: string) => {
+    e.preventDefault();
+    closeMobile();
+    if (location.pathname !== '/') {
+      navigate('/' + hash);
+      return;
+    }
+    setTimeout(() => {
+      document.getElementById(hash.slice(1))?.scrollIntoView({ behavior: 'smooth' });
+    }, 50);
+  };
+
   return (
     <>
       <nav className="fixed px-6 top-0 left-0 right-0 z-50 border-b border-white/5 bg-bg-base/95 md:bg-bg-base/90 md:backdrop-blur-md py-2">
@@ -48,8 +59,8 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
 
           {/* Desktop nav */}
           <div className="hidden xl:flex items-center gap-8 text-sm font-medium text-ink-muted">
-            {NAV_LINKS.map(link => 
-              <Link key={link.href} to={link.href} className="hover:text-white font-display transition-colors cursor-pointer">{link.label}</Link>)
+            {NAV_LINKS.map(link =>
+              <a key={link.href} href={link.href} onClick={(e) => handleSectionClick(e, link.href)} className="hover:text-white font-display transition-colors cursor-pointer">{link.label}</a>)
             }
           </div>
 
@@ -59,9 +70,10 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
               !user
                 ? <CustomButton onClick={onOpenAuth} variant="ghost">Sign up</CustomButton>
                 : (
-                  <>
+                  <div className="relative">
                     <CustomButton onClick={() => setProfileOpen(v => !v)} variant="icon" aria-label="Profile menu"><UserIcon/></CustomButton>
-                  </>
+                    <ProfileMenu isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
+                  </div>
                 )
             )}
             <CustomButton onClick={onStartProject} size="mdlight">Start a project</CustomButton>
@@ -74,8 +86,6 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
         </div>
       </nav>
 
-      <ProfileMenu isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
-
       {/* Mobile menu overlay — always mounted so the clip-path transition can animate both directions; a closed-state clip keeps it invisible and non-interactive. */}
       <div
         className={`xl:hidden fixed inset-0 z-40 bg-bg-base flex flex-col pt-20 px-6 pb-8 overflow-y-auto transition-[clip-path] duration-300 ease-in-out ${mobileOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
@@ -83,8 +93,8 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
         aria-hidden={!mobileOpen}
       >
         <nav className="flex-1 flex flex-col">
-          {NAV_LINKS.map((link, i) => (
-            <Link key={link.href} to={link.href} onClick={closeMobile} tabIndex={mobileOpen ? 0 : -1} className="py-4 hover:text-white font-display text-xl transition-colors cursor-pointer">{link.label}</Link>
+          {NAV_LINKS.map((link) => (
+            <a key={link.href} href={link.href} onClick={(e) => handleSectionClick(e, link.href)} tabIndex={mobileOpen ? 0 : -1} className="py-4 hover:text-white font-display text-xl transition-colors cursor-pointer">{link.label}</a>
           ))}
         </nav>
 

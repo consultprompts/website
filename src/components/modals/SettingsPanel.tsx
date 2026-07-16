@@ -89,7 +89,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
               ...(fullScreen ? { width: '100%', height: '100dvh' } : { maxWidth: 1000, height: '90vh' }),
               clipPath: isOpen ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)',
             }}
-            className={`relative w-full bg-bg-surface border border-white/5 overflow-hidden flex flex-col text-white transition-none settings:transition-[clip-path] settings:duration-300 settings:ease-in-out ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
+            className={`relative w-full bg-bg-base border border-white/5 overflow-hidden flex flex-col text-white transition-none settings:transition-[clip-path] settings:duration-300 settings:ease-in-out ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
             aria-hidden={!isOpen}
           >
             {/* Unified top bar — desktop only (≥1250px) */}
@@ -127,7 +127,7 @@ export default function SettingsPanel({ isOpen, onClose, fullScreen = false, sec
                         <Icon className="w-6 h-6" style={{ color: active ? 'var(--color-brand-primary)' : "" }} />
                         <span
                           style={{ color: active ? 'var(--color-brand-primary)' : "" }}
-                          className="text-sm tracking-[0.1em]"
+                          className="text-sm"
                         >
                           {n.label}
                         </span>
