@@ -18,7 +18,7 @@ export interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButton
 
 const VARIANT_CLASSES: Record<CustomButtonVariant, string> = {
   filled: 'bg-brand-primary text-bg-base border border-transparent hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-brand-primary)_40%,transparent)]',
-  outline: 'bg-transparent border text-white border-white/30 hover:border-white/50',
+  outline: 'bg-transparent border text-white border-white/30 hover:border-white/10 hover:bg-white/15',
   ghost: 'bg-transparent text-white',
   icon: 'bg-transparent text-white rounded-full',
 };

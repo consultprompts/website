@@ -24,7 +24,12 @@ export default function FaqSection() {
                 className="w-full p-4 flex items-center justify-between text-left"
               >
                 <span className="font-bold tracking-wide italic">{faq.question}</span>
-                {openFaq === i ? <Minus className="w-4 h-4 text-brand-primary" /> : <Plus className="w-4 h-4 text-brand-primary" />}
+                {/* Both icons stay mounted so the swap can animate: the plus
+                    spins a quarter turn into the minus and back. */}
+                <span className="relative w-4 h-4 shrink-0">
+                  <Plus className={`absolute inset-0 w-4 h-4 text-brand-primary transition-all duration-300 ease-out ${openFaq === i ? 'rotate-90 opacity-0' : 'rotate-0 opacity-100'}`} />
+                  <Minus className={`absolute inset-0 w-4 h-4 text-brand-primary transition-all duration-300 ease-out ${openFaq === i ? 'rotate-0 opacity-100' : '-rotate-90 opacity-0'}`} />
+                </span>
               </CustomButton>
               <div className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out ${openFaq === i ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                 <div className="overflow-hidden">

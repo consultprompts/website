@@ -21,7 +21,9 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
           {PACKAGES.map((pkg) => (
             <div key={pkg.id} className={`p-8 rounded-xl border ${pkg.featured ? 'border-brand-primary min-[1250px]:-translate-y-3' : 'border-white/[0.08]'} flex flex-col relative transition-all duration-300 hover:scale-[1.02] hover:shadow-[-12px_14px_40px_-8px_rgba(249,115,22,0.4),12px_14px_40px_-8px_rgba(59,130,246,0.4)]`}>
               {pkg.featured && (
-                <div className="absolute top-0 right-0 bg-brand-primary text-bg-base text-[10px] font-black px-4 py-1 uppercase tracking-widest rounded-tr-lg rounded-bl-lg">Best Value</div>
+                <div className="absolute top-0 right-0 bg-brand-primary text-bg-base text-[10px] font-black px-4 py-1 uppercase tracking-widest rounded-tr-lg rounded-bl-lg">
+                  Best Value
+                </div>
               )}
 
               <div className="mb-6">
@@ -31,22 +33,34 @@ export default function PricingSection({ onSelectPackage }: PricingSectionProps)
 
               <div className="mb-6">
                 <div className="flex items-baseline gap-2">
-                  <span className="text-4xl font-display font-black leading-none">{pkg.price}</span>
-                  <span className="text-xs text-ink-muted font-bold tracking-widest uppercase">/ {pkg.tier}</span>
+                  <span className="text-4xl font-display font-black leading-none">
+                    {pkg.price}
+                  </span>
+                  <span className="text-xs text-ink-muted font-bold tracking-widest uppercase">
+                    / {pkg.tier}
+                  </span>
                 </div>
-                <span className="inline-block mt-3 text-l font-display font-normal leading-none bg-gradient-to-r from-orange-500 to-blue-500 bg-clip-text text-transparent">+ {pkg.maintenance} maintenance</span>
+                <span className="inline-block mt-3 text-l font-display font-normal leading-none bg-gradient-to-r from-orange-500 to-blue-500 bg-clip-text text-transparent">
+                  + {pkg.maintenance} maintenance
+                </span>
               </div>
 
               <ul className={`space-y-4 mb-10 flex-1 border-t pt-8 ${pkg.featured ? 'border-white/10' : 'border-white/5'}`}>
                 {pkg.featuresIntro && (
-                  <li className="font-bold text-xs uppercase tracking-widest text-brand-primary mb-5 italic">{pkg.featuresIntro}</li>
+                  <li className="font-bold text-xs uppercase tracking-widest text-brand-primary mb-5 italic">
+                    {pkg.featuresIntro}
+                  </li>
                 )}
                 {pkg.features.map((feature, i) => (
-                  <li key={i} className="flex gap-3 text-sm">{feature.icon}<span>{feature.label}</span></li>
+                  <li key={i} className="flex gap-3 text-sm">
+                    {feature.icon}<span>{feature.label}</span>
+                  </li>
                 ))}
               </ul>
 
-              <CustomButton onClick={() => onSelectPackage(pkg.id)} variant="filled">{pkg.cta}</CustomButton>
+              <CustomButton onClick={() => onSelectPackage(pkg.id)} variant="filled">
+                {pkg.cta}
+              </CustomButton>
             </div>
           ))}
         </div>

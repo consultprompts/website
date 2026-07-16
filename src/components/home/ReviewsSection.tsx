@@ -15,9 +15,15 @@ export default function ReviewsSection() {
     <section id="reviews" aria-label="Client Results and Success Stories" className="py-16 md:py-24 px-6 relative">
       <div className="max-w-3xl mx-auto">
         <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 max-[1250px]:pb-5 px-7">
-          <span className="section-badge">The Receipts</span>
-          <h2 className="section-title">Built for the <span className="text-gradient">block.</span><br /><span className="text-gradient">Loved</span> by it.</h2>
-          <p className="section-sub-title">We've automated the fluff out of local business web design. Here's how we get your new site live in record time.</p>
+          <span className="section-badge">
+            The Receipts
+          </span>
+          <h2 className="section-title">
+            Built for the <span className="text-gradient">block.</span><br /><span className="text-gradient">Loved</span> by it.
+          </h2>
+          <p className="section-sub-title">
+            We've automated the fluff out of local business web design. Here's how we get your new site live in record time.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 min-[1250px]:grid-cols-2 gap-8 pt-4 pb-4 px-5 max-[1249px]:gap-0 max-[1249px]:pt-6">
@@ -50,23 +56,29 @@ export default function ReviewsSection() {
                   referrerPolicy="no-referrer"
                   loading="lazy"
                 />
-                <div
-                  className={`absolute inset-x-0 bottom-0 z-10 bg-white/80 backdrop-blur-sm p-6 pointer-events-none transition-all duration-300 ease-out lg:group-hover:opacity-100 lg:group-hover:translate-y-0 lg:group-hover:pointer-events-auto ${
+                <div className={`absolute inset-x-0 bottom-0 z-10 bg-white/80 backdrop-blur-sm p-6 pointer-events-none transition-all duration-300 ease-out lg:group-hover:opacity-100 lg:group-hover:translate-y-0 lg:group-hover:pointer-events-auto ${
                     openReview === review.client ? 'opacity-100 translate-y-0 pointer-events-auto' : 'opacity-0 translate-y-full'
-                  }`}
-                >
-                  <p className="italic text-base leading-relaxed text-black">"{review.quote}"</p>
+                }`}>
+                  <p className="italic text-base leading-relaxed text-black">"
+                    {review.quote}"
+                  </p>
                 </div>
               </div>
 
               <div className="p-6 max-[1249px]:p-4 flex flex-col flex-1">
                 <div className="flex items-end justify-between gap-4">
                   <div>
-                    <div className="font-bold text-sm leading-tight">{review.author}</div>
-                    <div className="text-sm text-ink-muted mt-0.5">{review.client}</div>
+                    <div className="font-bold text-sm leading-tight">
+                      {review.author}
+                    </div>
+                    <div className="text-sm text-ink-muted mt-0.5">
+                      {review.client}
+                    </div>
                   </div>
                   {review.metrics[0] && (
-                    <div className="text-2xl font-display font-black text-brand-primary leading-none whitespace-nowrap">{review.metrics[0].value}</div>
+                    <div className="text-2xl font-display font-black text-brand-primary leading-none whitespace-nowrap">
+                      {review.metrics[0].value}
+                    </div>
                   )}
                 </div>
               </div>

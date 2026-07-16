@@ -45,11 +45,7 @@ export default function Footer() {
           <div className="flex flex-col gap-[14px]">
             <p className={colLabel}>Explore</p>
             {EXPLORE_LINKS.map(l => (
-              <Link 
-                key={l.label} 
-                to={l.to} 
-                className={navLink}
-              >
+              <Link  key={l.label}  to={l.to}  className={navLink}>
                 {l.label}
               </Link>
             ))}
@@ -59,12 +55,7 @@ export default function Footer() {
           <div className="flex flex-col gap-[14px]">
             <p className={colLabel}>More From Us</p>
             {MORE_LINKS.map(l => (
-              <Link
-                key={l.label}
-                to={l.to}
-                state={l.to.startsWith('/settings') ? settingsNavState(location) : undefined}
-                className={navLink}
-              >
+              <Link key={l.label} to={l.to} state={l.to.startsWith('/settings') ? settingsNavState(location) : undefined} className={navLink}>
                 {l.label}
               </Link>
             ))}

@@ -68,9 +68,7 @@ function AppRoutes() {
             // the loading state reads clearly over any page content. Also
             // blocks clicks on the page behind while the panel is loading.
             <div className="fixed inset-0 z-[120] flex items-center justify-center bg-bg-base/60 backdrop-blur-sm">
-              <div className="flex items-center justify-center w-16 h-16 rounded-2xl bg-bg-surface border border-white/10 shadow-2xl">
-                <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
-              </div>
+              <Loader2 className="w-8 h-8 animate-spin text-brand-primary" />
             </div>
           }
         >

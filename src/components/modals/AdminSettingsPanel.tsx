@@ -311,19 +311,13 @@ export default function AdminSettingsPanel({ isOpen, onClose, fullScreen = false
                         <Icon className="w-6 h-6" style={{ color: active ? 'var(--color-brand-primary)' : "" }} />
                         <span
                           style={{ color: active ? 'var(--color-brand-primary)' : "" }}
-                          className="text-xs font-bold uppercase tracking-[0.1em]"
+                          className="text-sm tracking-[0.1em]"
                         >
                           {n.label}
                         </span>
                       </CustomButton>
                   );
                 })}
-                <div className="mt-auto py-5">
-                  {/* Straight to home, replacing the /admin-settings history
-                      entry — staying on the protected route while logged out
-                      would trip the auth guard and pop the login modal. */}
-                  <CustomButton onClick={() => { logout(); navigate('/', { replace: true }); }} variant="outline" size="mdlight">Logout</CustomButton>
-                </div>
               </div>
             </div>
 

@@ -86,6 +86,10 @@ html.light .border-white\/\[0\.08\] { border-color: color-mix(in srgb, var(--col
 html.light .border-white\/10 { border-color: color-mix(in srgb, var(--color-ink-base) 12%, transparent); }
 html.light .border-white\/20 { border-color: color-mix(in srgb, var(--color-ink-base) 20%, transparent); }
 html.light .border-white\/30 { border-color: color-mix(in srgb, var(--color-ink-base) 30%, transparent); }
+/* Outline buttons rest at border-white/30 (30% ink in light) — hover goes
+   darker, not lighter, so this maps above the resting value. */
+html.light .hover\:border-white\/10:hover { border-color: color-mix(in srgb, var(--color-ink-base) 45%, transparent); }
+html.light .hover\:border-white\/20:hover { border-color: color-mix(in srgb, var(--color-ink-base) 20%, transparent); }
 html.light .hover\:border-white\/30:hover { border-color: color-mix(in srgb, var(--color-ink-base) 30%, transparent); }
 html.light .hover\:border-white\/50:hover { border-color: color-mix(in srgb, var(--color-ink-base) 45%, transparent); }
 
@@ -98,6 +102,7 @@ html.light .hover\:bg-white\/\[0\.02\]:hover { background-color: color-mix(in sr
 html.light .hover\:bg-white\/\[0\.03\]:hover { background-color: color-mix(in srgb, var(--color-ink-base) 4%, transparent); }
 html.light .hover\:bg-white\/5:hover { background-color: color-mix(in srgb, var(--color-ink-base) 6%, transparent); }
 html.light .hover\:bg-white\/10:hover { background-color: color-mix(in srgb, var(--color-ink-base) 8%, transparent); }
+html.light .hover\:bg-white\/50:hover { background-color: color-mix(in srgb, var(--color-ink-base) 50%, transparent); }
 html.light .active\:bg-white\/\[0\.04\]:active { background-color: color-mix(in srgb, var(--color-ink-base) 5%, transparent); }
 
 /* Navbar reads bg-bg-base/95 — page bg (#FAFAF9) looks gray there; use pure white */
@@ -199,6 +204,19 @@ a.bg-brand-primary:hover {
 /* Custom shadow for that neon glow */
 .neon-glow {
   box-shadow: 0 0 20px rgba(0, 240, 255, 0.2);
+}
+
+/* Google sign-in button follows the theme: dark variant (#131314, per
+   Google's dark branding spec) on the dark theme, white on light. Border
+   comes from border-white/10 on the element, matching the form inputs. */
+.google-btn {
+  background: #131314;
+  color: #E3E3E3;
+}
+
+html.light .google-btn {
+  background: #FFFFFF;
+  color: #1F1F1F;
 }
 
 .perspective-1000 {

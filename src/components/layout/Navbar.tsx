@@ -5,6 +5,7 @@ import logoSrc from '../../logo.png';
 import { useAuth } from '../../context/AuthContext';
 import { useBodyScrollLock, useSettingsNavigate } from '../../hooks';
 import CustomButton from '../ui/CustomButton';
+import ProfileMenu from '../modals/ProfileMenu';
 
 interface NavbarProps {
   onStartProject: () => void;
@@ -24,12 +25,16 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
   const navigate = useSettingsNavigate();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [profileOpen, setProfileOpen] = useState(false);
   const closeMobile = () => setMobileOpen(false);
 
   useBodyScrollLock(mobileOpen);
 
   useEffect(() => {
-    if (location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin-settings')) closeMobile();
+    if (location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin-settings')) {
+      closeMobile();
+      setProfileOpen(false);
+    }
   }, [location.pathname]);
 
   return (
@@ -55,10 +60,7 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
                 ? <CustomButton onClick={onOpenAuth} variant="ghost">Sign up</CustomButton>
                 : (
                   <>
-                    <CustomButton onClick={() => navigate('/settings/my-projects')} variant="icon"><UserIcon/></CustomButton>
-                    {isAdmin && (
-                      <CustomButton onClick={() => navigate('/admin-settings/agency')} variant="icon" aria-label="Admin settings"><Settings/></CustomButton>
-                    )}
+                    <CustomButton onClick={() => setProfileOpen(v => !v)} variant="icon" aria-label="Profile menu"><UserIcon/></CustomButton>
                   </>
                 )
             )}
@@ -71,6 +73,8 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
           </div>
         </div>
       </nav>
+
+      <ProfileMenu isOpen={profileOpen} onClose={() => setProfileOpen(false)} />
 
       {/* Mobile menu overlay — always mounted so the clip-path transition can animate both directions; a closed-state clip keeps it invisible and non-interactive. */}
       <div
@@ -86,15 +90,12 @@ export default function Navbar({ onStartProject, onOpenAuth }: NavbarProps) {
 
         <div className="flex flex-col gap-3">
           <CustomButton onClick={() => { onStartProject(); closeMobile(); }} tabIndex={mobileOpen ? 0 : -1}>Start a project</CustomButton>
-          {user && isAdmin && (
-            <CustomButton onClick={() => navigate('/admin-settings/agency')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Admin Settings</CustomButton>
-          )}
           {user && (
             <CustomButton onClick={() => navigate('/settings')} variant="outline" tabIndex={mobileOpen ? 0 : -1}><Settings className="w-4 h-4" /> Console</CustomButton>
           )}
           {!loading && (
             !user
-              ? <CustomButton onClick={() => { onOpenAuth(); closeMobile(); }} variant="outline" tabIndex={mobileOpen ? 0 : -1}>Sign up / Log in</CustomButton>
+              ? <CustomButton onClick={() => { onOpenAuth(); closeMobile(); }} variant="outline" tabIndex={mobileOpen ? 0 : -1}>Login / Register</CustomButton>
               : <CustomButton onClick={() => { logout(); closeMobile(); }} variant="outline" tabIndex={mobileOpen ? 0 : -1}>Logout</CustomButton>
           )}
         </div>
