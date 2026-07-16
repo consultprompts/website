@@ -21,19 +21,9 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
 
   return (
     <>
-      {/* Click-away backdrop starts below the navbar so its buttons stay
-          clickable while the menu is open. */}
       {isOpen && (
         <div onClick={onClose} className="fixed top-14.5 inset-x-0 bottom-0 z-[105] bg-transparent cursor-pointer"/>
       )}
-      {/* Compact dropdown anchored to the profile icon (relative wrapper in
-          Navbar) so its left edge always sits directly below the icon,
-          rather than a full-height drawer flush to the viewport edge.
-          Always mounted so the open/close can animate both directions;
-          closed state is scaled down and non-interactive. Kept under
-          z-[120] so the settings overlay covers it — the menu stays open
-          through the navigation and Navbar closes it once /settings is
-          active, so the close never plays in view. */}
       <div
         style={{ clipPath: isOpen ? 'inset(0 0 0 0)' : 'inset(0 0 100% 0)' }}
         className={`absolute top-full left-0 mt-4 z-[110] w-[240px] rounded-2xl border border-white/5 bg-bg-base/95 md:backdrop-blur-md p-6 overflow-hidden transition-[clip-path] duration-300 ease-in-out ${isOpen ? 'pointer-events-auto' : 'pointer-events-none'}`}
@@ -57,7 +47,7 @@ export default function ProfileMenu({ isOpen, onClose }: ProfileMenuProps) {
 
             {user && isAdmin && (
               <CustomButton onClick={() => {navigate('/admin-settings/agency'); onClose();}} variant="ghost" size="none" className={MENU_ITEM_CLASSES} tabIndex={isOpen ? 0 : -1}>
-                Admin Settings
+                Console
               </CustomButton>
             )}
 

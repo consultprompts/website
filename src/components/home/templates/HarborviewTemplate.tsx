@@ -1,52 +1,54 @@
 import React, { useState } from 'react';
-import { Menu, X, MapPin, BedDouble, Bath, ChevronDown, Search, Star, Ruler } from 'lucide-react';
+import { Menu, X, BedDouble, Bath, Ruler, ArrowRight, ArrowUpRight } from 'lucide-react';
 
-// Upscale waterfront real-estate agency. Navy/white/gold palette.
+// Luxury minimalist real-estate studio. Cream/charcoal palette, wide
+// editorial grids, square edges, restrained type.
 // Fixed palette — independent of the host site's theme (see templates/index.ts).
 const SERIF = 'Georgia, "Times New Roman", serif';
+
+const CREAM = '#F5F1E8';
+const CREAM_SOFT = '#FAF8F3';
+const CHARCOAL = '#26241F';
+const INK_MUTED = '#8A8478';
+const LINE = '#E3DDCE';
+
+const LISTINGS = [
+  { addr: '14 Marina Point', place: 'Crescent Bay', price: '$2,450,000', beds: 5, baths: 4, sqft: '4,820', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=900', wide: true },
+  { addr: '8 Lighthouse Lane', place: 'Old Harbor', price: '$1,780,000', beds: 4, baths: 3, sqft: '3,610', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=600', wide: false },
+  { addr: '22 Harbor Crest', place: 'The Marina', price: '$3,150,000', beds: 6, baths: 5, sqft: '6,240', img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=600', wide: false },
+];
 
 const STATS = [
   { value: '$400M+', label: 'Closed volume' },
   { value: '212', label: 'Active listings' },
   { value: '12', label: 'Years on the water' },
-  { value: '98%', label: 'Of asking, avg.' },
 ];
 
-const LISTINGS = [
-  { addr: '14 Marina Point', price: '$2,450,000', beds: 5, baths: 4, sqft: '4,820', badge: 'NEW', img: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=600' },
-  { addr: '8 Lighthouse Lane', price: '$1,780,000', beds: 4, baths: 3, sqft: '3,610', badge: 'OPEN SAT', img: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?auto=format&fit=crop&q=80&w=600' },
-  { addr: '22 Harbor Crest', price: '$3,150,000', beds: 6, baths: 5, sqft: '6,240', badge: null, img: 'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?auto=format&fit=crop&q=80&w=600' },
-];
+const NAV_LINKS = ['Portfolio', 'Neighborhoods', 'Journal'];
 
-const NEIGHBORHOODS = [
-  { name: 'The Marina', listings: 38, img: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=500' },
-  { name: 'Old Harbor', listings: 24, img: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?auto=format&fit=crop&q=80&w=500' },
-  { name: 'Crescent Bay', listings: 17, img: 'https://images.unsplash.com/photo-1444723121867-7a241cacace9?auto=format&fit=crop&q=80&w=500' },
-];
-
-const NAV_LINKS = ['Listings', 'Neighborhoods', 'Agents'];
+function Label({ children }: { children: React.ReactNode }) {
+  return <p className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: INK_MUTED }}>{children}</p>;
+}
 
 export default function HarborviewTemplate() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
-    <div className="min-h-full bg-[#F8FAFC] text-[#152238]" style={{ fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
-      {/* Navbar */}
-      <header className="bg-[#FFFFFF]/97 backdrop-blur-sm sticky top-0 z-20 border-b border-[#E4E9F0]">
-        <div className="flex items-center justify-between px-6 py-4">
-          <span className="text-xl tracking-wide" style={{ fontFamily: SERIF }}>
-            Harborview <span className="text-[#B8912F]">Realty</span>
-          </span>
-          <nav className="hidden @md:flex items-center gap-7 text-[13px] text-[#5A6B84]">
+    <div className="min-h-full" style={{ background: CREAM, color: CHARCOAL, fontFamily: 'ui-sans-serif, system-ui, sans-serif' }}>
+      {/* Navbar — hairline, no fill, everything lowercase-quiet */}
+      <header className="sticky top-0 z-20 backdrop-blur-sm border-b" style={{ background: `${CREAM}F2`, borderColor: LINE }}>
+        <div className="flex items-center justify-between px-8 py-5">
+          <span className="text-lg tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harborview</span>
+          <nav className="hidden @md:flex items-center gap-10 text-[12px] tracking-[0.15em] uppercase" style={{ color: INK_MUTED }}>
             {NAV_LINKS.map(l => (
-              <span key={l} className="relative cursor-pointer transition-colors duration-200 hover:text-[#152238] after:content-[''] after:absolute after:-bottom-1 after:inset-x-0 after:h-px after:bg-[#B8912F] after:origin-center after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100">
+              <span key={l} className="relative cursor-pointer transition-colors duration-200 hover:text-[#26241F] after:content-[''] after:absolute after:-bottom-1 after:inset-x-0 after:h-px after:bg-[#26241F] after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100">
                 {l}
               </span>
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <button type="button" className="hidden @md:inline-flex px-5 py-2.5 rounded-full border border-[#B8912F] text-[#B8912F] text-[13px] font-bold transition-all duration-200 hover:bg-[#B8912F] hover:text-[#FFFFFF] hover:shadow-[0_6px_20px_-6px_rgba(184,145,47,0.5)] cursor-pointer">
-              Get in touch
+            <button type="button" className="hidden @md:inline-flex items-center gap-2 px-6 py-2.5 text-[12px] font-bold tracking-[0.15em] uppercase transition-all duration-200 cursor-pointer border hover:bg-[#26241F] hover:text-[#F5F1E8]" style={{ borderColor: CHARCOAL, color: CHARCOAL }}>
+              Enquire
             </button>
             <button
               type="button"
@@ -60,105 +62,94 @@ export default function HarborviewTemplate() {
           </div>
         </div>
         {menuOpen && (
-          <nav className="@md:hidden px-6 pb-5 flex flex-col gap-3 text-sm text-[#5A6B84] border-t border-[#E4E9F0]">
-            {NAV_LINKS.map(l => <span key={l} className="pt-3 cursor-pointer hover:text-[#152238] transition-colors">{l}</span>)}
-            <button type="button" className="mt-2 px-5 py-2.5 rounded-full border border-[#B8912F] text-[#B8912F] text-sm font-bold cursor-pointer self-start">
-              Get in touch
+          <nav className="@md:hidden px-8 pb-6 flex flex-col gap-4 text-sm border-t" style={{ color: INK_MUTED, borderColor: LINE }}>
+            {NAV_LINKS.map(l => <span key={l} className="pt-4 cursor-pointer tracking-[0.15em] uppercase text-[12px] hover:text-[#26241F] transition-colors">{l}</span>)}
+            <button type="button" className="mt-2 px-6 py-2.5 border text-[12px] font-bold tracking-[0.15em] uppercase cursor-pointer self-start" style={{ borderColor: CHARCOAL, color: CHARCOAL }}>
+              Enquire
             </button>
           </nav>
         )}
       </header>
 
-      {/* Hero — architectural photo, subtle overlay, search-style CTA */}
-      <div className="relative overflow-hidden">
-        <img
-          src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=1200"
-          alt=""
-          loading="lazy"
-          className="absolute inset-0 w-full h-full object-cover"
-        />
-        <div className="absolute inset-0" style={{ background: 'linear-gradient(180deg, rgba(11,21,38,0.5) 0%, rgba(11,21,38,0.72) 100%)' }} />
-        <div className="relative px-6 py-24 @md:py-32 text-center">
-          <p className="text-[11px] font-bold tracking-[0.3em] text-[#E3C979] mb-5">LUXURY WATERFRONT PROPERTIES</p>
-          <h3 className="text-4xl @md:text-6xl text-[#FFFFFF] leading-[1.05] mb-4" style={{ fontFamily: SERIF }}>
-            Find your next address.
-          </h3>
-          <p className="text-sm text-[#C4CEDC] max-w-md mx-auto mb-9 leading-relaxed">
-            Two hundred waterfront listings, one team that knows every dock, deed and sunset on the bay.
-          </p>
-          <div className="max-w-md mx-auto flex flex-col @md:flex-row items-stretch gap-2 bg-[#FFFFFF] rounded-2xl @md:rounded-full p-2 text-left text-sm shadow-[0_20px_50px_-20px_rgba(11,21,38,0.6)]">
-            <button type="button" className="flex-1 flex items-center justify-between gap-2 px-4 py-2.5 rounded-full text-[#5A6B84] cursor-pointer transition-colors duration-200 hover:bg-[#F1F4F8]">
-              <span className="flex items-center gap-2"><MapPin className="w-4 h-4 flex-shrink-0" aria-hidden="true" /> Location</span>
-              <ChevronDown className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
+      {/* Hero — asymmetric editorial split: oversized serif left, image right */}
+      <div className="px-8 pt-16 pb-20 @md:pt-24 @md:pb-28">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 @md:grid-cols-[1.1fr_1fr] gap-10 @md:gap-14 items-end">
+          <div>
+            <Label>Private waterfront estates</Label>
+            <h3 className="text-5xl @md:text-6xl leading-[1.02] mt-6 mb-8" style={{ fontFamily: SERIF }}>
+              Quiet homes<br />on loud water.
+            </h3>
+            <p className="text-sm leading-relaxed max-w-sm mb-10" style={{ color: INK_MUTED }}>
+              A small portfolio of exceptional coastal properties, represented slowly and sold well.
+              Two hundred listings; we show you the twelve that matter.
+            </p>
+            <button type="button" className="group inline-flex items-center gap-3 px-8 py-4 text-[12px] font-bold tracking-[0.2em] uppercase text-[#F5F1E8] transition-all duration-300 cursor-pointer hover:gap-5" style={{ background: CHARCOAL }}>
+              View portfolio <ArrowRight className="w-4 h-4 transition-transform duration-300" aria-hidden="true" />
             </button>
-            <button type="button" className="flex-1 flex items-center justify-between gap-2 px-4 py-2.5 rounded-full text-[#5A6B84] cursor-pointer transition-colors duration-200 hover:bg-[#F1F4F8] @md:border-l @md:border-[#E4E9F0] @md:rounded-none">
-              <span>Property type</span>
-              <ChevronDown className="w-4 h-4 flex-shrink-0" aria-hidden="true" />
-            </button>
-            <button type="button" className="flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-[#152238] text-[#FFFFFF] font-bold transition-all duration-200 hover:bg-[#B8912F] cursor-pointer flex-shrink-0">
-              <Search className="w-4 h-4" aria-hidden="true" /> Search
-            </button>
+          </div>
+          <div className="relative overflow-hidden group cursor-pointer">
+            <img
+              src="https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=900"
+              alt=""
+              loading="lazy"
+              className="w-full aspect-[4/5] object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+              style={{ background: LINE }}
+            />
+            <div className="absolute bottom-0 inset-x-0 flex items-center justify-between px-5 py-4 text-[11px] tracking-[0.15em] uppercase text-[#F5F1E8]" style={{ background: 'rgba(38,36,31,0.85)' }}>
+              <span>Featured · Marina Point</span>
+              <ArrowUpRight className="w-4 h-4" aria-hidden="true" />
+            </div>
           </div>
         </div>
       </div>
 
-      {/* Stats strip */}
-      <div className="bg-[#152238] text-[#F8FAFC] px-6 py-8">
-        <div className="max-w-3xl mx-auto grid grid-cols-2 @md:grid-cols-4 gap-6 text-center">
+      {/* Stats — hairline-ruled row, no boxes */}
+      <div className="border-y px-8" style={{ borderColor: LINE }}>
+        <div className="max-w-4xl mx-auto grid grid-cols-3 divide-x" style={{ borderColor: LINE }}>
           {STATS.map(s => (
-            <div key={s.label} className="group cursor-default">
-              <p className="text-2xl @md:text-3xl transition-colors duration-200 group-hover:text-[#E3C979]" style={{ fontFamily: SERIF }}>{s.value}</p>
-              <p className="text-[10px] uppercase tracking-widest text-[#8B99AE] mt-1">{s.label}</p>
+            <div key={s.label} className="py-8 text-center cursor-default" style={{ borderColor: LINE }}>
+              <p className="text-2xl @md:text-3xl" style={{ fontFamily: SERIF }}>{s.value}</p>
+              <p className="text-[10px] tracking-[0.25em] uppercase mt-2" style={{ color: INK_MUTED }}>{s.label}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* Featured listings */}
-      <div className="px-6 py-16 max-w-3xl mx-auto">
-        <p className="text-center text-[11px] font-bold tracking-[0.25em] text-[#B8912F] mb-3">CURATED THIS WEEK</p>
-        <h4 className="text-3xl text-center mb-10" style={{ fontFamily: SERIF }}>Featured listings</h4>
-        <div className="grid grid-cols-1 @md:grid-cols-3 gap-5">
-          {LISTINGS.map(l => (
-            <div key={l.addr} className="group rounded-2xl bg-[#FFFFFF] border border-[#E4E9F0] overflow-hidden transition-all duration-300 hover:-translate-y-1.5 hover:shadow-[0_24px_48px_-20px_rgba(21,34,56,0.35)] cursor-pointer">
-              <div className="relative overflow-hidden">
-                <img src={l.img} alt={l.addr} loading="lazy" className="w-full aspect-[4/3] object-cover bg-[#E4E9F0] transition-transform duration-500 group-hover:scale-[1.08]" />
-                {l.badge && (
-                  <span className="absolute top-3 left-3 px-2.5 py-1 rounded-full bg-[#B8912F] text-[#FFFFFF] text-[9px] font-bold tracking-widest">{l.badge}</span>
-                )}
-              </div>
-              <div className="p-5">
-                <p className="font-bold text-lg text-[#B8912F]" style={{ fontFamily: SERIF }}>{l.price}</p>
-                <p className="text-sm mt-1 transition-colors duration-200 group-hover:text-[#B8912F]" style={{ fontFamily: SERIF }}>{l.addr}</p>
-                <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#EDF1F6] text-xs text-[#5A6B84]">
-                  <span className="flex items-center gap-1"><BedDouble className="w-3.5 h-3.5" aria-hidden="true" /> {l.beds}</span>
-                  <span className="flex items-center gap-1"><Bath className="w-3.5 h-3.5" aria-hidden="true" /> {l.baths}</span>
-                  <span className="flex items-center gap-1"><Ruler className="w-3.5 h-3.5" aria-hidden="true" /> {l.sqft} ft²</span>
+      {/* Portfolio — wide asymmetric grid: first listing spans full width */}
+      <div className="px-8 py-20">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-end justify-between mb-10">
+            <div>
+              <Label>Current portfolio</Label>
+              <h4 className="text-3xl mt-3" style={{ fontFamily: SERIF }}>Selected listings</h4>
+            </div>
+            <span className="hidden @md:inline text-[11px] tracking-[0.2em] uppercase border-b pb-1 cursor-pointer transition-colors duration-200 hover:text-[#26241F]" style={{ color: INK_MUTED, borderColor: CHARCOAL }}>
+              All 212 listings
+            </span>
+          </div>
+          <div className="grid grid-cols-1 @md:grid-cols-2 gap-x-8 gap-y-12">
+            {LISTINGS.map(l => (
+              <div key={l.addr} className={`group cursor-pointer ${l.wide ? '@md:col-span-2' : ''}`}>
+                <div className="overflow-hidden mb-5">
+                  <img
+                    src={l.img}
+                    alt={l.addr}
+                    loading="lazy"
+                    className={`w-full object-cover transition-transform duration-700 group-hover:scale-[1.03] ${l.wide ? 'aspect-[21/9]' : 'aspect-[4/3]'}`}
+                    style={{ background: LINE }}
+                  />
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p className="text-center mt-9">
-          <span className="text-sm text-[#5A6B84] border-b border-[#B8912F] pb-0.5 cursor-pointer transition-colors duration-200 hover:text-[#B8912F]" style={{ fontFamily: SERIF }}>
-            Browse all 212 listings →
-          </span>
-        </p>
-      </div>
-
-      {/* Neighborhoods */}
-      <div className="bg-[#EDF1F6] px-6 py-16">
-        <div className="max-w-3xl mx-auto">
-          <p className="text-center text-[11px] font-bold tracking-[0.25em] text-[#B8912F] mb-3">KNOW THE WATER</p>
-          <h4 className="text-3xl text-center mb-10" style={{ fontFamily: SERIF }}>Neighborhoods</h4>
-          <div className="grid grid-cols-1 @md:grid-cols-3 gap-4">
-            {NEIGHBORHOODS.map(n => (
-              <div key={n.name} className="group relative overflow-hidden rounded-2xl aspect-[4/3] cursor-pointer">
-                <img src={n.img} alt={n.name} loading="lazy" className="absolute inset-0 w-full h-full object-cover bg-[#C4CEDC] transition-transform duration-500 group-hover:scale-110" />
-                <div className="absolute inset-0 transition-colors duration-300" style={{ background: 'linear-gradient(180deg, transparent 30%, rgba(11,21,38,0.75) 100%)' }} />
-                <div className="absolute bottom-0 inset-x-0 p-5">
-                  <p className="text-lg text-[#FFFFFF]" style={{ fontFamily: SERIF }}>{n.name}</p>
-                  <p className="text-[11px] text-[#C4CEDC] mt-0.5 transition-colors duration-200 group-hover:text-[#E3C979]">{n.listings} active listings →</p>
+                <div className="flex items-baseline justify-between gap-4 border-b pb-4" style={{ borderColor: LINE }}>
+                  <div>
+                    <p className="text-xl transition-colors duration-200" style={{ fontFamily: SERIF }}>{l.addr}</p>
+                    <p className="text-[11px] tracking-[0.2em] uppercase mt-1" style={{ color: INK_MUTED }}>{l.place}</p>
+                  </div>
+                  <p className="text-lg flex-shrink-0" style={{ fontFamily: SERIF }}>{l.price}</p>
+                </div>
+                <div className="flex items-center gap-6 pt-3 text-[11px] tracking-widest uppercase" style={{ color: INK_MUTED }}>
+                  <span className="flex items-center gap-1.5"><BedDouble className="w-3.5 h-3.5" aria-hidden="true" /> {l.beds}</span>
+                  <span className="flex items-center gap-1.5"><Bath className="w-3.5 h-3.5" aria-hidden="true" /> {l.baths}</span>
+                  <span className="flex items-center gap-1.5"><Ruler className="w-3.5 h-3.5" aria-hidden="true" /> {l.sqft} ft²</span>
                 </div>
               </div>
             ))}
@@ -166,76 +157,55 @@ export default function HarborviewTemplate() {
         </div>
       </div>
 
-      {/* Agent spotlight */}
-      <div className="bg-[#152238] text-[#F8FAFC] px-6 py-16">
-        <div className="max-w-2xl mx-auto grid grid-cols-1 @md:grid-cols-[auto_1fr] gap-8 items-center">
-          <div className="overflow-hidden rounded-full mx-auto @md:mx-0 group cursor-pointer">
-            <img
-              src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=400"
-              alt="Agent Claire Whitmore"
-              loading="lazy"
-              className="w-32 h-32 object-cover bg-[#22334E] transition-transform duration-500 group-hover:scale-110"
-            />
-          </div>
-          <div className="text-center @md:text-left">
-            <p className="text-[11px] font-bold tracking-[0.25em] text-[#E3C979] mb-2">AGENT SPOTLIGHT</p>
-            <h4 className="text-2xl mb-3" style={{ fontFamily: SERIF }}>Claire Whitmore</h4>
-            <p className="text-sm text-[#AEBBCF] leading-relaxed mb-4">
-              Twelve years on the waterfront and over $400M closed. Claire knows which docks flood,
-              which sunsets sell, and exactly what your view is worth.
-            </p>
-            <div className="flex items-center justify-center @md:justify-start gap-1" aria-hidden="true">
-              {[...Array(5)].map((_, i) => <Star key={i} className="w-3.5 h-3.5 text-[#E3C979] fill-[#E3C979]" />)}
-              <span className="text-[11px] text-[#8B99AE] ml-2">128 client reviews</span>
-            </div>
-          </div>
+      {/* Philosophy — charcoal band, single serif statement */}
+      <div className="px-8 py-24 text-center" style={{ background: CHARCOAL, color: CREAM }}>
+        <div className="max-w-2xl mx-auto">
+          <p className="text-[10px] font-bold tracking-[0.35em] uppercase mb-8" style={{ color: '#A79F8D' }}>Our approach</p>
+          <p className="text-2xl @md:text-4xl leading-snug" style={{ fontFamily: SERIF }}>
+            “We list fewer homes than anyone on the bay. That is the entire strategy.”
+          </p>
+          <p className="text-[11px] tracking-[0.25em] uppercase mt-8" style={{ color: '#A79F8D' }}>Claire Whitmore · Principal broker</p>
         </div>
       </div>
 
-      {/* Testimonial */}
-      <div className="px-6 py-16 text-center max-w-xl mx-auto">
-        <p className="text-xl @md:text-2xl italic leading-relaxed mb-5" style={{ fontFamily: SERIF }}>
-          “They sold our place in nine days — over asking — and found us a dock deep enough for the boat. Nobody else even asked about the boat.”
-        </p>
-        <p className="text-xs font-bold tracking-[0.2em] text-[#B8912F]">THE HALVORSEN FAMILY · CRESCENT BAY</p>
-      </div>
-
-      {/* Newsletter */}
-      <div className="bg-[#EDF1F6] px-6 py-16">
+      {/* Private list — minimal underline form */}
+      <div className="px-8 py-20" style={{ background: CREAM_SOFT }}>
         <div className="max-w-xl mx-auto text-center">
-          <h4 className="text-2xl @md:text-3xl mb-2" style={{ fontFamily: SERIF }}>New on the water, first in your inbox</h4>
-          <p className="text-sm text-[#5A6B84] mb-7">Off-market listings and price moves, twice a month. No noise.</p>
-          <div className="flex flex-col @md:flex-row gap-2">
+          <Label>The private list</Label>
+          <h4 className="text-3xl mt-3 mb-3" style={{ fontFamily: SERIF }}>Off-market, first.</h4>
+          <p className="text-sm mb-10" style={{ color: INK_MUTED }}>Unlisted properties and quiet price moves, twice a month.</p>
+          <div className="flex items-end gap-4 text-left">
             <input
               type="email"
               placeholder="you@example.com"
               aria-label="Email address"
-              className="flex-1 px-5 py-3 rounded-full border border-[#D4DCE6] bg-[#FFFFFF] text-sm outline-none transition-colors duration-200 focus:border-[#B8912F]"
+              className="flex-1 pb-3 bg-transparent border-b text-sm outline-none transition-colors duration-200 placeholder:text-[#B5AE9E] focus:border-[#26241F]"
+              style={{ borderColor: '#C9C2B0', color: CHARCOAL }}
             />
-            <button type="button" className="px-7 py-3 rounded-full bg-[#B8912F] text-[#FFFFFF] text-sm font-bold transition-all duration-200 hover:bg-[#9A7826] hover:shadow-[0_8px_24px_-8px_rgba(184,145,47,0.6)] cursor-pointer flex-shrink-0">
-              Subscribe
+            <button type="button" className="px-7 py-3 text-[11px] font-bold tracking-[0.2em] uppercase text-[#F5F1E8] transition-opacity duration-200 hover:opacity-85 cursor-pointer flex-shrink-0" style={{ background: CHARCOAL }}>
+              Join
             </button>
           </div>
         </div>
       </div>
 
       {/* Footer */}
-      <footer className="bg-[#0E1930] text-[#8B99AE] px-6 py-10">
-        <div className="max-w-3xl mx-auto flex flex-col @md:flex-row items-center justify-between gap-4">
-          <span className="text-lg text-[#F8FAFC]" style={{ fontFamily: SERIF }}>Harborview <span className="text-[#B8912F]">Realty</span></span>
-          <div className="flex items-center gap-6 text-xs">
-            {['Listings', 'Sell with us', 'Agents', 'Contact'].map(l => (
-              <span key={l} className="cursor-pointer transition-colors duration-200 hover:text-[#E3C979]">{l}</span>
+      <footer className="border-t px-8 py-10" style={{ borderColor: LINE }}>
+        <div className="max-w-4xl mx-auto flex flex-col @md:flex-row items-center justify-between gap-4">
+          <span className="text-sm tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harborview</span>
+          <div className="flex items-center gap-7 text-[11px] tracking-[0.15em] uppercase" style={{ color: INK_MUTED }}>
+            {['Portfolio', 'Sell with us', 'Journal', 'Contact'].map(l => (
+              <span key={l} className="cursor-pointer transition-colors duration-200 hover:text-[#26241F]">{l}</span>
             ))}
           </div>
-          <span className="text-[11px] text-[#5B6B85]">© 2026 Harborview Realty</span>
+          <span className="text-[11px]" style={{ color: '#B5AE9E' }}>© 2026 Harborview</span>
         </div>
       </footer>
 
       {/* Cookie banner */}
-      <div className="sticky bottom-3 mx-3 flex items-center gap-3 px-4 py-3 rounded-xl text-xs bg-[#152238] text-[#AEBBCF] shadow-lg z-10">
+      <div className="sticky bottom-3 mx-3 flex items-center gap-3 px-4 py-3 text-xs shadow-lg z-10" style={{ background: CHARCOAL, color: '#CFC9BA' }}>
         <span className="flex-1">We use cookies to show you homes worth moving for.</span>
-        <button type="button" className="px-3 py-1.5 rounded-full font-bold bg-[#B8912F] text-[#FFFFFF] flex-shrink-0 transition-colors duration-200 hover:bg-[#9A7826] cursor-pointer">Accept</button>
+        <button type="button" className="px-4 py-1.5 font-bold tracking-[0.15em] uppercase text-[10px] flex-shrink-0 transition-opacity duration-200 hover:opacity-85 cursor-pointer" style={{ background: CREAM, color: CHARCOAL }}>Accept</button>
       </div>
     </div>
   );

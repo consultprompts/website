@@ -130,7 +130,7 @@ export interface ProcessStep {
 export const PROCESS_STEPS: ProcessStep[] = [
   {
     id: '01',
-    title: 'Get your Mockup',
+    title: 'Apply for Mockup',
     description:
       'We design a high-fidelity visual of your site based on your brand. No guesswork, just results.',
     icon: <MousePointer2 className="w-6 h-6 text-brand-primary" />,
