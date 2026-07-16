@@ -43,17 +43,33 @@ const PAGES = [
   'Blog',
 ];
 
-// Style Direction step config. Each showcase template contributes aesthetic
-// tags plus a preview recipe mirroring its real design DNA — font stacks,
-// palette, corner shapes and copy tone — used to render sample components
-// (text, button, badge, card) inside the browser-chrome mock. Fixed
-// palettes/inline styles on purpose — same reason as the templates
-// themselves: they must not be re-colored by the html.light utility remaps.
+// Style Direction step config. Every option contributes aesthetic tags plus
+// a preview recipe mirroring its design DNA — font stacks, palette, corner
+// shapes and copy tone — used to render sample components (text, button,
+// badge, card) inside the browser-chrome mock. The list is the live showcase
+// templates plus style-only directions that exist purely as preview recipes
+// (no full template build). Fixed palettes/inline styles on purpose — same
+// reason as the templates themselves: they must not be re-colored by the
+// html.light utility remaps.
+interface StyleDirectionOption { slug: string; name: string; domain: string }
+
+const STYLE_DIRECTIONS: StyleDirectionOption[] = [
+  ...SHOWCASE_TEMPLATES.map(({ slug, name, domain }) => ({ slug, name, domain })),
+  { slug: 'aurora', name: 'Aurora', domain: 'aurora-wellness.mysite.com' },
+  { slug: 'atlas',  name: 'Atlas',  domain: 'atlas-consulting.mysite.com' },
+  { slug: 'pulse',  name: 'Pulse',  domain: 'pulse-nights.mysite.com' },
+  { slug: 'terra',  name: 'Terra',  domain: 'terra-market.mysite.com' },
+];
+
 const RECIPE_TAGS: Record<string, string[]> = {
   rosalie:    ['Moody Bistro', 'Italic Serif', 'Forest & Terracotta', 'Dotted Menus'],
   harborview: ['Luxury Minimalist', 'Serif Typography', 'Cream & Charcoal', 'Wide Grids'],
   lumiere:    ['High-Fashion', 'Bold Typography', 'Blush & Black', 'Asymmetric Gallery'],
   ironcore:   ['Athletic Dark Mode', 'Condensed Type', 'Black & Neon', 'Sharp Cards'],
+  aurora:     ['Calm Wellness', 'Soft Gradients', 'Lavender & Mist', 'Rounded Cards'],
+  atlas:      ['Corporate Clean', 'Structured Grid', 'Navy & Blue', 'Numbered Sections'],
+  pulse:      ['Nightlife Energy', 'Neon Magenta', 'Dark & Glowing', 'Bold Caps'],
+  terra:      ['Organic Market', 'Warm Neutrals', 'Olive & Sand', 'Honest Serif'],
 };
 
 const PREVIEW_SERIF = 'Georgia, "Times New Roman", serif';
@@ -109,6 +125,46 @@ const TEMPLATE_PREVIEWS: Record<string, TemplatePreview> = {
     cardClass: 'rounded-sm', cardTitle: 'Unlimited', cardMeta: '$99/mo', cardBody: 'All classes, open gym 24/7 and the recovery zone — plans render as sharp neon-edged cards.', cardLink: 'Choose plan →',
     navLinks: ['Programs', 'Membership'],
     headline: 'Earn every rep', bodyCopy: 'Iron, engine work and cold water. First week free.',
+  },
+  // Wellness studio — calm lavender/mist, airy light surfaces, pill shapes.
+  aurora: {
+    bg: '#F4F1FB', surface: '#FFFFFF', border: '#E4DEF2', heading: '#3B2E58', body: '#7A6F94',
+    accent: '#8B6FD8', accent2: '#5BB8A8',
+    headingFont: 'ui-sans-serif, system-ui, sans-serif', headingClass: 'font-semibold leading-tight',
+    buttonClass: 'rounded-full px-5 py-2.5 text-sm font-semibold', buttonLabel: 'Book a Session', buttonText: '#FFFFFF',
+    cardClass: 'rounded-3xl', cardTitle: 'Deep Rest Ritual', cardMeta: '$120', cardBody: 'Sixty minutes of guided breathwork, warm stones and stillness — treatments read as soft rounded cards.', cardLink: 'View treatments →',
+    navLinks: ['Treatments', 'Book'],
+    headline: 'Exhale. You made it.', bodyCopy: 'Massage, breathwork and quiet rooms designed to slow you down.',
+  },
+  // Consulting firm — corporate clean: white/navy, structured grid, sharp sans.
+  atlas: {
+    bg: '#FFFFFF', surface: '#F4F6F9', border: '#DFE5EC', heading: '#0E2A47', body: '#5C6B7E',
+    accent: '#0E2A47', accent2: '#2F6FED',
+    headingFont: 'ui-sans-serif, system-ui, sans-serif', headingClass: 'font-bold tracking-tight leading-tight',
+    buttonClass: 'rounded-md px-5 py-2.5 text-sm font-semibold', buttonLabel: 'Request a Consult', buttonText: '#FFFFFF',
+    cardClass: 'rounded-lg', cardTitle: 'Market Entry', cardMeta: 'Case 04', cardBody: 'A 12-week roadmap from audit to launch — services presented in a clean, numbered grid.', cardLink: 'Read the case →',
+    navLinks: ['Services', 'Insights'],
+    headline: 'Strategy without the noise', bodyCopy: 'Clear plans, measured execution and reporting you can act on.',
+  },
+  // Nightlife / events — dark violet with neon magenta, glowing bold caps.
+  pulse: {
+    bg: '#0B0614', surface: '#160D24', border: '#2A1B42', heading: '#F5EFFF', body: '#9C8FB8',
+    accent: '#FF2E88', accent2: '#7A5CFF',
+    headingFont: 'ui-sans-serif, system-ui, sans-serif', headingClass: 'font-black uppercase tracking-tight leading-[0.95]',
+    buttonClass: 'rounded-full px-5 py-2.5 text-xs font-black uppercase tracking-[0.2em]', buttonLabel: 'Get Tickets', buttonText: '#FFFFFF',
+    cardClass: 'rounded-2xl', cardTitle: 'Neon Fridays', cardMeta: 'from $25', cardBody: 'Three rooms, two headliners and lights that never quit — lineups drop as glowing event cards.', cardLink: 'Full lineup →',
+    navLinks: ['Events', 'Tickets'],
+    headline: 'Louder after dark', bodyCopy: 'DJ sets, live acts and late-night rooms that go until sunrise.',
+  },
+  // Farm market — organic and earthy: warm sand/olive, honest serif headings.
+  terra: {
+    bg: '#F7F3EA', surface: '#FFFDF7', border: '#E5DCC8', heading: '#3E3A2E', body: '#8A8272',
+    accent: '#6B7F3E', accent2: '#B0813C',
+    headingFont: PREVIEW_SERIF, headingClass: 'leading-tight',
+    buttonClass: 'rounded-lg px-5 py-2.5 text-sm font-semibold', buttonLabel: 'Shop the Harvest', buttonText: '#F7F3EA',
+    cardClass: 'rounded-xl', cardTitle: 'Weekly Box', cardMeta: '$42', cardBody: 'Seasonal produce, small-batch preserves and fresh bread — offerings styled like a market stall.', cardLink: 'Browse the boxes →',
+    navLinks: ['Market', 'Our Farm'],
+    headline: 'Grown close to home', bodyCopy: 'Small-farm goods, picked this week and sold at an honest price.',
   },
 };
 
@@ -191,7 +247,7 @@ function TextInput({
       value={value}
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
-      className="w-full bg-white/5 border border-white/10 p-4 font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25"
+      className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 text-sm font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25"
     />
   );
 }
@@ -213,20 +269,20 @@ function TextArea({
       onChange={e => onChange(e.target.value)}
       placeholder={placeholder}
       rows={rows}
-      className="w-full bg-white/5 border border-white/10 p-4 font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25 resize-none"
+      className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 text-sm font-light focus:border-brand-primary outline-none transition-colors rounded-xl text-white placeholder:text-white/25 resize-none"
     />
   );
 }
 
 function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) => void }) {
   return (
-    <div className="flex rounded-xl overflow-hidden border border-white/10 w-fit">
+    <div className="flex rounded-lg overflow-hidden border border-white/10 w-fit">
       <CustomButton
         type="button"
         onClick={() => onChange(false)}
         variant="ghost"
         size="none"
-        className={`px-6 py-3 text-xs uppercase tracking-widest transition-colors ${
+        className={`px-5 py-2.5 text-xs uppercase tracking-widest transition-colors ${
           !value ? 'bg-brand-primary text-bg-base' : 'text-ink-muted hover:text-white'
         }`}
       >
@@ -237,7 +293,7 @@ function Toggle({ value, onChange }: { value: boolean; onChange: (v: boolean) =>
         onClick={() => onChange(true)}
         variant="ghost"
         size="none"
-        className={`px-6 py-3 text-xs uppercase tracking-widest transition-colors ${
+        className={`px-5 py-2.5 text-xs uppercase tracking-widest transition-colors ${
           value ? 'bg-brand-primary text-bg-base' : 'text-ink-muted hover:text-white'
         }`}
       >
@@ -262,9 +318,9 @@ function OptionBtn({
       onClick={onClick}
       variant="outline"
       size="none"
-      className={`w-full py-2 px-5 rounded-xl text-left text-sm font-medium transition-all ${
+      className={`w-full py-2.5 px-4 rounded-lg text-left text-sm font-medium transition-all ${
         selected
-          ? 'border-brand-primary bg-brand-primary/10 text-white'
+          ? 'border-brand-primary bg-brand-primary text-bg-base font-bold'
           : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
       }`}
     >
@@ -288,19 +344,19 @@ function CheckBtn({
       onClick={onClick}
       variant="outline"
       size="none"
-      className={`flex items-center gap-3 py-3 px-4 rounded-xl text-sm font-medium transition-all text-left ${
+      className={`flex items-center gap-3 py-2.5 px-4 rounded-lg text-sm font-medium transition-all text-left ${
         selected
-          ? 'border-brand-primary bg-brand-primary/10 text-white'
+          ? 'border-brand-primary bg-brand-primary text-bg-base font-bold'
           : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
       }`}
     >
       <div
         className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
-          selected ? 'bg-brand-primary border-brand-primary' : 'border-white/30'
+          selected ? 'bg-bg-base border-bg-base' : 'border-white/30'
         }`}
       >
         {selected && (
-          <span className="text-bg-base text-[9px] font-black leading-none">✓</span>
+          <span className="text-brand-primary text-[9px] font-black leading-none">✓</span>
         )}
       </div>
       {children}
@@ -330,7 +386,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
   // Which template the Style Direction step is previewing. Starts on the
   // style already saved on the lead (edit mode), else the first one.
   const [styleIdx, setStyleIdx] = useState(() => {
-    const i = SHOWCASE_TEMPLATES.findIndex(t => t.name === initialLead?.style_direction);
+    const i = STYLE_DIRECTIONS.findIndex(t => t.name === initialLead?.style_direction);
     return i >= 0 ? i : 0;
   });
 
@@ -559,7 +615,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
               {form.hasLogo && (
                 <div className="mt-4">
                   <label className="cursor-pointer">
-                    <div className="inline-flex items-center gap-3 py-3 px-4 rounded-xl border border-white/10 hover:border-white/30 transition-colors text-sm text-ink-muted">
+                    <div className="inline-flex items-center gap-3 py-2.5 px-4 rounded-lg border border-white/10 hover:border-white/30 transition-colors text-sm text-ink-muted">
                       <Upload className="w-4 h-4 flex-shrink-0" />
                       <span>{form.logoFile ? form.logoFile.name : 'Upload logo file'}</span>
                     </div>
@@ -584,7 +640,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                 <div className="mt-4 grid grid-cols-2 gap-4">
                   <div>
                     <FieldLabel>Primary Color</FieldLabel>
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-2.5 rounded-xl">
                       <input
                         type="color"
                         value={form.primaryColor}
@@ -596,7 +652,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                   </div>
                   <div>
                     <FieldLabel>Secondary Color</FieldLabel>
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-3 rounded-xl">
+                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 p-2.5 rounded-xl">
                       <input
                         type="color"
                         value={form.secondaryColor}
@@ -613,7 +669,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
         );
 
       case 7: {
-        const activeTemplate = SHOWCASE_TEMPLATES[styleIdx];
+        const activeTemplate = STYLE_DIRECTIONS[styleIdx];
         const preview = TEMPLATE_PREVIEWS[activeTemplate.slug];
         const primary = preview.accent;
         const secondary = preview.accent2;
@@ -623,16 +679,13 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
             <FieldLabel>This isn't your final design — it's a direction we use as the starting point.</FieldLabel>
             {/* ── Top: template selector + tags ───────────────────────── */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
-              {SHOWCASE_TEMPLATES.map((t, i) => (
+              {STYLE_DIRECTIONS.map((t, i) => (
                 <OptionBtn
                   key={t.slug}
                   selected={form.styleDirection === t.name}
                   onClick={() => { setStyleIdx(i); patch({ styleDirection: t.name }); }}
                 >
-                  <span className="flex items-center gap-2">
-                    <t.icon className="w-4 h-4 flex-shrink-0" style={{ color: t.accent }} />
-                    {t.name}
-                  </span>
+                  {t.name}
                 </OptionBtn>
               ))}
             </div>
@@ -807,12 +860,16 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                 size="none"
                 className={`w-full rounded-xl p-5 text-left transition-all ${
                   form.selectedPackage === pkg.id
-                    ? 'border-brand-primary bg-brand-primary/10'
+                    ? 'border-brand-primary bg-brand-primary'
                     : 'border-white/10 hover:border-white/30'
                 }`}
               >
                 {pkg.featured && (
-                  <span className="text-[10px] font-black uppercase tracking-widest text-brand-primary mb-2 block">
+                  <span
+                    className={`text-[10px] font-black uppercase tracking-widest mb-2 block ${
+                      form.selectedPackage === pkg.id ? 'text-bg-base' : 'text-brand-primary'
+                    }`}
+                  >
                     Best Value
                   </span>
                 )}
@@ -820,16 +877,22 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                   <div>
                     <p
                       className={`font-display font-bold text-lg italic ${
-                        form.selectedPackage === pkg.id ? 'text-white' : 'text-ink-muted'
+                        form.selectedPackage === pkg.id ? 'text-bg-base' : 'text-ink-muted'
                       }`}
                     >
                       {pkg.name}
                     </p>
-                    <p className="text-ink-muted text-xs font-light mt-1">{pkg.tagline}</p>
+                    <p
+                      className={`text-xs font-light mt-1 ${
+                        form.selectedPackage === pkg.id ? 'text-bg-base/70' : 'text-ink-muted'
+                      }`}
+                    >
+                      {pkg.tagline}
+                    </p>
                   </div>
                   <p
                     className={`font-display text-2xl font-black flex-shrink-0 ${
-                      form.selectedPackage === pkg.id ? 'text-brand-primary' : 'text-ink-muted'
+                      form.selectedPackage === pkg.id ? 'text-bg-base' : 'text-ink-muted'
                     }`}
                   >
                     {pkg.price}
@@ -859,30 +922,24 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
             Back
           </CustomButton>
           <div>
-            {/* Progress indicator */}
-              <div className="mb-8">
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs font-bold uppercase tracking-widest text-ink-muted">
-                    Step {step} of {TOTAL_STEPS}
-                  </span>
-                  <span className="text-xs font-bold uppercase tracking-widest text-brand-primary">
-                    {STEP_TITLES[step - 1]}
-                  </span>
-                </div>
-                <div className="h-px bg-white/10 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-brand-primary rounded-full"
-                    style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-                  />
-                </div>
+            {/* Header — same pattern as the other settings sections */}
+              <div className="mb-5">
+                <h2 className="font-display font-bold text-2xl">{STEP_TITLES[step - 1]}</h2>
+                <p className="text-[13px] text-ink-muted mt-1">
+                  Step {step} of {TOTAL_STEPS}
+                </p>
+              </div>
+
+              {/* Progress indicator */}
+              <div className="h-1 bg-white/10 rounded-full overflow-hidden mb-6">
+                <div
+                  className="h-full bg-brand-primary rounded-full transition-all duration-300"
+                  style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                />
               </div>
 
               {/* Form card */}
-              <div className="liquid-glass rounded-xl p-8 md:p-10">
-                <h2 className="font-display text-2xl md:text-3xl font-bold italic mb-8">
-                  {STEP_TITLES[step - 1]}
-                </h2>
-
+              <div className="rounded-[14px] border border-white/8 bg-bg-surface p-5 sm:p-8">
                 {renderStep()}
 
                 {error && (
@@ -892,38 +949,35 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                 )}
 
                 {/* Navigation */}
-                <div className="flex gap-4 mt-8">
+                <div className={`flex items-center gap-3 mt-8 ${step > 1 ? 'justify-between' : 'justify-end'}`}>
                   {step > 1 && (
                     <CustomButton
                       type="button"
                       onClick={goBack}
                       variant="outline"
-                      size="none"
-                      className="flex-1 py-4 border-white/10 text-ink-muted uppercase tracking-widest text-sm rounded-xl hover:border-white/30 hover:text-white transition-colors"
+                      size="sm"
                     >
                       Back
                     </CustomButton>
                   )}
                   {step < TOTAL_STEPS ? (
                     <CustomButton
-                      type="button"
+                      // type="button"
                       onClick={goNext}
                       disabled={!isStepValid(step, form)}
                       arrow
-                      size="none"
-                      className="flex-1 py-4 uppercase tracking-widest text-sm rounded-xl flex items-center justify-center gap-2"
+                      size="sm"
                     >
                       Next
                     </CustomButton>
                   ) : (
                     <CustomButton
-                      type="button"
+                      // type="button"
                       onClick={handleSubmit}
                       disabled={!isStepValid(step, form)}
                       loading={isSubmitting}
                       arrow
-                      size="none"
-                      className="flex-1 py-4 uppercase tracking-widest text-sm rounded-xl flex items-center justify-center gap-2"
+                      size="sm"
                     >
                       Submit
                     </CustomButton>

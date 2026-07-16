@@ -101,7 +101,7 @@ function MockupReviewPanel({ lead, onUpdate }: { lead: Lead; onUpdate: (updated:
             href={safeUrl(lead.mockup_url)!}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-4 py-2 rounded-lg font-bold text-sm"
+            className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 rounded-lg font-bold text-sm"
             style={{ background: 'color-mix(in srgb, var(--color-brand-primary) 10%, transparent)', color: 'var(--color-brand-primary)', border: '1px solid color-mix(in srgb, var(--color-brand-primary) 30%, transparent)' }}
           >
             <ExternalLink className="w-4 h-4" />
