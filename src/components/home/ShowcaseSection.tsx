@@ -18,7 +18,7 @@ const FULLSCREEN_PARAM = 'showcase_fullscreen';
 // border that grows from the center outward (origin-center scale-x),
 // collapsing the same way when another option is picked.
 const activeUnderline = (active: boolean) =>
-  `relative after:content-[''] after:absolute after:bottom-1 after:inset-x-5 after:h-[2px] after:bg-brand-primary after:origin-center after:transition-transform after:duration-300 ${
+  `relative after:content-[''] after:absolute after:bottom-0 after:inset-x-1 after:h-[2px] after:bg-brand-primary after:origin-center after:transition-transform after:duration-300 ${
     active ? 'after:scale-x-100' : 'after:scale-x-0'
   }`;
 
@@ -42,18 +42,18 @@ export default function ShowcaseSection() {
       <AuroraBackground />
 
       <div className="relative z-10 max-w-5xl mx-auto">
-        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-12 max-[1250px]:pb-5 px-7">
+        <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pb-20 max-[1250px]:pb-5 px-7">
           <span className="section-badge">
             Live Showcase</span>
           <h2 className="section-title">
             One build. Any brand.</h2>
           <p className="section-sub-title">
-            Swap the template below to see how the same fast, high-performance build adapts to a completely different look and feel.
+            Swap the template below to see how the same fast, high-performance build adapts to a completely different look.
           </p>
         </div>
 
         {/* Template switcher */}
-        <div role="group" aria-label="Choose a template" className="flex flex-wrap justify-center gap-0 mb-4">
+        <div role="group" aria-label="Choose a template" className="flex justify-center gap-0 mb-2 sm:mb-4 max-[1249px]:pt-6 pt-4">
           {SHOWCASE_TEMPLATES.map((t) => {
             const isActive = t.slug === activeSlug;
             const Icon = t.icon;
@@ -61,13 +61,17 @@ export default function ShowcaseSection() {
               <CustomButton
                 key={t.slug}
                 onClick={() => updateParam(TEMPLATE_PARAM, t.slug)}
-                variant="ghost"
-                size="lg"
-                className={activeUnderline(isActive)}
+                variant="radio"
+                size="none"
+                className={
+                  isActive
+                    ? 'px-4 border-brand-primary bg-brand-primary text-bg-base font-bold'
+                    : 'px-4 border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
+                }
                 aria-pressed={isActive}
                 aria-label={`Show the ${t.name} template`}
               >
-                <Icon className="w-4 h-4 flex-shrink-0" style={{ color: t.accent }} aria-hidden="true" />
+                <Icon className="hidden sm:unhidden w-4 h-4 flex-shrink-0" style={{ color: t.accent }} aria-hidden="true" />
                 {t.name}
               </CustomButton>
             );
@@ -75,10 +79,11 @@ export default function ShowcaseSection() {
         </div>
 
         {/* Device toggle */}
-        <div role="group" aria-label="Choose a preview device" className="flex flex-wrap justify-center gap-2.5 mb-8">
+        <div role="group" aria-label="Choose a preview device" className="flex flex-wrap justify-center gap-0 mb-8">
           <CustomButton
             onClick={() => updateParam(DEVICE_PARAM, null)}
-            variant="ghost"
+            variant="radio"
+            size="none"
             className={activeUnderline(device === 'desktop')}
             aria-pressed={device === 'desktop'}
             aria-label="Preview at desktop width"
@@ -87,22 +92,20 @@ export default function ShowcaseSection() {
           </CustomButton>
           <CustomButton
             onClick={() => updateParam(DEVICE_PARAM, 'mobile')}
-            variant="ghost"
+            variant="radio"
+            size="none"
             className={activeUnderline(device === 'mobile')}
             aria-pressed={device === 'mobile'}
             aria-label="Preview at mobile width"
           >
             <Smartphone className="w-4 h-4" aria-hidden="true" /> Mobile
           </CustomButton>
-          <CustomButton
-            onClick={() => updateParam(FULLSCREEN_PARAM, '1')}
-            variant="ghost"
-            aria-label={`Open the ${active.name} template full screen`}
-          >
-            <ExternalLink className="w-4 h-4" aria-hidden="true" /> Open full screen
-          </CustomButton>
         </div>
-        <BrowserFrame template={active} device={device} />
+        <BrowserFrame
+          template={active}
+          device={device}
+          onOpenFullscreen={() => updateParam(FULLSCREEN_PARAM, '1')}
+        />
       </div>
 
       {fullscreen && (
@@ -112,52 +115,70 @@ export default function ShowcaseSection() {
   );
 }
 
-function ChromeBar({ domain, onClose }: { domain: string; onClose?: () => void }) {
+function ChromeBar({
+  domain,
+  onOpenFullscreen,
+  onClose,
+}: {
+  domain: string;
+  onOpenFullscreen?: () => void;
+  onClose?: () => void;
+}) {
   return (
-    <div className="flex items-center gap-3 px-4 py-3 flex-shrink-0" style={{ background: '#E8E8E8' }}>
+    <div className="relative flex items-center gap-3 px-4 py-3 flex-shrink-0" style={{ background: '#E8E8E8' }}>
       <div className="flex gap-1.5 flex-shrink-0" aria-hidden="true">
-        <span className="w-3 h-3 rounded-full" style={{ background: '#FF5F57' }} />
-        <span className="w-3 h-3 rounded-full" style={{ background: '#FEBC2E' }} />
-        <span className="w-3 h-3 rounded-full" style={{ background: '#28C840' }} />
       </div>
-      <div className="flex-1 flex justify-center min-w-0">
-        <div
-          className="flex items-center gap-1.5 px-4 py-1 rounded-full text-[11px] font-medium max-w-[240px] truncate"
-          style={{ background: '#FFFFFF', color: '#6B7280' }}
-        >
-          <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
-          <span className="truncate">{domain}</span>
-        </div>
+      <div
+        className="absolute left-1/2 -translate-x-1/2 flex items-center gap-1.5 px-4 py-1 rounded-full text-[11px] font-medium max-w-[240px] truncate"
+        style={{ background: '#FFFFFF', color: '#6B7280' }}
+      >
+        <Lock className="w-3 h-3 flex-shrink-0" aria-hidden="true" />
+        <span className="truncate">{domain}</span>
       </div>
-      {onClose ? (
-        <button
-          type="button"
-          onClick={onClose}
-          aria-label="Close full screen preview"
-          className="p-1 rounded-md hover:bg-black/10 flex-shrink-0 cursor-pointer"
-        >
-          <X className="w-4 h-4" style={{ color: '#374151' }} />
-        </button>
-      ) : (
-        // Balances the traffic-light dots so the URL bar stays visually centered.
-        <div className="w-[52px] flex-shrink-0" aria-hidden="true" />
-      )}
+      <div className="ml-auto flex items-center gap-3 flex-shrink-0">
+        {onOpenFullscreen && (
+          <CustomButton
+            onClick={onOpenFullscreen}
+            variant="icon"
+            size="none"
+            className="mr-2 sm:mr-5"
+            aria-label={`Open the ${domain} template full screen`}
+          >
+            <ExternalLink className="w-4 h-4" aria-hidden="true" />
+          </CustomButton>
+        )}
+        {onClose && (
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Close full screen preview"
+            className="p-1 rounded-md hover:bg-black/10 flex-shrink-0 cursor-pointer"
+          >
+            <X className="w-4 h-4" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
 
-function BrowserFrame({ template, device }: { template: ShowcaseTemplateEntry; device: Device }) {
+function BrowserFrame({
+  template,
+  device,
+  onOpenFullscreen,
+}: {
+  template: ShowcaseTemplateEntry;
+  device: Device;
+  onOpenFullscreen: () => void;
+}) {
   const { Component } = template;
   return (
     <div className={`mx-auto transition-[max-width] duration-300 px-5 ${device === 'mobile' ? 'max-w-[380px]' : 'max-w-full'}`}>
       <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl">
-        <ChromeBar domain={template.domain} />
-        {/* @container: templates size their layout (hamburger vs full nav,
-            grid columns) off this pane's width, not the real viewport — so
-            "Mobile" genuinely shows the template's mobile layout. */}
+        <ChromeBar domain={template.domain} onOpenFullscreen={onOpenFullscreen} />
         <div
           key={template.slug}
-          className={`@container showcase-scrollbar showcase-fade overflow-y-auto transition-[height] duration-300 ${device === 'mobile' ? 'h-[560px]' : 'h-[480px]'}`}
+          className={`@container showcase-scrollbar showcase-fade overflow-y-auto overflow-x-hidden overscroll-none transition-[height] duration-300 ${device === 'mobile' ? 'h-[560px]' : 'h-[480px]'}`}
         >
           <Component />
         </div>
@@ -186,7 +207,7 @@ function FullscreenModal({ template, onClose }: { template: ShowcaseTemplateEntr
       aria-label={`${template.name} template, full screen preview`}
     >
       <ChromeBar domain={template.domain} onClose={onClose} />
-      <div key={template.slug} className="@container showcase-scrollbar showcase-fade overflow-y-auto flex-1">
+      <div key={template.slug} className="@container showcase-scrollbar showcase-fade overflow-y-auto overflow-x-hidden overscroll-none flex-1">
         <Component />
       </div>
     </div>

@@ -1,7 +1,7 @@
 import React, { forwardRef } from 'react';
 import { ArrowRight, Loader2 } from 'lucide-react';
 
-export type CustomButtonVariant = 'filled' | 'outline' | 'ghost' | 'icon';
+export type CustomButtonVariant = 'filled' | 'outline' | 'ghost' | 'icon' | 'radio' | 'mradio';
 export type CustomButtonSize = 'sm' | 'md' | 'mdlight' | 'lg' | 'none';
 
 export interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,11 +18,11 @@ export interface CustomButtonProps extends React.ButtonHTMLAttributes<HTMLButton
 
 const VARIANT_CLASSES: Record<CustomButtonVariant, string> = {
   filled: 'bg-brand-primary text-bg-base border border-transparent hover:shadow-[0_0_30px_color-mix(in_srgb,var(--color-brand-primary)_40%,transparent)]',
-  // Same hover treatment as the home-section cards: theme-aware shadow
-  // (light glow on dark, dark shadow on light).
   outline: 'bg-transparent border text-white border-white/30 hover-shadow-theme',
   ghost: 'bg-transparent text-white',
   icon: 'bg-transparent text-white rounded-full',
+  radio: 'bg-transparent flex inline-flex items-center gap-3 py-2 px-6 md:px-8 rounded-lg text-left text-sm font-medium',
+  mradio: 'bg-transparent flex inline-flex items-center gap-3 py-2 px-6 md:px-8 rounded-lg text-left text-sm font-medium',
 };
 
 const SIZE_CLASSES: Record<CustomButtonSize, string> = {

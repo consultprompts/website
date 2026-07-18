@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { Upload, ChevronLeft, Lock } from 'lucide-react';
+import { Upload, ChevronLeft, Lock, CheckCircle2, Copy } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { submitLead, updateLeadSubmit, type Lead } from '../../lib/api';
+import { submitLead, updateLeadSubmit, inviteLead, type Lead } from '../../lib/api';
 import { PACKAGES } from '../../data/content';
 import { SHOWCASE_TEMPLATES } from '../home/templates';
 import CustomButton from '../ui/CustomButton';
@@ -22,7 +22,12 @@ const STEP_TITLES = [
   'Inspiration',
   'Contact',
   'Package',
+  // Admin-only final step — shown when an admin fills the form on a client's
+  // behalf (see adminInvite in the component).
+  'Send to Client',
 ];
+
+const EMAIL_RE = /^\S+@\S+\.\S+$/;
 
 const SITE_GOALS = [
   'Get more phone calls / bookings',
@@ -63,7 +68,7 @@ const STYLE_DIRECTIONS: StyleDirectionOption[] = [
 
 const RECIPE_TAGS: Record<string, string[]> = {
   rosalie:    ['Moody Bistro', 'Italic Serif', 'Forest & Terracotta', 'Dotted Menus'],
-  harborview: ['Luxury Minimalist', 'Serif Typography', 'Cream & Charcoal', 'Wide Grids'],
+  harbor: ['Luxury Minimalist', 'Serif Typography', 'Cream & Charcoal', 'Wide Grids'],
   lumiere:    ['High-Fashion', 'Bold Typography', 'Blush & Black', 'Asymmetric Gallery'],
   ironcore:   ['Athletic Dark Mode', 'Condensed Type', 'Black & Neon', 'Sharp Cards'],
   aurora:     ['Calm Wellness', 'Soft Gradients', 'Lavender & Mist', 'Rounded Cards'],
@@ -97,7 +102,7 @@ const TEMPLATE_PREVIEWS: Record<string, TemplatePreview> = {
     headline: 'Dinner in the deep green', bodyCopy: 'Candlelight, old-world wine and plates that take their time.',
   },
   // Realty — luxury minimalist: cream/charcoal, square edges, wide-tracked caps.
-  harborview: {
+  harbor: {
     bg: '#F5F1E8', surface: '#FAF8F3', border: '#E3DDCE', heading: '#26241F', body: '#8A8478',
     accent: '#26241F', accent2: '#A89F8C',
     headingFont: PREVIEW_SERIF, headingClass: 'leading-tight',
@@ -316,13 +321,13 @@ function OptionBtn({
     <CustomButton
       type="button"
       onClick={onClick}
-      variant="outline"
+      variant="radio"
       size="none"
-      className={`w-full py-2.5 px-4 rounded-lg text-left text-sm font-medium transition-all ${
+      className={
         selected
-          ? 'border-brand-primary bg-brand-primary text-bg-base font-bold'
-          : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
-      }`}
+          ? 'border border-brand-primary bg-brand-primary text-bg-base font-bold'
+          : 'border border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
+      }
     >
       {children}
     </CustomButton>
@@ -342,13 +347,13 @@ function CheckBtn({
     <CustomButton
       type="button"
       onClick={onClick}
-      variant="outline"
+      variant="mradio"
       size="none"
-      className={`flex items-center gap-3 py-2.5 px-4 rounded-lg text-sm font-medium transition-all text-left ${
+      className={
         selected
-          ? 'border-brand-primary bg-brand-primary text-bg-base font-bold'
-          : 'border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
-      }`}
+          ? 'border border-brand-primary bg-brand-primary text-bg-base font-bold'
+          : 'border border-white/10 text-ink-muted hover:border-white/30 hover:text-white'
+      }
     >
       <div
         className={`w-4 h-4 flex-shrink-0 rounded border flex items-center justify-center transition-colors ${
@@ -376,12 +381,22 @@ interface NewProjectFormProps {
 }
 
 export default function NewProjectForm({ onBack, onClose, initialLead }: NewProjectFormProps) {
-  const { user } = useAuth();
+  const { user, isAdmin } = useAuth();
   const location = useLocation();
 
   const initialPackage = (location.state as { package?: string } | null)?.package ?? 'visibility';
 
   const [step, setStep] = useState(1);
+
+  // Admins filling a fresh form are creating the project on a client's behalf:
+  // an extra final step collects the client's email and sends them a redeem
+  // link instead of attaching the lead to the admin's own account. Editing an
+  // existing lead keeps the normal flow.
+  const adminInvite = isAdmin && !initialLead;
+  const totalSteps = adminInvite ? TOTAL_STEPS + 1 : TOTAL_STEPS;
+  const [clientEmail, setClientEmail] = useState('');
+  const [inviteSent, setInviteSent] = useState<{ email: string; leadId: string; redeemUrl: string } | null>(null);
+  const [copied, setCopied] = useState(false);
 
   // Which template the Style Direction step is previewing. Starts on the
   // style already saved on the lead (edit mode), else the first one.
@@ -465,7 +480,9 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
         .filter(Boolean);
       const payload = {
         name: form.businessName,
-        email: user?.email ?? '',
+        // Invited leads belong to the client: their email is both the invite
+        // recipient and the contact stored on the lead.
+        email: adminInvite ? clientEmail.trim() : user?.email ?? '',
         business: form.businessType,
         message: form.message.trim() || undefined,
         existing_website: form.hasExistingWebsite,
@@ -486,6 +503,13 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
         wants_call: form.wantsCall,
         package: form.selectedPackage || undefined,
       };
+      if (adminInvite) {
+        const res = await inviteLead(payload);
+        // Stay on a confirmation screen: the invited lead is unattached, so
+        // it won't show up in the admin's own project list.
+        setInviteSent({ email: clientEmail.trim(), leadId: res.id, redeemUrl: res.redeem_url });
+        return;
+      }
       if (initialLead) {
         await updateLeadSubmit(initialLead.id, payload);
       } else {
@@ -569,7 +593,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
 
       case 4:
         return (
-          <div className="space-y-3">
+          <div className="flex flex-col space-y-3">
             {SITE_GOALS.map(goal => (
               <OptionBtn
                 key={goal}
@@ -833,7 +857,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
             </div>
             <div>
               <FieldLabel>Timeline *</FieldLabel>
-              <div className="space-y-3">
+              <div className="flex flex-col space-y-3">
                 {TIMELINES.map(t => (
                   <OptionBtn
                     key={t}
@@ -903,10 +927,73 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
           </div>
         );
 
+      case 11:
+        return (
+          <div className="space-y-6">
+            <div>
+              <FieldLabel>Client Email *</FieldLabel>
+              <TextInput
+                type="email"
+                value={clientEmail}
+                onChange={setClientEmail}
+                placeholder="client@business.com"
+              />
+            </div>
+            <p className="text-xs text-ink-muted font-light">
+              We'll email this address a link to claim the project. It stays
+              unassigned until the client redeems it from their own account.
+            </p>
+          </div>
+        );
+
       default:
         return null;
     }
   };
+
+  const stepValid = step === 11 ? EMAIL_RE.test(clientEmail.trim()) : isStepValid(step, form);
+
+  if (inviteSent) {
+    return (
+      <div className="flex flex-col h-full min-h-0">
+        <div className="flex-1 overflow-y-auto px-4 md:px-8 py-4 md:py-6">
+          <div className="max-w-2xl mx-auto w-full text-white">
+            <div className="rounded-[14px] border border-white/8 bg-bg-surface p-6 sm:p-10 text-center">
+              <div className="w-16 h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-6">
+                <CheckCircle2 className="w-8 h-8 text-brand-primary" />
+              </div>
+              <h2 className="font-display font-bold text-2xl mb-2">Invite sent</h2>
+              <p className="text-sm text-ink-muted font-light mb-6">
+                We emailed <span className="text-white font-bold">{inviteSent.email}</span> a
+                link to claim this project. They can also redeem it manually from
+                My Projects using the project ID below.
+              </p>
+              <div className="rounded-lg bg-white/5 border border-white/10 px-4 py-3 mb-6 flex items-center justify-between gap-3">
+                <code className="text-xs text-white/80 break-all text-left">{inviteSent.leadId}</code>
+                <CustomButton
+                  variant="icon"
+                  size="none"
+                  aria-label="Copy project ID"
+                  className="border-none text-ink-muted hover:text-white flex-shrink-0"
+                  onClick={() => {
+                    navigator.clipboard.writeText(inviteSent.leadId).then(() => setCopied(true)).catch(() => {});
+                  }}
+                >
+                  <Copy className="w-4 h-4" />
+                </CustomButton>
+              </div>
+              {copied && (
+                <p className="text-[11px] font-bold uppercase tracking-widest text-brand-primary mb-6">Copied</p>
+              )}
+              <CustomButton onClick={onBack} size="sm">
+                Back to projects
+              </CustomButton>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex flex-col h-full min-h-0">
@@ -926,7 +1013,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
               <div className="mb-5">
                 <h2 className="font-display font-bold text-2xl">{STEP_TITLES[step - 1]}</h2>
                 <p className="text-[13px] text-ink-muted mt-1">
-                  Step {step} of {TOTAL_STEPS}
+                  Step {step} of {totalSteps}
                 </p>
               </div>
 
@@ -934,7 +1021,7 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
               <div className="h-1 bg-white/10 rounded-full overflow-hidden mb-6">
                 <div
                   className="h-full bg-brand-primary rounded-full transition-all duration-300"
-                  style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
+                  style={{ width: `${(step / totalSteps) * 100}%` }}
                 />
               </div>
 
@@ -960,11 +1047,11 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                       Back
                     </CustomButton>
                   )}
-                  {step < TOTAL_STEPS ? (
+                  {step < totalSteps ? (
                     <CustomButton
                       // type="button"
                       onClick={goNext}
-                      disabled={!isStepValid(step, form)}
+                      disabled={!stepValid}
                       arrow
                       size="sm"
                     >
@@ -974,12 +1061,12 @@ export default function NewProjectForm({ onBack, onClose, initialLead }: NewProj
                     <CustomButton
                       // type="button"
                       onClick={handleSubmit}
-                      disabled={!isStepValid(step, form)}
+                      disabled={!stepValid}
                       loading={isSubmitting}
                       arrow
                       size="sm"
                     >
-                      Submit
+                      {adminInvite ? 'Send' : 'Submit'}
                     </CustomButton>
                   )}
                 </div>

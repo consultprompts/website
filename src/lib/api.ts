@@ -247,7 +247,8 @@ export function googleLoginUrl(): string {
 
 export interface Lead {
   id: string;
-  user_id: string;
+  /** null while an admin-invited lead is waiting to be redeemed. */
+  user_id: string | null;
   name: string;
   email: string;
   business: string;
@@ -316,7 +317,8 @@ export interface LeadInput {
   wants_call: boolean;
 }
 
-export async function submitLead(lead: LeadInput) {
+// Lead payloads go as multipart when a logo file is attached, JSON otherwise.
+function buildLeadBody(lead: LeadInput): BodyInit {
   const { logo_file, pages_needed, inspiration_urls, ...scalar } = lead;
 
   if (logo_file) {
@@ -327,32 +329,41 @@ export async function submitLead(lead: LeadInput) {
     pages_needed?.forEach(p => fd.append('pages_needed[]', p));
     inspiration_urls?.forEach(u => fd.append('inspiration_urls[]', u));
     fd.append('logo_file', logo_file);
-    return request<{ id: string }>('/agency/leads', { method: 'POST', body: fd });
+    return fd;
   }
 
-  return request<{ id: string }>('/agency/leads', {
-    method: 'POST',
-    body: JSON.stringify({ ...scalar, pages_needed, inspiration_urls }),
-  });
+  return JSON.stringify({ ...scalar, pages_needed, inspiration_urls });
+}
+
+export async function submitLead(lead: LeadInput) {
+  return request<{ id: string }>('/agency/leads', { method: 'POST', body: buildLeadBody(lead) });
 }
 
 export async function updateLeadSubmit(id: string, lead: LeadInput) {
-  const { logo_file, pages_needed, inspiration_urls, ...scalar } = lead;
+  return request<{ ok: boolean }>(`/agency/leads/${id}`, { method: 'PATCH', body: buildLeadBody(lead) });
+}
 
-  if (logo_file) {
-    const fd = new FormData();
-    for (const [k, v] of Object.entries(scalar)) {
-      if (v !== undefined && v !== null) fd.append(k, String(v));
-    }
-    pages_needed?.forEach(p => fd.append('pages_needed[]', p));
-    inspiration_urls?.forEach(u => fd.append('inspiration_urls[]', u));
-    fd.append('logo_file', logo_file);
-    return request<{ ok: boolean }>(`/agency/leads/${id}`, { method: 'PATCH', body: fd });
-  }
+/**
+ * Admin only: create an unattached lead on a client's behalf. The lead's
+ * email field is the client's address — the invite (with redeem link) is
+ * sent there.
+ */
+export async function inviteLead(lead: LeadInput) {
+  return request<{ id: string; redeem_url: string }>('/agency/leads/invite', {
+    method: 'POST',
+    body: buildLeadBody(lead),
+  });
+}
 
-  return request<{ ok: boolean }>(`/agency/leads/${id}`, {
-    method: 'PATCH',
-    body: JSON.stringify({ ...scalar, pages_needed, inspiration_urls }),
+/**
+ * Attach an admin-invited lead to the logged-in user. Shared by the email
+ * redeem link (/redeem?leadId=…) and the manual "Redeem Project" form.
+ * Errors: INVALID_ID (404), ALREADY_REDEEMED (409).
+ */
+export async function redeemLead(leadId: string): Promise<Lead> {
+  return request<Lead>('/agency/leads/redeem', {
+    method: 'POST',
+    body: JSON.stringify({ lead_id: leadId }),
   });
 }
 

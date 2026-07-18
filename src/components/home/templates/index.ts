@@ -3,7 +3,7 @@ import { Home, UtensilsCrossed, Scissors, Dumbbell, type LucideIcon } from 'luci
 import LumiereTemplate from './LumiereTemplate';
 import RosalieTemplate from './RosalieTemplate';
 import IroncoreTemplate from './IroncoreTemplate';
-import HarborviewTemplate from './HarborviewTemplate';
+import HarborTemplate from './HarborTemplate';
 
 // ---------------------------------------------------------------------------
 // Live Template Showcase registry. Each entry is a completely separate,
@@ -32,7 +32,7 @@ export interface ShowcaseTemplateEntry {
 // First entry is the default template shown on load.
 export const SHOWCASE_TEMPLATES: ShowcaseTemplateEntry[] = [
   { slug: 'rosalie', name: 'Rosalie', accent: '#C4602F', domain: 'rosalie-eats.mysite.com', icon: UtensilsCrossed, Component: RosalieTemplate },
-  { slug: 'harborview', name: 'Harborview', accent: '#A89F8C', domain: 'harborview-realty.mysite.com', icon: Home, Component: HarborviewTemplate },
+  { slug: 'harbor', name: 'Harbor', accent: '#A89F8C', domain: 'harbor-realty.mysite.com', icon: Home, Component: HarborTemplate },
   { slug: 'lumiere', name: 'Lumière', accent: '#E3A692', domain: 'lumiere-studio.mysite.com', icon: Scissors, Component: LumiereTemplate },
   { slug: 'ironcore', name: 'Ironcore', accent: '#B4FF39', domain: 'ironcore-fitness.mysite.com', icon: Dumbbell, Component: IroncoreTemplate },
 ];

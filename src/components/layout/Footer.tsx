@@ -12,6 +12,8 @@ const EXPLORE_LINKS = [
 
 const MORE_LINKS: { label: string; to: string }[] = [
   { label: 'Track My Project', to: '/settings/my-projects' },
+  { label: 'Create New Project', to: '/settings/my-projects' },
+  { label: 'Redeem Project', to: '/settings/my-projects/redeem-project' },
   // { label: 'Academy',          to: '/academy' },
   //{ label: 'Digital Products', to: '/ebooks' },
 ];

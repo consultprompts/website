@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, Dumbbell, Flame, HeartPulse, ArrowRight, Check, Zap } from 'lucide-react';
+import Reveal from './Reveal';
 
 // High-energy athletic dark mode. Black/neon-green, condensed uppercase
 // type, hard edges, sharp pricing cards.
@@ -78,6 +79,7 @@ export default function IroncoreTemplate() {
       </header>
 
       {/* Hero — gritty photo, huge condensed type, neon slash */}
+      <Reveal>
       <div className="relative overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1534438327276-14e5300c3a48?auto=format&fit=crop&q=80&w=1200"
@@ -107,8 +109,10 @@ export default function IroncoreTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Stats — neon rules */}
+      <Reveal>
       <div className="border-y px-6" style={{ borderColor: LINE }}>
         <div className="max-w-3xl mx-auto grid grid-cols-3 divide-x" style={{ borderColor: LINE }}>
           {STATS.map(s => (
@@ -119,8 +123,10 @@ export default function IroncoreTemplate() {
           ))}
         </div>
       </div>
+      </Reveal>
 
       {/* Programs */}
+      <Reveal>
       <div className="px-6 py-16 max-w-3xl mx-auto">
         <p className="text-[11px] font-black tracking-[0.35em] mb-3" style={{ color: NEON }}>TRAIN HERE</p>
         <h4 className="text-4xl font-black uppercase tracking-tighter mb-10" style={{ fontFamily: CONDENSED }}>Programs</h4>
@@ -134,8 +140,10 @@ export default function IroncoreTemplate() {
           ))}
         </div>
       </div>
+      </Reveal>
 
       {/* Pricing — sharp cards, neon featured tier */}
+      <Reveal>
       <div className="px-6 py-16" style={{ background: PANEL }}>
         <div className="max-w-3xl mx-auto">
           <p className="text-[11px] font-black tracking-[0.35em] mb-3 text-center" style={{ color: NEON }}>NO CONTRACTS · CANCEL ANYTIME</p>
@@ -177,8 +185,10 @@ export default function IroncoreTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Quote band */}
+      <Reveal>
       <div className="px-6 py-16 text-center border-b" style={{ borderColor: LINE }}>
         <div className="max-w-xl mx-auto">
           <p className="text-3xl @md:text-4xl font-black uppercase tracking-tighter leading-tight mb-5" style={{ fontFamily: CONDENSED }}>
@@ -187,8 +197,10 @@ export default function IroncoreTemplate() {
           <p className="text-[10px] font-bold tracking-[0.3em]" style={{ color: GRAY }}>DANA REYES · HEAD COACH · CSCS, USAW L2</p>
         </div>
       </div>
+      </Reveal>
 
       {/* CTA */}
+      <Reveal>
       <div className="px-6 py-16 text-center">
         <h4 className="text-4xl @md:text-5xl font-black uppercase tracking-tighter mb-3" style={{ fontFamily: CONDENSED }}>
           First week's <span style={{ color: NEON }}>on us.</span>
@@ -198,6 +210,7 @@ export default function IroncoreTemplate() {
           Claim free week
         </button>
       </div>
+      </Reveal>
 
       {/* Footer */}
       <footer className="border-t px-6 py-10" style={{ borderColor: LINE }}>

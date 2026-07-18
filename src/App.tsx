@@ -17,6 +17,7 @@ const ResetPassword = lazy(() => import('./pages/ResetPassword'));
 const Settings = lazy(() => import('./pages/Settings'));
 const AdminSettings = lazy(() => import('./pages/AdminSettings'));
 const AuthCallback = lazy(() => import('./pages/AuthCallback'));
+const Redeem = lazy(() => import('./pages/Redeem'));
 
 // /settings/* renders as an overlay on top of whatever page was open when it
 // was entered (see hooks/useSettingsNavigate), instead of replacing it as a
@@ -45,6 +46,7 @@ function AppRoutes() {
         <Route path="/verify-email" element={<VerifyEmail />} />
         <Route path="/reset-password" element={<ResetPassword />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/redeem" element={<Redeem />} />
       </Routes>
 
       {(location.pathname.startsWith('/settings') || location.pathname.startsWith('/admin-settings')) && (

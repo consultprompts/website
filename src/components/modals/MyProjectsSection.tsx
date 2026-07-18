@@ -7,6 +7,7 @@ import { PACKAGES } from '../../data/content';
 import { safeUrl } from '../../lib/urls';
 import { MILESTONES, MILESTONES_PENDING, MILESTONE, projectStatusText } from '../../lib/milestones';
 import { useBodyScrollLock, useSettingsNavigate } from '../../hooks';
+import { useAuth } from '../../context/AuthContext';
 import CustomButton from '../ui/CustomButton';
 
 // Code-split: the brief form and the two sub-views only render on their own
@@ -15,6 +16,7 @@ import CustomButton from '../ui/CustomButton';
 const NewProjectForm = lazy(() => import('./NewProjectForm'));
 const OldProjectsView = lazy(() => import('./OldProjectsView'));
 const PaymentsView = lazy(() => import('./PaymentsView'));
+const RedeemProjectView = lazy(() => import('./RedeemProjectView'));
 
 // Shared Suspense fallback — same centered spinner the section already shows
 // while leads load, so a chunk fetch is indistinguishable from a data fetch.
@@ -959,6 +961,7 @@ const ACTIVITY_LABEL: Record<string, string> = {
   website_completed: 'Website completed',
   payment_completed: 'Payment completed',
   website_launched: 'Website is live',
+  project_redeemed: 'Project redeemed',
 };
 
 function formatActivityTimestamp(iso: string) {
@@ -1036,14 +1039,16 @@ function ActivityPanel({ lead }: { lead: Lead }) {
 export default function MyProjectsSection({ onClose }: { onClose: () => void }) {
   const location = useLocation();
   const navigate = useSettingsNavigate();
+  const { isAdmin } = useAuth();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const subView: 'main' | 'old-projects' | 'payments' =
+  const subView: 'main' | 'old-projects' | 'payments' | 'redeem-project' =
     location.pathname.endsWith('/old-projects') ? 'old-projects' :
     location.pathname.endsWith('/payments') ? 'payments' :
+    location.pathname.endsWith('/redeem-project') ? 'redeem-project' :
     'main';
-  const toSubView = (v: 'main' | 'old-projects' | 'payments') =>
+  const toSubView = (v: 'main' | 'old-projects' | 'payments' | 'redeem-project') =>
     navigate(v === 'main' ? '/settings/my-projects' : `/settings/my-projects/${v}`, { replace: true });
 
   const refresh = useCallback((showLoader = true) => {
@@ -1097,10 +1102,12 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
   // Only one project in flight at a time — mirrors the same rule the public
   // "Start a project" CTAs already enforce (see Home.tsx's checkActiveLead).
   // A direct URL hit while one's already active bounces back to the list.
+  // Admins are exempt: their "new project" is a client invite that never
+  // attaches to their own account (see NewProjectForm's adminInvite).
   useEffect(() => {
-    if (showNewProjectForm && !loading && hasActive) backToList();
+    if (showNewProjectForm && !loading && hasActive && !isAdmin) backToList();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [showNewProjectForm, loading, hasActive]);
+  }, [showNewProjectForm, loading, hasActive, isAdmin]);
 
   if (editLead) {
     return (
@@ -1159,14 +1166,27 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
               >
                 Payments
               </CustomButton>
-              {!loading && !hasActive && (
-                <CustomButton
-                  onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
-                  size="none"
-                  className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
-                >
-                  + New project
-                </CustomButton>
+              {!loading && (!hasActive || isAdmin) && (
+                <>
+                  <CustomButton
+                    onClick={() => toSubView('redeem-project')}
+                    variant="outline"
+                    size="none"
+                    className="text-[13px] px-[18px] py-2 rounded-[9px]"
+                    style={{ border: '1px solid color-mix(in srgb, var(--color-ink-base) 15%, transparent)', background: 'transparent', color: 'var(--color-ink-base)' }}
+                    onMouseEnter={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 40%, transparent)')}
+                    onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'color-mix(in srgb, var(--color-ink-base) 15%, transparent)')}
+                  >
+                    Redeem project
+                  </CustomButton>
+                  <CustomButton
+                    onClick={() => navigate('/settings/my-projects/new-project', { replace: true })}
+                    size="none"
+                    className="text-[13px] px-[18px] py-2 rounded-[9px] border-none"
+                  >
+                    + New project
+                  </CustomButton>
+                </>
               )}
             </div>
           </div>
@@ -1182,6 +1202,16 @@ export default function MyProjectsSection({ onClose }: { onClose: () => void }) 
           {subView === 'payments' && (
             <Suspense fallback={chunkSpinner}>
               <PaymentsView leads={leads} onBack={() => toSubView('main')} />
+            </Suspense>
+          )}
+
+          {/* Sub-view: redeem project */}
+          {subView === 'redeem-project' && (
+            <Suspense fallback={chunkSpinner}>
+              <RedeemProjectView
+                onBack={() => toSubView('main')}
+                onRedeemed={() => { refresh(); toSubView('main'); }}
+              />
             </Suspense>
           )}
 

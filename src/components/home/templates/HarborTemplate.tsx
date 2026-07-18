@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, BedDouble, Bath, Ruler, ArrowRight, ArrowUpRight } from 'lucide-react';
+import Reveal from './Reveal';
 
 // Luxury minimalist real-estate studio. Cream/charcoal palette, wide
 // editorial grids, square edges, restrained type.
@@ -30,7 +31,7 @@ function Label({ children }: { children: React.ReactNode }) {
   return <p className="text-[10px] font-bold tracking-[0.35em] uppercase" style={{ color: INK_MUTED }}>{children}</p>;
 }
 
-export default function HarborviewTemplate() {
+export default function HarborTemplate() {
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -38,7 +39,7 @@ export default function HarborviewTemplate() {
       {/* Navbar — hairline, no fill, everything lowercase-quiet */}
       <header className="sticky top-0 z-20 backdrop-blur-sm border-b" style={{ background: `${CREAM}F2`, borderColor: LINE }}>
         <div className="flex items-center justify-between px-8 py-5">
-          <span className="text-lg tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harborview</span>
+          <span className="text-lg tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harbor</span>
           <nav className="hidden @md:flex items-center gap-10 text-[12px] tracking-[0.15em] uppercase" style={{ color: INK_MUTED }}>
             {NAV_LINKS.map(l => (
               <span key={l} className="relative cursor-pointer transition-colors duration-200 hover:text-[#26241F] after:content-[''] after:absolute after:-bottom-1 after:inset-x-0 after:h-px after:bg-[#26241F] after:origin-left after:scale-x-0 after:transition-transform after:duration-300 hover:after:scale-x-100">
@@ -72,6 +73,7 @@ export default function HarborviewTemplate() {
       </header>
 
       {/* Hero — asymmetric editorial split: oversized serif left, image right */}
+      <Reveal>
       <div className="px-8 pt-16 pb-20 @md:pt-24 @md:pb-28">
         <div className="max-w-4xl mx-auto grid grid-cols-1 @md:grid-cols-[1.1fr_1fr] gap-10 @md:gap-14 items-end">
           <div>
@@ -102,8 +104,10 @@ export default function HarborviewTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Stats — hairline-ruled row, no boxes */}
+      <Reveal>
       <div className="border-y px-8" style={{ borderColor: LINE }}>
         <div className="max-w-4xl mx-auto grid grid-cols-3 divide-x" style={{ borderColor: LINE }}>
           {STATS.map(s => (
@@ -114,8 +118,10 @@ export default function HarborviewTemplate() {
           ))}
         </div>
       </div>
+      </Reveal>
 
       {/* Portfolio — wide asymmetric grid: first listing spans full width */}
+      <Reveal>
       <div className="px-8 py-20">
         <div className="max-w-4xl mx-auto">
           <div className="flex items-end justify-between mb-10">
@@ -156,8 +162,10 @@ export default function HarborviewTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Philosophy — charcoal band, single serif statement */}
+      <Reveal>
       <div className="px-8 py-24 text-center" style={{ background: CHARCOAL, color: CREAM }}>
         <div className="max-w-2xl mx-auto">
           <p className="text-[10px] font-bold tracking-[0.35em] uppercase mb-8" style={{ color: '#A79F8D' }}>Our approach</p>
@@ -167,8 +175,10 @@ export default function HarborviewTemplate() {
           <p className="text-[11px] tracking-[0.25em] uppercase mt-8" style={{ color: '#A79F8D' }}>Claire Whitmore · Principal broker</p>
         </div>
       </div>
+      </Reveal>
 
       {/* Private list — minimal underline form */}
+      <Reveal>
       <div className="px-8 py-20" style={{ background: CREAM_SOFT }}>
         <div className="max-w-xl mx-auto text-center">
           <Label>The private list</Label>
@@ -188,17 +198,18 @@ export default function HarborviewTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Footer */}
       <footer className="border-t px-8 py-10" style={{ borderColor: LINE }}>
         <div className="max-w-4xl mx-auto flex flex-col @md:flex-row items-center justify-between gap-4">
-          <span className="text-sm tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harborview</span>
+          <span className="text-sm tracking-[0.2em] uppercase" style={{ fontFamily: SERIF }}>Harbor</span>
           <div className="flex items-center gap-7 text-[11px] tracking-[0.15em] uppercase" style={{ color: INK_MUTED }}>
             {['Portfolio', 'Sell with us', 'Journal', 'Contact'].map(l => (
               <span key={l} className="cursor-pointer transition-colors duration-200 hover:text-[#26241F]">{l}</span>
             ))}
           </div>
-          <span className="text-[11px]" style={{ color: '#B5AE9E' }}>© 2026 Harborview</span>
+          <span className="text-[11px]" style={{ color: '#B5AE9E' }}>© 2026 Harbor</span>
         </div>
       </footer>
 

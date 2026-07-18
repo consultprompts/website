@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, ArrowRight, ArrowUpRight } from 'lucide-react';
+import Reveal from './Reveal';
 
 // High-fashion editorial hair studio. Blush/black, oversized mixed type,
 // asymmetric lookbook gallery.
@@ -69,6 +70,7 @@ export default function LumiereTemplate() {
       </header>
 
       {/* Hero — oversized editorial type over blush, mixed sans/serif */}
+      <Reveal>
       <div className="px-6 pt-16 pb-12 @md:pt-24 @md:pb-16">
         <div className="max-w-3xl mx-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-6" style={{ color: INK_SOFT }}>Hair studio · Issue № 12</p>
@@ -88,8 +90,10 @@ export default function LumiereTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Asymmetric lookbook gallery — staggered heights and offsets */}
+      <Reveal>
       <div className="px-6 pb-20">
         <div className="max-w-3xl mx-auto grid grid-cols-2 @md:grid-cols-4 gap-4 items-start">
           {GALLERY.map((g, i) => (
@@ -110,8 +114,10 @@ export default function LumiereTemplate() {
           ))}
         </div>
       </div>
+      </Reveal>
 
       {/* Services — black band, big index numbers, editorial rows */}
+      <Reveal>
       <div className="px-6 py-20" style={{ background: BLACK, color: BLUSH }}>
         <div className="max-w-2xl mx-auto">
           <p className="text-[10px] font-black uppercase tracking-[0.4em] mb-10" style={{ color: '#A88F89' }}>Services</p>
@@ -129,8 +135,10 @@ export default function LumiereTemplate() {
           </p>
         </div>
       </div>
+      </Reveal>
 
       {/* Manifesto quote */}
+      <Reveal>
       <div className="px-6 py-20 text-center">
         <div className="max-w-xl mx-auto">
           <p className="text-2xl @md:text-3xl italic leading-snug mb-6" style={{ fontFamily: SERIF }}>
@@ -139,8 +147,10 @@ export default function LumiereTemplate() {
           <p className="text-[10px] font-black uppercase tracking-[0.3em]" style={{ color: INK_SOFT }}>Amélie Laurent — Creative director</p>
         </div>
       </div>
+      </Reveal>
 
       {/* Booking strip */}
+      <Reveal>
       <div className="px-6 py-16" style={{ background: BLUSH_DEEP }}>
         <div className="max-w-2xl mx-auto flex flex-col @md:flex-row items-center justify-between gap-6">
           <div>
@@ -152,6 +162,7 @@ export default function LumiereTemplate() {
           </button>
         </div>
       </div>
+      </Reveal>
 
       {/* Footer */}
       <footer className="border-t px-6 py-10" style={{ borderColor: LINE }}>

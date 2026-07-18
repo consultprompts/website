@@ -18,39 +18,23 @@ export default function Hero() {
     <header id="hero" className="relative overflow-hidden">
       <AuroraBackground />
 
-      <div className="relative z-10 max-w-4xl mx-auto w-full flex flex-col items-center text-center pt-40 pb-20 px-7">
+      <div className="relative z-10 max-w-4xl mx-auto min-h-[calc(100vh-50px)] w-full flex flex-col items-center text-center pt-25 md:pt-20 px-7">
         <p className="text-brand-primary text-xs font-bold uppercase tracking-widest mb-6">
           Local Web Design — Live in 72 Hours
         </p>
-        <h1 className="font-display font-black leading-[0.95] tracking-[-0.03em] mb-6 text-white text-5xl sm:text-6xl md:text-7xl xl:text-[5.5rem]">
+        <h1 className="font-display font-black leading-[0.95] tracking-[-0.03em] md:px-20 xl:px-0 mb-10 text-white text-5xl sm:text-5xl md:text-7xl xl:text-[5.5rem]">
           A website your neighbors{' '} <span className="text-gradient">actually</span> use.
         </h1>
         <p className="text-ink-muted text-base md:text-lg leading-relaxed mb-10 max-w-lg">
           We build fast, no-nonsense sites for local businesses. Three days, three prices, no agency overhead.
         </p>
-        <div className="flex flex-col sm:flex-row gap-4 justify-center">
+        <div className="flex flex-col sm:flex-row pt-20 sm:pt-10 gap-4 justify-center">
           <CustomButton onClick={() => scrollTo('pricing')} arrow>
             See pricing
           </CustomButton>
           <CustomButton onClick={() => scrollTo('showcase')} variant="outline">
             View live showcase
           </CustomButton>
-        </div>
-      </div>
-
-      {/* Stats strip */}
-      <div className="relative z-20 border-y border-white/5 bg-bg-base/50 backdrop-blur-sm">
-        <div className="max-w-4xl mx-auto px-6 py-10 grid grid-cols-2 sm:grid-cols-4 gap-8 text-center">
-          {STATS.map(({ value, label }) => (
-            <div key={label}>
-              <p className="text-3xl md:text-4xl font-black text-white">
-                {value}
-              </p>
-              <p className="text-[10px] uppercase tracking-widest text-ink-muted mt-1.5">
-                {label}
-              </p>
-            </div>
-          ))}
         </div>
       </div>
     </header>

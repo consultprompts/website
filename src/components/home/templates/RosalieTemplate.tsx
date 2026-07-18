@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Menu, X, MapPin, Clock, Phone, Wine } from 'lucide-react';
+import Reveal from './Reveal';
 
 // Moody candlelit bistro. Deep forest green with terracotta, cream serif
 // type, elegant dotted-leader menu lists.
@@ -74,6 +75,7 @@ export default function RosalieTemplate() {
       </header>
 
       {/* Hero — candlelit photo sunk into the green, italic serif */}
+      <Reveal>
       <div className="relative overflow-hidden">
         <img
           src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?auto=format&fit=crop&q=80&w=1200"
@@ -101,8 +103,10 @@ export default function RosalieTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Menu — elegant dotted-leader list */}
+      <Reveal>
       <div className="px-6 py-16 max-w-xl mx-auto">
         <p className="text-center text-[11px] font-bold tracking-[0.25em] mb-3" style={{ color: TERRA_SOFT }}>DINNER · TUESDAY THROUGH SUNDAY</p>
         <h4 className="text-3xl text-center italic mb-12" style={{ fontFamily: SERIF }}>La carte</h4>
@@ -124,8 +128,10 @@ export default function RosalieTemplate() {
           </span>
         </p>
       </div>
+      </Reveal>
 
       {/* Evenings — terracotta band */}
+      <Reveal>
       <div className="px-6 py-16" style={{ background: TERRA }}>
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-center gap-2 mb-3">
@@ -144,8 +150,10 @@ export default function RosalieTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Story — split with photo */}
+      <Reveal>
       <div className="px-6 py-16" style={{ background: FOREST_DEEP }}>
         <div className="max-w-2xl mx-auto grid grid-cols-1 @md:grid-cols-2 gap-10 items-center">
           <div className="overflow-hidden rounded-2xl group cursor-pointer">
@@ -170,8 +178,10 @@ export default function RosalieTemplate() {
           </div>
         </div>
       </div>
+      </Reveal>
 
       {/* Hours, location, contact */}
+      <Reveal>
       <div className="px-6 py-16 max-w-3xl mx-auto grid grid-cols-1 @md:grid-cols-3 gap-8 text-sm">
         {[
           { icon: Clock, title: 'Hours', body: <>Tue–Sat · 5pm–11pm<br />Sunday brunch · 10am–2pm<br />Closed Mondays</> },
@@ -187,6 +197,7 @@ export default function RosalieTemplate() {
           </div>
         ))}
       </div>
+      </Reveal>
 
       {/* Footer */}
       <footer className="border-t px-6 py-10" style={{ borderColor: LINE, background: FOREST_DEEP }}>

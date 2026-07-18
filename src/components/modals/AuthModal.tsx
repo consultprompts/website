@@ -81,7 +81,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
       {isOpen && (
         <div className="fixed inset-0 z-[110] overflow-y-auto flex items-start md:items-center justify-center p-4 md:p-6 py-12 md:py-6">
           <div onClick={handleClose} className="fixed inset-0 bg-bg-base/95 backdrop-blur-md cursor-pointer"/>
-          <div className="relative w-full max-w-sm p-6 md:p-10 rounded-xl border-brand-primary/30 z-10 my-auto shadow-2xl">
+          <div className="relative w-full max-w-sm p-6 md:p-10 rounded-xl border border-white/10 z-10 my-auto shadow-2xl">
             {/* Forgot password flow */}
             {isForgot ? (
               forgotSent ? (
@@ -108,9 +108,6 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
               ) : (
                 <>
                   <div className="text-center mb-6 md:mb-8">
-                    <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
-                      <KeyRound className="w-6 h-6 md:w-8 md:h-8 text-brand-primary" />
-                    </div>
                     <h3 className="font-display text-2xl md:text-3xl font-bold italic mb-1 md:mb-2 tracking-tight">Forgot Password</h3>
                     <p className="text-ink-muted text-xs md:text-sm font-light">Enter your email and we'll send a reset link.</p>
                   </div>
@@ -123,7 +120,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                         type="email"
                         value={forgotEmail}
                         onChange={(e) => setForgotEmail(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm rounded-xl"
+                        className="w-full bg-bg-base border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm rounded-xl"
                         placeholder="john@example.com"
                       />
                     </div>
@@ -171,9 +168,6 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
             ) : (
               <>
                 <div className="text-center mb-6 md:mb-8">
-                  <div className="w-12 h-12 md:w-16 md:h-16 bg-brand-primary/10 rounded-full flex items-center justify-center mx-auto mb-4 md:mb-6">
-                    <UserIcon className="w-6 h-6 md:w-8 md:h-8 text-brand-primary" />
-                  </div>
                   <h3 className="font-display text-2xl md:text-3xl font-bold italic mb-1 md:mb-2 tracking-tight">
                     {mode === 'login' ? 'Welcome Back' : 'Join the Agency'}
                   </h3>
@@ -189,7 +183,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                       required
                       name="email"
                       type="email"
-                      className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm rounded-xl"
+                      className="w-full bg-bg-base border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm rounded-xl"
                       placeholder="john@example.com"
                     />
                   </div>
@@ -201,7 +195,7 @@ export default function AuthModal({ isOpen, mode, onModeChange, onClose, onSucce
                         name="password"
                         minLength={8}
                         type={showPassword ? 'text' : 'password'}
-                        className="w-full bg-white/5 border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm pr-10 rounded-xl"
+                        className="w-full bg-bg-base border border-white/10 p-2.5 md:p-3 font-light focus:border-brand-primary outline-none transition-colors text-sm pr-10 rounded-xl"
                         placeholder="••••••••"
                       />
                       <CustomButton

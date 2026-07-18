@@ -50,6 +50,29 @@ html.light .navbar-logo {
   filter: brightness(0);
 }
 
+/* Chrome/Edge paint autofilled inputs with their own yellow background, which
+   overrides any background we set. The inset box-shadow covers that paint
+   with the theme's base color, and -webkit-text-fill-color keeps the typed
+   text readable in both modes. */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus {
+  -webkit-box-shadow: 0 0 0 1000px var(--color-bg-base) inset;
+  -webkit-text-fill-color: var(--color-ink-base);
+  caret-color: var(--color-ink-base);
+  /* The inset shadow alone leaves a yellow rim at rounded corners (the
+     shadow can't cover the anti-aliased edge of Chrome's autofill paint).
+     A near-infinite transition stops the yellow background/text colors from
+     ever visibly applying in the first place. */
+  transition: background-color 9999999s ease-in-out 0s, color 9999999s ease-in-out 0s;
+}
+/* Standards variant (Firefox). Kept as a separate rule: browsers drop an
+   entire selector list when one pseudo-class is unrecognized. */
+input:autofill {
+  box-shadow: 0 0 0 1000px var(--color-bg-base) inset;
+  caret-color: var(--color-ink-base);
+}
+
 html.light .text-white,
 html.light .hover\:text-white:hover {
   color: var(--color-ink-base);
